@@ -1,0 +1,1679 @@
+/* Linkwarden Highlight Styles - Injected by Content Script */
+
+/* Highlight colors - using !important to override page styles */
+/* ARMOR PROTOCOL: Aggressive defensive reset for ZERO layout impact */
+/* Prevents layout corruption in tables (Wikipedia) and lists (GitHub) */
+.ext-lw-highlight-yellow {
+    /* Visual Style */
+    background-color: rgba(234, 179, 8, 0.6) !important;
+    color: inherit !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease !important;
+
+    /* Core Layout Neutralization */
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    line-height: inherit !important;
+    vertical-align: baseline !important;
+
+    /* Defensive Resets (Prevent site CSS leakage) */
+    float: none !important;
+    position: static !important;
+    height: auto !important;
+    width: auto !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    max-width: none !important;
+    box-sizing: content-box !important;
+    box-shadow: none !important;
+    outline: none !important;
+    text-decoration: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    letter-spacing: inherit !important;
+    word-spacing: inherit !important;
+    text-transform: inherit !important;
+
+    /* Ensure background wraps correctly across lines */
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+}
+
+.ext-lw-highlight-yellow:hover {
+    background-color: rgba(234, 179, 8, 0.8) !important;
+}
+
+.ext-lw-highlight-red {
+    /* Visual Style */
+    background-color: rgba(239, 68, 68, 0.6) !important;
+    color: inherit !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease !important;
+
+    /* Core Layout Neutralization */
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    line-height: inherit !important;
+    vertical-align: baseline !important;
+
+    /* Defensive Resets (Prevent site CSS leakage) */
+    float: none !important;
+    position: static !important;
+    height: auto !important;
+    width: auto !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    max-width: none !important;
+    box-sizing: content-box !important;
+    box-shadow: none !important;
+    outline: none !important;
+    text-decoration: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    letter-spacing: inherit !important;
+    word-spacing: inherit !important;
+    text-transform: inherit !important;
+
+    /* Ensure background wraps correctly across lines */
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+}
+
+.ext-lw-highlight-red:hover {
+    background-color: rgba(239, 68, 68, 0.8) !important;
+}
+
+.ext-lw-highlight-blue {
+    /* Visual Style */
+    background-color: rgba(59, 130, 246, 0.6) !important;
+    color: inherit !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease !important;
+
+    /* Core Layout Neutralization */
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    line-height: inherit !important;
+    vertical-align: baseline !important;
+
+    /* Defensive Resets (Prevent site CSS leakage) */
+    float: none !important;
+    position: static !important;
+    height: auto !important;
+    width: auto !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    max-width: none !important;
+    box-sizing: content-box !important;
+    box-shadow: none !important;
+    outline: none !important;
+    text-decoration: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    letter-spacing: inherit !important;
+    word-spacing: inherit !important;
+    text-transform: inherit !important;
+
+    /* Ensure background wraps correctly across lines */
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+}
+
+.ext-lw-highlight-blue:hover {
+    background-color: rgba(59, 130, 246, 0.8) !important;
+}
+
+.ext-lw-highlight-green {
+    /* Visual Style */
+    background-color: rgba(34, 197, 94, 0.6) !important;
+    color: inherit !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease !important;
+
+    /* Core Layout Neutralization */
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    line-height: inherit !important;
+    vertical-align: baseline !important;
+
+    /* Defensive Resets (Prevent site CSS leakage) */
+    float: none !important;
+    position: static !important;
+    height: auto !important;
+    width: auto !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    max-width: none !important;
+    box-sizing: content-box !important;
+    box-shadow: none !important;
+    outline: none !important;
+    text-decoration: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    letter-spacing: inherit !important;
+    word-spacing: inherit !important;
+    text-transform: inherit !important;
+
+    /* Ensure background wraps correctly across lines */
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+}
+
+.ext-lw-highlight-green:hover {
+    background-color: rgba(34, 197, 94, 0.8) !important;
+}
+
+/* Comment indicator border */
+.ext-lw-has-comment {
+    border-bottom: 2px solid currentColor !important;
+}
+
+.ext-lw-highlight-yellow.ext-lw-has-comment {
+    border-bottom-color: rgb(234, 179, 8) !important;
+}
+
+.ext-lw-highlight-red.ext-lw-has-comment {
+    border-bottom-color: rgb(239, 68, 68) !important;
+}
+
+.ext-lw-highlight-blue.ext-lw-has-comment {
+    border-bottom-color: rgb(59, 130, 246) !important;
+}
+
+.ext-lw-highlight-green.ext-lw-has-comment {
+    border-bottom-color: rgb(34, 197, 94) !important;
+}
+
+/* Hiding highlights mechanism */
+body.ext-spark-highlights-hidden .ext-lw-highlight-yellow,
+body.ext-spark-highlights-hidden .ext-lw-highlight-red,
+body.ext-spark-highlights-hidden .ext-lw-highlight-blue,
+body.ext-spark-highlights-hidden .ext-lw-highlight-green {
+    background-color: transparent !important;
+    /* Reset cursor to normal text cursor when highlights are hidden */
+    cursor: text !important;
+}
+
+body.ext-spark-highlights-hidden .ext-lw-has-comment {
+    border-bottom: none !important;
+}
+
+/* Floating Toolbox */
+/* Floating Toolbox */
+.ext-lw-toolbox {
+    position: absolute !important;
+    z-index: 2147483647 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    /* transform and margin-top controlled by JS for dynamic positioning */
+    box-sizing: border-box !important;
+    line-height: normal !important;
+    font-size: 14px !important;
+    /* Reset inherited properties */
+    color: #333 !important;
+    text-align: left !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+    text-transform: none !important;
+    text-decoration: none !important;
+    white-space: normal !important;
+}
+
+/* Dark mode support - system preference */
+/* Dark mode support - system preference */
+/* Handled by .ext-lw-dark class now - removed legacy override */
+
+/* Dark mode support - page theme (via ext-lw-dark class) */
+.ext-lw-toolbox.ext-lw-dark {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    color: inherit !important;
+    box-shadow: none !important;
+}
+
+/* Light mode support - page theme (via ext-lw-light class) - overrides system dark preference */
+.ext-lw-toolbox.ext-lw-light {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    color: inherit !important;
+    box-shadow: none !important;
+}
+
+.ext-lw-toolbox-hidden {
+    display: none !important;
+}
+
+/* Color buttons */
+.ext-lw-color-btn {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
+    border-radius: 50% !important;
+    border: 1.5px solid rgba(0, 0, 0, 0.25) !important;
+    cursor: pointer !important;
+    transition: opacity 0.15s ease, transform 0.1s ease !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    outline: none !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Dark mode shadow for color buttons */
+@media (prefers-color-scheme: dark) {
+    .ext-lw-color-btn {
+        box-shadow: 0 2px 6px rgba(255, 255, 255, 0.4) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+    }
+}
+
+.ext-lw-dark .ext-lw-color-btn {
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.4) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.ext-lw-light .ext-lw-color-btn {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+.ext-lw-color-btn:hover {
+    opacity: 0.7 !important;
+    transform: scale(1.1) !important;
+}
+
+.ext-lw-color-btn-yellow {
+    background-color: rgb(253, 224, 71) !important;
+}
+
+.ext-lw-color-btn-red {
+    background-color: rgb(239, 68, 68) !important;
+}
+
+.ext-lw-color-btn-blue {
+    background-color: rgb(59, 130, 246) !important;
+}
+
+.ext-lw-color-btn-green {
+    background-color: rgb(34, 197, 94) !important;
+}
+
+/* Active color indicator */
+.ext-lw-color-btn-active::after {
+    content: '✓' !important;
+    color: #000 !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+}
+
+/* Icon buttons */
+.ext-lw-icon-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px !important;
+    transition: background-color 0.15s ease;
+    color: #444;
+}
+
+.ext-lw-icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .ext-lw-icon-btn {
+        color: #ccc;
+    }
+
+    .ext-lw-icon-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Icon buttons - page theme dark mode */
+.ext-lw-dark .ext-lw-icon-btn {
+    color: #ccc;
+}
+
+.ext-lw-dark .ext-lw-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Icon buttons - page theme light mode (override system dark) */
+.ext-lw-light .ext-lw-icon-btn {
+    color: #444;
+}
+
+.ext-lw-light .ext-lw-icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure SVG icons display at their specified size */
+.ext-lw-icon-btn svg {
+    width: auto !important;
+    height: auto !important;
+    flex-shrink: 0 !important;
+}
+
+/* Link button with badge support */
+.ext-lw-link-btn {
+    position: relative !important;
+}
+
+/* Link count badge */
+.ext-lw-link-badge {
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    background: #3b82f6 !important;
+    color: white !important;
+    border-radius: 8px !important;
+    /* Pill shape for 2+ chars */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    padding: 0 5px !important;
+    /* Slightly more padding for 2 chars */
+    box-sizing: border-box !important;
+    border: 1.5px solid white !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    line-height: 1 !important;
+}
+
+/* Dark mode badge border */
+@media (prefers-color-scheme: dark) {
+    .ext-lw-link-badge {
+        border-color: #1f1f1f !important;
+    }
+}
+
+.ext-lw-dark .ext-lw-link-badge {
+    border-color: #1f1f1f !important;
+}
+
+.ext-lw-light .ext-lw-link-badge {
+    border-color: #ffffff !important;
+}
+
+/* Comment mode */
+.ext-lw-toolbox-comment-mode {
+    flex-direction: column;
+    gap: 12px;
+    min-width: 280px;
+    min-height: 160px;
+}
+
+.ext-lw-comment-textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+    color: #333;
+    flex: 1;
+}
+
+.ext-lw-comment-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+    .ext-lw-comment-textarea {
+        background: #2a2a2a;
+        border-color: #3f3f3f;
+        color: #eee;
+    }
+}
+
+/* Comment textarea - page theme dark mode */
+.ext-lw-dark .ext-lw-comment-textarea {
+    background: #2a2a2a;
+    border-color: #3f3f3f;
+    color: #eee;
+}
+
+/* Comment textarea - page theme light mode (override system dark) */
+.ext-lw-light .ext-lw-comment-textarea {
+    background: #fff;
+    border-color: #d0d0d0;
+    color: #333;
+}
+
+.ext-lw-comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.ext-lw-btn {
+    padding: 6px 12px;
+    border-radius: 6px !important;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.15s ease;
+}
+
+.ext-lw-btn:hover {
+    opacity: 0.8;
+}
+
+.ext-lw-btn-ghost {
+    background: transparent;
+    color: #666;
+}
+
+.ext-lw-btn-primary {
+    background: #3b82f6;
+    color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+    .ext-lw-btn-ghost {
+        color: #aaa;
+    }
+}
+
+/* Buttons - page theme dark mode */
+.ext-lw-dark .ext-lw-btn-ghost {
+    color: #aaa;
+}
+
+/* Buttons - page theme light mode (override system dark) */
+.ext-lw-light .ext-lw-btn-ghost {
+    color: #666;
+}
+
+/* Loading indicator */
+.ext-lw-loading {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e5e5e5;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: ext-lw-spin 0.8s linear infinite;
+}
+
+@keyframes ext-lw-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Success checkmark indicator */
+.ext-lw-success {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+    /* Same blue as spinner */
+    font-size: 16px;
+    font-weight: bold;
+    animation: ext-lw-pop-in 0.2s ease;
+}
+
+@keyframes ext-lw-pop-in {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Toast notification */
+.ext-lw-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2147483647 !important;
+    background: #1f1f1f;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: ext-lw-slide-in 0.3s ease;
+}
+
+.ext-lw-toast-success {
+    background: #22c55e;
+}
+
+.ext-lw-toast-error {
+    background: #ef4444;
+}
+
+@keyframes ext-lw-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Save Notification Toast Animations */
+@keyframes ext-lw-slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes ext-lw-slide-out-right {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+@keyframes ext-lw-expand-stack {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================= SMART CAPTURE MODE ================= */
+
+/* Body class when Smart Capture is active */
+.ext-lw-capture-mode-active {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIj4KICA8ZGVmcz4KICAgIDxmaWx0ZXIgaWQ9InNoYWRvdyIgeD0iLTUwJSIgeT0iLTUwJSIgd2lkdGg9IjIwMCUiIGhlaWdodD0iMjAwJSI+CiAgICAgIDxmZURyb3BTaGFkb3cgZHg9IjEiIGR5PSIxIiBzdGREZXZpYXRpb249IjEiIGZsb29kLWNvbG9yPSJibGFjayIgZmxvb2Qtb3BhY2l0eT0iMC40Ii8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CiAgPGcgZmlsdGVyPSJ1cmwoI3NoYWRvdykiPgogICAgPCEtLSBDb3JuZXJzIC0tPgogICAgPHBhdGggZD0iTTQgOVY2YTIgMiAwIDAgMSAyLTJoMyBNMTUgNGgzYTIgMiAwIDAgMSAyIDJ2MyBNMjAgMTV2M2EyIDIgMCAwIDEtMiAyaC0zIE05IDIwSDZhMiAyIDAgMCAxLTItMnYtMyIgCiAgICAgICAgICBzdHJva2U9IiM4OGEzZTgiIAogICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyLjAiIAogICAgICAgICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiAKICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICAgIDwhLS0gQ2VudGVyIERvdCAtLT4KICAgIDxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjIuMCIgZmlsbD0iIzg4YTNlOCIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgo8L3N2Zz4=') 12 12, auto !important;
+}
+
+.ext-lw-capture-mode-active * {
+    cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIj4KICA8ZGVmcz4KICAgIDxmaWx0ZXIgaWQ9InNoYWRvdyIgeD0iLTUwJSIgeT0iLTUwJSIgd2lkdGg9IjIwMCUiIGhlaWdodD0iMjAwJSI+CiAgICAgIDxmZURyb3BTaGFkb3cgZHg9IjEiIGR5PSIxIiBzdGREZXZpYXRpb249IjEiIGZsb29kLWNvbG9yPSJibGFjayIgZmxvb2Qtb3BhY2l0eT0iMC40Ii8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CiAgPGcgZmlsdGVyPSJ1cmwoI3NoYWRvdykiPgogICAgPCEtLSBDb3JuZXJzIC0tPgogICAgPHBhdGggZD0iTTQgOVY2YTIgMiAwIDAgMSAyLTJoMyBNMTUgNGgzYTIgMiAwIDAgMSAyIDJ2MyBNMjAgMTV2M2EyIDIgMCAwIDEtMiAyaC0zIE05IDIwSDZhMiAyIDAgMCAxLTItMnYtMyIgCiAgICAgICAgICBzdHJva2U9IiM4OGEzZTgiIAogICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyLjAiIAogICAgICAgICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiAKICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICAgIDwhLS0gQ2VudGVyIERvdCAtLT4KICAgIDxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjIuMCIgZmlsbD0iIzg4YTNlOCIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgo8L3N2Zz4=') 12 12, auto !important;
+}
+
+/* Exclude Linkwarden UI elements from crosshair cursor */
+.ext-lw-capture-mode-active .ext-lw-toolbox,
+.ext-lw-capture-mode-active .ext-lw-toolbox *,
+.ext-lw-capture-mode-active .ext-lw-capture-actionbar,
+.ext-lw-capture-mode-active .ext-lw-capture-actionbar *,
+.ext-lw-capture-mode-active #ext-lw-capture-actionbar-host,
+.ext-lw-capture-mode-active #ext-lw-capture-actionbar-host *,
+.ext-lw-capture-mode-active #spark-embedded-host *,
+.ext-lw-capture-mode-active .ext-lw-toast *,
+.ext-lw-capture-mode-active [data-radix-portal] *,
+.ext-lw-capture-mode-active [role="menu"] *,
+.ext-lw-capture-mode-active [role="dialog"] * {
+    cursor: auto !important;
+}
+
+.ext-lw-capture-mode-active #spark-embedded-host,
+.ext-lw-capture-mode-active .ext-lw-toast,
+.ext-lw-capture-mode-active [data-radix-portal],
+.ext-lw-capture-mode-active [role="menu"],
+.ext-lw-capture-mode-active [role="dialog"] {
+    cursor: auto !important;
+    pointer-events: auto !important;
+}
+
+.ext-lw-capture-mode-active .ext-lw-toolbox button,
+.ext-lw-capture-mode-active .ext-lw-capture-actionbar button,
+.ext-lw-capture-mode-active #spark-embedded-host button,
+.ext-lw-capture-mode-active .ext-lw-toast button,
+.ext-lw-capture-mode-active [data-radix-portal] button,
+.ext-lw-capture-mode-active [role="menu"] button,
+.ext-lw-capture-mode-active [role="dialog"] button,
+.ext-lw-capture-mode-active .ext-lw-color-btn,
+.ext-lw-capture-mode-active .ext-lw-icon-btn,
+.ext-lw-capture-mode-active .ext-lw-btn {
+    cursor: pointer !important;
+}
+
+.ext-lw-capture-mode-active .ext-lw-toolbox textarea,
+.ext-lw-capture-mode-active .ext-lw-toolbox input {
+    cursor: text !important;
+}
+
+/* Force interactivity to prevent background selection */
+#ext-lw-highlight-toolbox {
+    pointer-events: auto !important;
+    z-index: 2147483647 !important;
+}
+
+.ext-lw-capture-mode-active #ext-lw-highlight-toolbox,
+.ext-lw-capture-mode-active #ext-lw-highlight-toolbox * {
+    pointer-events: auto !important;
+    cursor: default !important;
+}
+
+.ext-lw-capture-mode-active #ext-lw-highlight-toolbox button {
+    cursor: pointer !important;
+}
+
+/* Capture Overlay */
+.ext-lw-capture-overlay {
+    position: fixed !important;
+    z-index: 2147483646 !important;
+    pointer-events: none !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    border: 2px solid #3b82f6 !important;
+    border-radius: 4px !important;
+    transition: all 0.1s ease !important;
+    box-sizing: border-box !important;
+}
+
+.ext-lw-capture-overlay-hidden {
+    display: none !important;
+}
+
+.ext-lw-capture-overlay-locked {
+    background: repeating-linear-gradient(45deg,
+            rgba(59, 130, 246, 0.1),
+            rgba(59, 130, 246, 0.1) 5px,
+            rgba(59, 130, 246, 0.2) 5px,
+            rgba(59, 130, 246, 0.2) 10px) !important;
+    border-color: #2563eb !important;
+    border-width: 3px !important;
+}
+
+/* Target icon in center of overlay */
+.ext-lw-capture-target-icon {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    color: #3b82f6 !important;
+    opacity: 0.7 !important;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3)) !important;
+}
+
+/* Action Bar */
+.ext-lw-capture-actionbar {
+    position: relative !important;
+    z-index: 2147483647 !important;
+    /* Match link dropdown styling */
+    background: #ffffff !important;
+    border: 1.5px solid #b8b8b8 !important;
+    border-radius: 8px !important;
+    /* Overflow must be visible for dropdowns to appear outside */
+    overflow: visible !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    min-width: 200px !important;
+    box-sizing: border-box !important;
+    /* Base state - visible */
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    /* Theme transitions only */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+    /* Prevent inheriting crosshair/target cursor from page */
+    cursor: default !important;
+    /* Prevent inheriting crosshair/target cursor from page */
+    cursor: default !important;
+}
+
+/* Enforce default cursor on all children unless overridden */
+.ext-lw-capture-actionbar * {
+    cursor: default !important;
+}
+
+/* Opening animation */
+@keyframes ext-lw-actionbar-fadein {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Closing animation */
+@keyframes ext-lw-actionbar-fadeout {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.95);
+    }
+}
+
+/* Apply opening animation */
+.ext-lw-capture-actionbar.ext-lw-animating-open {
+    animation: ext-lw-actionbar-fadein 0.2s ease-out forwards !important;
+}
+
+/* Apply closing animation */
+.ext-lw-capture-actionbar.ext-lw-animating-close {
+    animation: ext-lw-actionbar-fadeout 0.15s ease-in forwards !important;
+    pointer-events: none !important;
+}
+
+/* Dark mode for action bar (both classes on same element) */
+.ext-lw-capture-actionbar.ext-lw-dark {
+    background: #1f1f1f !important;
+    border-color: #606060 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Light mode for action bar (both classes on same element) */
+.ext-lw-capture-actionbar.ext-lw-light {
+    background: #ffffff !important;
+    border-color: #b8b8b8 !important;
+}
+
+/* Hidden state (after close animation or initially) */
+.ext-lw-capture-actionbar-hidden {
+    opacity: 0 !important;
+    transform: translateY(-8px) scale(0.95) !important;
+    pointer-events: none !important;
+    display: none !important;
+    animation: none !important;
+}
+
+/* Action bar header actions container */
+.ext-lw-capture-actionbar-header-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+/* Action bar header with back and close buttons */
+.ext-lw-capture-actionbar-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 12px !important;
+    border-bottom: 1.5px solid #b8b8b8 !important;
+}
+
+.ext-lw-capture-actionbar-title-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.ext-lw-capture-actionbar-icon {
+    width: 20px !important;
+    height: 20px !important;
+    display: block !important;
+    border-radius: 3px !important;
+}
+
+.ext-lw-capture-actionbar-title {
+    font-size: 12px !important;
+    /* Matched to items */
+    font-weight: 400 !important;
+    /* Regular weight like items */
+    color: #666 !important;
+    /* Removed text-transform to avoid locale issues */
+    letter-spacing: 0.5px !important;
+}
+
+.ext-lw-capture-action-header-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 22px !important;
+    height: 22px !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    color: #666 !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.ext-lw-capture-action-header-btn:hover {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    color: #333 !important;
+}
+
+/* Light mode header */
+.ext-lw-capture-actionbar.ext-lw-light .ext-lw-capture-actionbar-header {
+    border-bottom-color: #b8b8b8 !important;
+}
+
+.ext-lw-capture-actionbar.ext-lw-light .ext-lw-capture-actionbar-title {
+    color: #333 !important;
+    /* Match action button text (#333) */
+}
+
+.ext-lw-capture-actionbar.ext-lw-light .ext-lw-capture-action-header-btn {
+    color: #666 !important;
+}
+
+.ext-lw-capture-actionbar.ext-lw-light .ext-lw-capture-action-header-btn:hover {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    color: #333 !important;
+}
+
+/* Dark mode header */
+.ext-lw-capture-actionbar.ext-lw-dark .ext-lw-capture-actionbar-header {
+    border-bottom-color: #606060 !important;
+}
+
+.ext-lw-capture-actionbar.ext-lw-dark .ext-lw-capture-actionbar-title {
+    color: #eee !important;
+    /* Match action button text (#eee) */
+}
+
+.ext-lw-capture-actionbar.ext-lw-dark .ext-lw-capture-action-header-btn {
+    color: #aaa !important;
+}
+
+.ext-lw-capture-actionbar.ext-lw-dark .ext-lw-capture-action-header-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #eee !important;
+}
+
+/* Action bar actions container */
+.ext-lw-capture-actionbar-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+}
+
+/* Action buttons */
+.ext-lw-capture-action-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    border: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    border-radius: 0 !important;
+    cursor: pointer !important;
+    color: #333 !important;
+    font-size: 12px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    transition: background-color 0.15s ease !important;
+    width: 100% !important;
+    text-align: left !important;
+    /* Divider between buttons */
+    border-bottom: 1.5px solid #b8b8b8 !important;
+}
+
+
+.ext-lw-capture-action-btn:last-child {
+    border-bottom: none !important;
+}
+
+/* Also remove border if the button is inside the last container (dropdown wrapper) */
+.ext-lw-capture-actionbar-actions> :last-child .ext-lw-capture-action-btn {
+    border-bottom: none !important;
+}
+
+.ext-lw-capture-action-btn:hover {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Ensure children of button (text, etc) inherit pointer */
+.ext-lw-capture-action-btn * {
+    cursor: inherit !important;
+}
+
+.ext-lw-capture-action-btn svg {
+    flex-shrink: 0 !important;
+    color: #555 !important;
+}
+
+/* Light mode action buttons */
+.ext-lw-capture-actionbar.ext-lw-light .ext-lw-capture-action-btn {
+    color: #333 !important;
+    border-bottom-color: #b8b8b8 !important;
+}
+
+.ext-lw-capture-actionbar.ext-lw-light .ext-lw-capture-action-btn svg {
+    color: #555 !important;
+}
+
+/* Dark mode action buttons */
+.ext-lw-capture-actionbar.ext-lw-dark .ext-lw-capture-action-btn {
+    color: #eee !important;
+    border-bottom-color: #606060 !important;
+}
+
+.ext-lw-capture-actionbar.ext-lw-dark .ext-lw-capture-action-btn svg {
+    color: #aaa !important;
+}
+
+.ext-lw-capture-actionbar.ext-lw-dark .ext-lw-capture-action-btn:hover {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Close button (legacy) */
+.ext-lw-capture-action-close {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    width: 24px !important;
+    height: 24px !important;
+    padding: 4px !important;
+    justify-content: center !important;
+}
+
+/* ===== Multi-Link Dropdown ===== */
+
+/* Container for save link with dropdown */
+.ext-lw-capture-save-link-container {
+    position: relative !important;
+    width: 100% !important;
+    /* Proper stacking: ensure hovered container is ALWAYS on top of siblings */
+    transition: z-index 0s step-start !important;
+}
+
+.ext-lw-capture-save-link-container:hover {
+    z-index: 2147483647 !important;
+}
+
+/* Button with dropdown indicator */
+.ext-lw-capture-action-btn-dropdown {
+    padding-right: 10px !important;
+}
+
+/* Link count badge */
+.ext-lw-capture-action-btn .ext-lw-link-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #3b82f6 !important;
+    color: #fff !important;
+    font-size: 9px !important;
+    font-weight: 600 !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    border-radius: 8px !important;
+    padding: 0 4px !important;
+    margin-left: auto !important;
+}
+
+/* Dropdown menu - opens to the right */
+/* Dropdown menu - opens to the right */
+.ext-lw-capture-link-dropdown {
+    position: absolute !important;
+    top: 0 !important;
+    left: 100% !important;
+    margin-left: 4px !important;
+    min-width: 220px !important;
+    max-width: 300px !important;
+    background: #ffffff !important;
+    border: 1.5px solid #b8b8b8 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    z-index: 2147483647 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    opacity: 1 !important;
+    transform: translateX(0) scale(1) !important;
+    transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Invisible bridge to cover the 4px gap */
+.ext-lw-capture-link-dropdown::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -10px !important;
+    width: 15px !important;
+    height: 100% !important;
+    background: transparent !important;
+    z-index: -1 !important;
+}
+
+
+
+/* Hidden state */
+.ext-lw-capture-link-dropdown-hidden {
+    opacity: 0 !important;
+    transform: translateX(-8px) scale(0.95) !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* CSS-only hover: Show dropdown when container has active class (JS controls this) */
+.ext-lw-capture-save-link-container.ext-lw-dropdown-active .ext-lw-capture-link-dropdown {
+    opacity: 1 !important;
+    transform: translateX(0) scale(1) !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+}
+
+/* Scrollable area - max 7 items visible (~280px) */
+.ext-lw-capture-link-dropdown-scroll {
+    max-height: 280px !important;
+    overflow-y: auto !important;
+    flex: 1 !important;
+    overscroll-behavior: contain !important;
+}
+
+/* Individual link item */
+.ext-lw-capture-link-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    border: none !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    text-align: left !important;
+    font-size: 12px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    color: #333 !important;
+    transition: background-color 0.15s ease !important;
+    border-bottom: 1px solid #e8e8e8 !important;
+}
+
+.ext-lw-capture-link-item:last-child {
+    border-bottom: none !important;
+}
+
+.ext-lw-capture-link-item:hover {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+.ext-lw-capture-link-item svg {
+    flex-shrink: 0 !important;
+    color: #666 !important;
+    width: 14px !important;
+    height: 14px !important;
+}
+
+.ext-lw-capture-link-url {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    flex: 1 !important;
+}
+
+/* "All" button - sticky at bottom */
+.ext-lw-capture-link-all {
+    padding: 8px 12px !important;
+    border: none !important;
+    border-top: 1.5px solid #b8b8b8 !important;
+    background: #f5f5f5 !important;
+    color: #3b82f6 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    border-radius: 0 0 6px 6px !important;
+    transition: background-color 0.15s ease !important;
+}
+
+.ext-lw-capture-link-all:hover {
+    background: #e8e8e8 !important;
+}
+
+/* Dark mode for multi-link dropdown */
+.ext-lw-dark .ext-lw-capture-link-dropdown {
+    background: #1f1f1f !important;
+    border-color: #606060 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.ext-lw-dark .ext-lw-capture-link-item {
+    color: #eee !important;
+    border-bottom-color: #404040 !important;
+}
+
+.ext-lw-dark .ext-lw-capture-link-item:hover {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.ext-lw-dark .ext-lw-capture-link-item svg {
+    color: #aaa !important;
+}
+
+.ext-lw-dark .ext-lw-capture-link-all {
+    background: #2a2a2a !important;
+    border-top-color: #606060 !important;
+}
+
+.ext-lw-dark .ext-lw-capture-link-all:hover {
+    background: #333 !important;
+}
+
+/* Light mode for multi-link dropdown */
+.ext-lw-light .ext-lw-capture-link-dropdown {
+    background: #ffffff !important;
+    border-color: #b8b8b8 !important;
+}
+
+.ext-lw-light .ext-lw-capture-link-item {
+    color: #333 !important;
+    border-bottom-color: #e8e8e8 !important;
+}
+
+.ext-lw-light .ext-lw-capture-link-all {
+    background: #f5f5f5 !important;
+    border-top-color: #b8b8b8 !important;
+}
+
+/* Note mode - more specific selector to override .ext-lw-toolbox base styles */
+.ext-lw-toolbox.ext-lw-capture-actionbar-note-mode {
+    min-width: 280px !important;
+    min-height: auto !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    /* Override transparent background from .ext-lw-toolbox */
+    background: #ffffff !important;
+    border: 1.5px solid #b8b8b8 !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+    /* transition for fade animation - opacity controlled by JS */
+    transition: opacity 0.3s ease-out !important;
+}
+
+/* Dark mode for note panel */
+.ext-lw-capture-actionbar-note-mode.ext-lw-dark {
+    background: #1f1f1f !important;
+    border-color: #606060 !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Light mode for note panel */
+.ext-lw-capture-actionbar-note-mode.ext-lw-light {
+    background: #ffffff !important;
+    border-color: #b8b8b8 !important;
+}
+
+/* Hidden state before positioning (prevents flash) */
+.ext-lw-capture-actionbar-note-mode.ext-lw-note-panel-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Hidden state is handled via JS inline styles now */
+
+/* Note panel exit animation - symmetric reverse spring */
+.ext-lw-note-panel.ext-lw-closing {
+    animation: ext-lw-dock-spring-reverse 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+@keyframes ext-lw-dock-spring-reverse {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.92) translateY(4px);
+    }
+}
+
+/* During drag - prevent text selection */
+.ext-lw-capture-actionbar-note-mode.ext-lw-dragging {
+    user-select: none !important;
+}
+
+.ext-lw-capture-note-textarea {
+    width: 100% !important;
+    min-height: 110px !important;
+    resize: none !important;
+    /* Border matching highlight toolbox style */
+    border: 1.5px solid #b8b8b8 !important;
+    border-radius: 8px !important;
+    outline: none !important;
+    padding: 10px !important;
+    font-size: 13px !important;
+    font-family: inherit !important;
+    background: #fff !important;
+    color: #333 !important;
+    box-sizing: border-box !important;
+    flex: 1 !important;
+}
+
+.ext-lw-capture-note-textarea:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .ext-lw-capture-note-textarea {
+        background: #2a2a2a !important;
+        border-color: #606060 !important;
+        color: #eee !important;
+    }
+}
+
+/* Note textarea - page theme dark mode */
+.ext-lw-dark .ext-lw-capture-note-textarea {
+    background: #2a2a2a !important;
+    border-color: #606060 !important;
+    color: #eee !important;
+}
+
+/* Note textarea - page theme light mode (override system dark) */
+.ext-lw-light .ext-lw-capture-note-textarea {
+    background: #fff !important;
+    border-color: #b8b8b8 !important;
+    color: #333 !important;
+}
+
+.ext-lw-capture-note-actions {
+    display: flex !important;
+    justify-content: space-between !important;
+    /* Space between colors (left) and buttons (right) */
+    align-items: center !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+    /* Match textarea padding for consistent spacing */
+    width: 100% !important;
+}
+
+/* Note color picker container */
+.ext-lw-note-color-picker {
+    display: flex !important;
+    gap: 6px !important;
+    align-items: center !important;
+}
+
+/* Pin button in note panel */
+.ext-lw-pin-btn {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    border: none !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    padding: 0 !important;
+    margin-left: 4px !important;
+    color: #888 !important;
+    transition: color 0.15s ease, transform 0.1s ease !important;
+}
+
+.ext-lw-pin-btn:hover {
+    color: #555 !important;
+    transform: scale(1.1) !important;
+}
+
+.ext-lw-pin-btn.ext-lw-pinned {
+    color: #3b82f6 !important;
+}
+
+.ext-lw-pin-btn.ext-lw-pinned:hover {
+    color: #2563eb !important;
+}
+
+/* Dark mode pin button */
+.ext-lw-dark .ext-lw-pin-btn {
+    color: #888 !important;
+}
+
+.ext-lw-dark .ext-lw-pin-btn:hover {
+    color: #bbb !important;
+}
+
+.ext-lw-dark .ext-lw-pin-btn.ext-lw-pinned {
+    color: #60a5fa !important;
+}
+
+.ext-lw-dark .ext-lw-pin-btn.ext-lw-pinned:hover {
+    color: #93c5fd !important;
+}
+
+/* Note action buttons container (right side) */
+.ext-lw-note-buttons {
+    display: flex !important;
+    gap: 8px !important;
+}
+
+/* Info toast variant */
+.ext-lw-toast-info {
+    background: #3b82f6 !important;
+}
+
+/* Hidden during screenshot capture - completely removes from rendering */
+.ext-lw-hidden-for-screenshot {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Cycle position label - shows during Alt+Wheel/Arrow cycling */
+.ext-lw-capture-cycle-label {
+    position: absolute !important;
+    bottom: -28px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: rgba(0, 0, 0, 0.85) !important;
+    color: #fff !important;
+    font-size: 11px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    white-space: nowrap !important;
+    pointer-events: none !important;
+    z-index: 2147483647 !important;
+    transition: opacity 0.15s ease !important;
+}
+
+.ext-lw-capture-cycle-label-hidden {
+    opacity: 0 !important;
+}
+
+/* ================= SELECTION & MARQUEE ================= */
+
+/* Marquee selection rectangle */
+.ext-lw-marquee-overlay {
+    position: fixed !important;
+    z-index: 2147483645 !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    border: 2px dashed #3b82f6 !important;
+    pointer-events: none !important;
+    box-sizing: border-box !important;
+}
+
+.ext-lw-marquee-overlay-hidden {
+    display: none !important;
+}
+
+/* Unit highlight during marquee drag */
+.ext-lw-marquee-unit-highlight {
+    position: fixed !important;
+    z-index: 2147483644 !important;
+    background: rgba(34, 197, 94, 0.2) !important;
+    border: 3px solid rgba(34, 197, 94, 0.2) !important;
+    pointer-events: none !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+}
+
+/* Hover overlay (unselected units) */
+.ext-lw-selection-hover {
+    position: fixed !important;
+    z-index: 2147483643 !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    border: 3px solid rgba(59, 130, 246, 0.15) !important;
+    pointer-events: none !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+    transition: all 0.1s ease !important;
+}
+
+.ext-lw-selection-hover-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Selected units (persistent) */
+.ext-lw-selection-selected {
+    position: fixed !important;
+    z-index: 2147483642 !important;
+    background: rgba(239, 68, 68, 0.15) !important;
+    border: 3px solid rgba(239, 68, 68, 0.15) !important;
+    pointer-events: none !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+}
+
+/* Type label near cursor */
+.ext-lw-selection-label {
+    position: fixed !important;
+    z-index: 2147483647 !important;
+    background: rgba(0, 0, 0, 0.85) !important;
+    color: #fff !important;
+    font-size: 10px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace !important;
+    font-weight: 600 !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    white-space: nowrap !important;
+    pointer-events: none !important;
+    letter-spacing: 0.5px !important;
+}
+
+.ext-lw-selection-label-hidden {
+    display: none !important;
+}
+
+/* Selection count badge (for action bar) */
+.ext-lw-selection-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #3b82f6 !important;
+    color: #fff !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    border-radius: 9px !important;
+    padding: 0 5px !important;
+    margin-left: 6px !important;
+}
+
+/* Hint toast - bottom left corner */
+.ext-lw-hint-toast {
+    position: fixed !important;
+    bottom: 24px !important;
+    left: 24px !important;
+    z-index: 2147483647 !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    padding: 10px 16px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    pointer-events: none !important;
+    animation: ext-lw-hint-toast-in 0.3s ease !important;
+}
+
+@keyframes ext-lw-hint-toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================= LINK SAVE FEATURE ================= */
+
+/* Link save button container */
+.ext-lw-link-save-container {
+    position: static !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Link save button */
+.ext-lw-link-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    width: 28px !important;
+    height: 28px !important;
+    border: none !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    border-radius: 4px !important;
+    transition: background-color 0.15s ease !important;
+    color: #444 !important;
+    padding: 0 !important;
+}
+
+.ext-lw-link-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .ext-lw-link-btn {
+        color: #ccc !important;
+    }
+
+    .ext-lw-link-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
+/* Page theme overrides for link button */
+.ext-lw-dark .ext-lw-link-btn {
+    color: #ccc !important;
+}
+
+.ext-lw-dark .ext-lw-link-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.ext-lw-light .ext-lw-link-btn {
+    color: #444 !important;
+}
+
+.ext-lw-light .ext-lw-link-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Dropdown arrow for multiple links */
+.ext-lw-link-arrow {
+    font-size: 8px !important;
+    margin-left: 2px !important;
+}
+
+/* Link count badge */
+.ext-lw-link-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #3b82f6 !important;
+    color: #fff !important;
+    font-size: 9px !important;
+    font-weight: 600 !important;
+    min-width: 14px !important;
+    height: 14px !important;
+    border-radius: 7px !important;
+    padding: 0 3px !important;
+    margin-left: 2px !important;
+}
+
+/* Legacy Toolbox Styles removed in favor of Universal VOID System */
+
+/* Light mode feedback - Specificity: 3 classes (.ext-lw-toolbox.ext-lw-toolbox-feedback.ext-lw-light) */
+.ext-lw-toolbox.ext-lw-toolbox-feedback.ext-lw-light {
+    background: #ffffff !important;
+    border: 1.5px solid #b8b8b8 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    color: #333 !important;
+}
+
+/* Dark mode feedback - Specificity: 3 classes (.ext-lw-toolbox.ext-lw-toolbox-feedback.ext-lw-dark) */
+.ext-lw-toolbox.ext-lw-toolbox-feedback.ext-lw-dark {
+    background: #1f1f1f !important;
+    border: 1.5px solid #606060 !important;
+    color: #eee !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.ext-lw-light .ext-lw-sub-toolbox {
+    background: #ffffff !important;
+    border-color: #b8b8b8 !important;
+    color: #333 !important;
+}
+
+/* Shield Overlay - Blocks access to inactive buttons */
+.ext-lw-capture-actionbar-shield {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2000 !important;
+    background: transparent !important;
+    /* Invisible but blocks mouse */
+    display: none;
+    /* Hidden by default */
+    pointer-events: auto !important;
+}
