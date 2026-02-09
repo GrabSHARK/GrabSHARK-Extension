@@ -27,7 +27,7 @@ The Official Browser Extension for Spark.
 Clone this repository by running the following in your terminal:
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/spark-archive/spark-extension.git
 ```
 
 #### Step 2: Build
