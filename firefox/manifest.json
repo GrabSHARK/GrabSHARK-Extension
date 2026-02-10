@@ -41,9 +41,6 @@
       }
     }
   },
-  "omnibox": {
-    "keyword": "lk"
-  },
   "background": {
     "scripts": [
       "background.js"

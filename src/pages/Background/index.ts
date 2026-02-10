@@ -6,7 +6,7 @@ import { BadgeManager } from './managers/BadgeManager';
 import { BookmarksManager } from './managers/BookmarksManager';
 import { ContextManager } from './managers/ContextManager';
 import { MessageRouter } from './managers/MessageRouter';
-import { OmniboxManager } from './managers/OmniboxManager';
+
 
 const browser = getBrowser();
 
@@ -15,7 +15,7 @@ const browser = getBrowser();
 // Initialize Managers
 new ContextManager();
 new BadgeManager();
-new OmniboxManager();
+
 new BookmarksManager();
 
 // Cache User Preferences on startup
