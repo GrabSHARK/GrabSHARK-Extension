@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./chromium/128.png" width="80px" />
+  <img src="./public/128.png" width="100px" />
   <h1>SPARK Browser Extension</h1>
   <h3>Your gateway to SPARK — right from your browser</h3>
 </div>
