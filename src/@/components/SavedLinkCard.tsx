@@ -317,19 +317,16 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
 
         const linksRouteTo = userProfile?.linksRouteTo || 'MONOLITH';
 
-        // Map linksRouteTo to format number for preview modal
-        // WEB_FORMAT_ID = 999 for live web iframe
         const formatMap: Record<string, number> = {
-            'ORIGINAL': 999, // Web format (live iframe)
+            'ORIGINAL': 999,
             'PDF': 0,
             'MONOLITH': 1,
             'SCREENSHOT': 2,
             'READABLE': 3,
-            'DETAILS': 1, // Default to monolith for details view
+            'DETAILS': 1,
         };
         const formatNum = formatMap[linksRouteTo] ?? 1;
 
-        // Open dashboard with preview modal params
         const previewUrl = `${baseUrl.replace(/\/$/, '')}/dashboard?openPreview=${link.id}&format=${formatNum}`;
         chrome.runtime.sendMessage({ type: 'OPEN_TAB', data: { url: previewUrl } });
     };

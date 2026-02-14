@@ -158,6 +158,11 @@ export class MessageRouter {
                     } catch (e) { sendResponse({ success: false, error: 'Failed' }); }
                     break;
 
+                case 'OPEN_TAB':
+                    chrome.tabs.create({ url: message.data.url });
+                    sendResponse({ success: true });
+                    break;
+
                 case 'OPEN_OPTIONS_PAGE':
                     chrome.runtime.openOptionsPage();
                     sendResponse({ success: true });
