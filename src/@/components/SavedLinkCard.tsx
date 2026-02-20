@@ -310,9 +310,9 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         };
     }, [link.preview, link.url, link.id, baseUrl, sharedImgSrc, onImgSrcChange]); // Added deps
 
-    // Open in Linkwarden - opens with user's linksRouteTo preference
+    // Open in SPARK - opens with user's linksRouteTo preference
     // Format mapping: 0=pdf, 1=monolith, 2=screenshot, 3=readable, 999=web (original)
-    const handleOpenInLinkwarden = () => {
+    const handleOpenInSpark = () => {
         if (!link.id || !baseUrl) return;
 
         const linksRouteTo = userProfile?.linksRouteTo || 'MONOLITH';
@@ -459,7 +459,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                         {t('savedLink.edit')}
                     </button>
                     <button
-                        onClick={handleOpenInLinkwarden}
+                        onClick={handleOpenInSpark}
                         className="flex-[1.5] py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5"
                     >
                         {t('savedLink.openInLinkwarden')}

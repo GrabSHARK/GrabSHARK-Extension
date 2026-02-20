@@ -15,7 +15,7 @@ interface LinkFooterProps {
     isArchived: boolean;
     isArchiving: boolean;
     onArchive: () => void;
-    onOpenInLinkwarden: () => void;
+    onOpenInSpark: () => void;
 }
 
 export const LinkFooter: FC<LinkFooterProps> = ({
@@ -28,7 +28,7 @@ export const LinkFooter: FC<LinkFooterProps> = ({
     isArchived,
     isArchiving,
     onArchive,
-    onOpenInLinkwarden
+    onOpenInSpark
 }) => {
     const { t } = useTranslation();
 
@@ -77,7 +77,7 @@ export const LinkFooter: FC<LinkFooterProps> = ({
                 </div>
                 <button
                     className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium transition-colors"
-                    onClick={onOpenInLinkwarden}
+                    onClick={onOpenInSpark}
                 >
                     {t('editLink.openInLinkwarden')}
                 </button>

@@ -373,7 +373,7 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
         },
     });
 
-    const handleOpenInLinkwarden = () => {
+    const handleOpenInSpark = () => {
         if (!link.id || !baseUrl) return;
 
         const linksRouteTo = userProfile?.linksRouteTo || 'MONOLITH';
@@ -447,7 +447,7 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
                 isArchived={isArchived}
                 isArchiving={isArchiving}
                 onArchive={() => handleArchive()}
-                onOpenInLinkwarden={handleOpenInLinkwarden}
+                onOpenInSpark={handleOpenInSpark}
             />
 
             <DeleteDialog
