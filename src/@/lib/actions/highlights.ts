@@ -125,6 +125,24 @@ export async function createLinkForHighlight(
 ): Promise<LinkWithHighlights | null> {
     const url = `${baseUrl}/api/v1/links`;
 
+    // Resolve default collection by ID, not hardcoded name
+    let collection: any = { name: 'Unorganized' };
+    try {
+        const colResponse = await fetch(`${baseUrl}/api/v1/collections`, {
+            headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        if (colResponse.ok) {
+            const colData = await colResponse.json();
+            const collections = colData.response || [];
+            const defaultCol = collections.find((c: any) => c.isDefault === true);
+            if (defaultCol) {
+                collection = { name: defaultCol.name, id: defaultCol.id, ownerId: defaultCol.ownerId };
+            }
+        }
+    } catch (e) {
+        // Fallback to name-only
+    }
+
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -135,9 +153,7 @@ export async function createLinkForHighlight(
             url: pageUrl,
             name: pageTitle,
             description: '',
-            collection: {
-                name: 'Unorganized',
-            },
+            collection,
             tags: [],
         }),
     });

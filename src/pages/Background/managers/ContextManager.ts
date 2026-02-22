@@ -123,14 +123,31 @@ export class ContextManager {
                 } else {
                     const config = await getConfig();
 
+                    // Resolve default collection by ID, not hardcoded name
+                    let collection: any = { name: config.defaultCollection };
+                    try {
+                        const response = await fetch(`${baseUrl}/api/v1/collections`, {
+                            headers: { Authorization: `Bearer ${config.apiKey}` },
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            const collections = data.response || [];
+                            const defaultCol = collections.find((c: any) => c.isDefault === true)
+                                || collections.find((c: any) => c.name === config.defaultCollection);
+                            if (defaultCol) {
+                                collection = { name: defaultCol.name, id: defaultCol.id, ownerId: defaultCol.ownerId };
+                            }
+                        }
+                    } catch (e) {
+                        // Fallback to name-only
+                    }
+
                     try {
                         const newLink = await postLinkFetch(
                             baseUrl,
                             {
                                 url: tab.url,
-                                collection: {
-                                    name: 'Unorganized',
-                                },
+                                collection,
                                 tags: [],
                                 name: tab.title,
                                 description: tab.title,

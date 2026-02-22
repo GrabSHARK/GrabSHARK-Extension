@@ -191,7 +191,7 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
 
             const pendingDescription = extractedDescription;
 
-            // Set default collection
+            // Set default collection — always resolve by ID, not just name
             let defaultCollection: any = { name: loadedConfig.defaultCollection };
 
             try {
@@ -231,6 +231,24 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
                                     name: lastLink.collection.name,
                                     id: lastLink.collection.id,
                                     ownerId: lastLink.collection.ownerId
+                                };
+                            }
+                        }
+                    } else {
+                        // UNORGANIZED mode: resolve by ID from collections API
+                        const colResponse = await chrome.runtime.sendMessage({ type: 'GET_COLLECTIONS' });
+                        if (colResponse?.success && colResponse.data) {
+                            const collections = Array.isArray(colResponse.data)
+                                ? colResponse.data
+                                : (colResponse.data.response || []);
+                            // Find the default collection (isDefault flag set by backend)
+                            const defaultCol = collections.find((c: any) => c.isDefault === true)
+                                || collections.find((c: any) => c.name === loadedConfig.defaultCollection);
+                            if (defaultCol) {
+                                defaultCollection = {
+                                    name: defaultCol.name,
+                                    id: defaultCol.id,
+                                    ownerId: defaultCol.ownerId
                                 };
                             }
                         }

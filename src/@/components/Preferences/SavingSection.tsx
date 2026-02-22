@@ -23,11 +23,13 @@ interface SavingSectionProps {
     setExtensionDefaultCollection: (col: ExtensionDefaultCollection) => void;
     selectedCollectionName: string;
     selectedCollectionColor: string | null;
+    defaultCollectionName: string;
+    defaultCollectionColor: string | null;
     showCollectionDropdown: boolean;
     setShowCollectionDropdown: (show: boolean) => void;
     isClosingCollectionDropdown: boolean;
     onCloseCollectionDropdown: (callback?: () => void) => void;
-    onResetCollection: () => void; // Combine "set UNORGANIZED, null ID, empty name, etc"
+    onResetCollection: () => void;
     onOpenCollectionPicker: () => void;
     defaultHighlightColor: HighlightColor;
     setDefaultHighlightColor: (color: HighlightColor) => void;
@@ -44,6 +46,8 @@ export const SavingSection: FC<SavingSectionProps> = ({
     setExtensionDefaultCollection,
     selectedCollectionName,
     selectedCollectionColor,
+    defaultCollectionName,
+    defaultCollectionColor,
     showCollectionDropdown,
     setShowCollectionDropdown,
     isClosingCollectionDropdown,
@@ -88,8 +92,8 @@ export const SavingSection: FC<SavingSectionProps> = ({
                     >
                         {extensionDefaultCollection === 'UNORGANIZED' && (
                             <>
-                                <FolderSimple className="w-4 h-4" weight="fill" style={{ color: '#0ea5e9' }} />
-                                <span>{t('preferences.unorganized')}</span>
+                                <FolderSimple className="w-4 h-4" weight="fill" style={{ color: defaultCollectionColor || '#0ea5e9' }} />
+                                <span>{defaultCollectionName || t('preferences.unorganized')}</span>
                             </>
                         )}
                         {extensionDefaultCollection === 'LAST_USED' && (
@@ -127,8 +131,8 @@ export const SavingSection: FC<SavingSectionProps> = ({
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                                     style={{ borderRadius: '8px' }}
                                 >
-                                    <FolderSimple className="w-4 h-4" weight="fill" style={{ color: '#0ea5e9' }} />
-                                    <span>{t('preferences.unorganized')}</span>
+                                    <FolderSimple className="w-4 h-4" weight="fill" style={{ color: defaultCollectionColor || '#0ea5e9' }} />
+                                    <span>{defaultCollectionName || t('preferences.unorganized')}</span>
                                 </button>
                             )}
                             {extensionDefaultCollection !== 'LAST_USED' && (

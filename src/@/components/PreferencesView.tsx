@@ -42,6 +42,8 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
     const [extensionDefaultCollection, setExtensionDefaultCollection] = useState<ExtensionDefaultCollection>('UNORGANIZED');
     const [extensionSelectedCollectionId, setExtensionSelectedCollectionId] = useState<number | null>(null);
     const [selectedCollectionName, setSelectedCollectionName] = useState<string>('');
+    const [defaultCollectionName, setDefaultCollectionName] = useState<string>('');
+    const [defaultCollectionColor, setDefaultCollectionColor] = useState<string | null>(null);
     const [showCollectionPicker, setShowCollectionPicker] = useState(false);
     const [userId, setUserId] = useState<number | null>(null);
     const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
@@ -102,15 +104,30 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
                 originalSelectionMenu.current = globalSelectionMenu;
 
 
-                // If a collection is selected, fetch its name
-                if (selectedColId && defCollection === 'SELECTED') {
-                    chrome.runtime.sendMessage({ type: 'GET_COLLECTIONS' }, (colResponse) => {
-                        if (colResponse?.success && colResponse.data) {
-                            const col = colResponse.data.find((c: any) => c.id === selectedColId);
-                            if (col) setSelectedCollectionName(col.name);
+                // Fetch collection names from API
+                chrome.runtime.sendMessage({ type: 'GET_COLLECTIONS' }, (colResponse) => {
+                    if (colResponse?.success && colResponse.data) {
+                        const collections = Array.isArray(colResponse.data)
+                            ? colResponse.data
+                            : (colResponse.data.response || []);
+
+                        // Always resolve the default (Unorganized) collection's real name
+                        const defaultCol = collections.find((c: any) => c.isDefault === true);
+                        if (defaultCol) {
+                            setDefaultCollectionName(defaultCol.name);
+                            setDefaultCollectionColor(defaultCol.color || null);
                         }
-                    });
-                }
+
+                        // If SELECTED mode, also resolve the selected collection's name
+                        if (selectedColId && defCollection === 'SELECTED') {
+                            const col = collections.find((c: any) => c.id === selectedColId);
+                            if (col) {
+                                setSelectedCollectionName(col.name);
+                                setSelectedCollectionColor(col.color || null);
+                            }
+                        }
+                    }
+                });
             }
         });
 
@@ -383,6 +400,8 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
                     setExtensionDefaultCollection={setExtensionDefaultCollection}
                     selectedCollectionName={selectedCollectionName}
                     selectedCollectionColor={selectedCollectionColor}
+                    defaultCollectionName={defaultCollectionName}
+                    defaultCollectionColor={defaultCollectionColor}
                     showCollectionDropdown={showCollectionDropdown}
                     setShowCollectionDropdown={setShowCollectionDropdown}
                     isClosingCollectionDropdown={isClosingCollectionDropdown}
