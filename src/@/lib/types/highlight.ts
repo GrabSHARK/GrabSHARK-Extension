@@ -30,7 +30,7 @@ export interface SemanticAnchor {
  */
 export interface HighlightAnchor {
   /** Source of the anchor - 'readable' for ReadableView, 'live' for live site/monolith */
-  source?: 'readable' | 'live';
+  source?: 'readable' | 'live' | 'monolith';
 
   /** The containing HTML tag of the highlighted text */
   containingTag?: string;

@@ -97,10 +97,12 @@ export function applyHighlight(highlight: Highlight, rootContainer: HTMLElement 
     }
 
     // ========================================================================
-    // READABLE SOURCE - Simple text + context matching
+    // READABLE / MONOLITH SOURCE - Simple text + context matching
     // ReadableView anchors don't have CSS/XPath, just containingTag + context
+    // Monolith anchors have CSS/XPath from monolith DOM which won't match live DOM
+    // Both use the same text+context matching strategy
     // ========================================================================
-    if (anchor.source === 'readable') {
+    if (anchor.source === 'readable' || anchor.source === 'monolith') {
         return applyReadableHighlight(highlight, rootContainer);
     }
 
