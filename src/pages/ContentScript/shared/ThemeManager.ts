@@ -83,6 +83,15 @@ export class ThemeManager {
             return false;
         }
 
+        // 2.5. Check meta color-scheme (used by SPARK Monoliths)
+        const metaTheme = document.querySelector('meta[name="color-scheme"]')?.getAttribute('content');
+        if (metaTheme === 'dark') {
+            return true;
+        }
+        if (metaTheme === 'light') {
+            return false;
+        }
+
         // 3. Check for common dark mode class names
         const darkClasses = ['dark', 'dark-mode', 'theme-dark', 'is-dark', 'night-mode'];
         for (const cls of darkClasses) {
