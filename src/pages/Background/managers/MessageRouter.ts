@@ -159,8 +159,18 @@ export class MessageRouter {
                     break;
 
                 case 'OPEN_TAB':
-                    chrome.tabs.create({ url: message.data.url });
-                    sendResponse({ success: true });
+                    // Security: Only allow http/https URLs to prevent javascript: or data: injection
+                    try {
+                        const tabUrl = new URL(message.data.url);
+                        if (tabUrl.protocol !== 'http:' && tabUrl.protocol !== 'https:') {
+                            sendResponse({ success: false, error: 'Invalid URL protocol' });
+                            break;
+                        }
+                        chrome.tabs.create({ url: message.data.url });
+                        sendResponse({ success: true });
+                    } catch {
+                        sendResponse({ success: false, error: 'Invalid URL' });
+                    }
                     break;
 
                 case 'OPEN_OPTIONS_PAGE':
