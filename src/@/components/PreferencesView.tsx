@@ -62,12 +62,16 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
     const [showColorDropdown, setShowColorDropdown] = useState(false);
     const [isClosingColorDropdown, setIsClosingColorDropdown] = useState(false);
 
+    // Save page on highlight
+    const [savePageOnHighlight, setSavePageOnHighlight] = useState(true);
+
     // Original refs for cancel/revert
     const originalDefaultCollection = useRef<ExtensionDefaultCollection>('UNORGANIZED');
     const originalSelectedCollectionId = useRef<number | null>(null);
     const originalSmartCapture = useRef(true);
     const originalSelectionMenu = useRef(true);
     const originalHighlightColor = useRef<HighlightColor>('yellow');
+    const originalSavePageOnHighlight = useRef(true);
 
 
     // Load language setting from storage on mount
@@ -131,11 +135,15 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
             }
         });
 
-        // Load default highlight color from local preferences
+        // Load default highlight color + savePageOnHighlight from local preferences
         getPreferences().then((prefs) => {
             const color = prefs.defaultHighlightColor || 'yellow';
             setDefaultHighlightColor(color);
             originalHighlightColor.current = color;
+
+            const savePage = prefs.savePageOnHighlight ?? true;
+            setSavePageOnHighlight(savePage);
+            originalSavePageOnHighlight.current = savePage;
         });
     }, []);
 
@@ -222,24 +230,23 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
             }
         }
 
-        // Save local preferences (on-page interactions + default highlight color) in a SINGLE atomic save
+        // Save local preferences (on-page interactions + default highlight color + savePageOnHighlight) in a SINGLE atomic save
         const onPagePrefsChanged =
             enableSmartCapture !== originalSmartCapture.current ||
             enableSelectionMenu !== originalSelectionMenu.current;
         const colorChanged = defaultHighlightColor !== originalHighlightColor.current;
-
-
+        const savePageChanged = savePageOnHighlight !== originalSavePageOnHighlight.current;
 
         // Single atomic save for ALL local preferences
-        if (onPagePrefsChanged || colorChanged) {
+        if (onPagePrefsChanged || colorChanged || savePageChanged) {
             const currentPrefs = await getPreferences();
             await savePreferences({
                 ...currentPrefs,
                 enableSmartCapture,
                 enableSelectionMenu,
-                defaultHighlightColor
+                defaultHighlightColor,
+                savePageOnHighlight
             });
-
         }
 
         // Save to User table (for domain preference comparison) - separate from local storage
@@ -419,6 +426,8 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
                     setShowColorDropdown={setShowColorDropdown}
                     isClosingColorDropdown={isClosingColorDropdown}
                     onCloseColorDropdown={closeColorDropdown}
+                    savePageOnHighlight={savePageOnHighlight}
+                    setSavePageOnHighlight={setSavePageOnHighlight}
                 />
 
                 <InteractionsSection

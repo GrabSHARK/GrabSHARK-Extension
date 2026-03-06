@@ -109,18 +109,20 @@ export class InteractionManager {
                 return;
             }
 
-            // Check existing highlight
-            const highlightId = getHighlightIdFromElement(target);
-            if (highlightId) {
-                if (this.hoverTimeout) {
-                    clearTimeout(this.hoverTimeout);
-                    this.hoverTimeout = null;
-                }
+            // Check existing highlight (only if highlights are visible)
+            if (!document.body.classList.contains('ext-spark-highlights-hidden')) {
+                const highlightId = getHighlightIdFromElement(target);
+                if (highlightId) {
+                    if (this.hoverTimeout) {
+                        clearTimeout(this.hoverTimeout);
+                        this.hoverTimeout = null;
+                    }
 
-                const existingHighlight = HighlightManager.getHighlights().find(h => h.id === highlightId);
-                if (existingHighlight) {
-                    if (this.toolbox.isOpen() && this.toolbox.getCurrentHighlightId() === highlightId) return;
-                    this.showToolboxForExistingHighlight(existingHighlight, event);
+                    const existingHighlight = HighlightManager.getHighlights().find(h => h.id === highlightId);
+                    if (existingHighlight) {
+                        if (this.toolbox.isOpen() && this.toolbox.getCurrentHighlightId() === highlightId) return;
+                        this.showToolboxForExistingHighlight(existingHighlight, event);
+                    }
                 }
             }
         }, 10);

@@ -37,6 +37,8 @@ interface SavingSectionProps {
     setShowColorDropdown: (show: boolean) => void;
     isClosingColorDropdown: boolean;
     onCloseColorDropdown: (callback?: () => void) => void;
+    savePageOnHighlight: boolean;
+    setSavePageOnHighlight: (checked: boolean) => void;
 }
 
 export const SavingSection: FC<SavingSectionProps> = ({
@@ -60,6 +62,8 @@ export const SavingSection: FC<SavingSectionProps> = ({
     setShowColorDropdown,
     isClosingColorDropdown,
     onCloseColorDropdown,
+    savePageOnHighlight,
+    setSavePageOnHighlight,
 }) => {
     const { t } = useTranslation();
 
@@ -205,6 +209,22 @@ export const SavingSection: FC<SavingSectionProps> = ({
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Save page on highlight */}
+            <div className="flex items-center justify-between mt-3">
+                <div className="flex flex-col">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                        {t('preferences.savePageOnHighlight')}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">
+                        {t('preferences.savePageOnHighlightDesc')}
+                    </span>
+                </div>
+                <Switch
+                    checked={savePageOnHighlight}
+                    onCheckedChange={(checked) => setSavePageOnHighlight(checked)}
+                />
             </div>
         </section>
     );

@@ -19,6 +19,7 @@ export const bookmarkFormSchema = z.object({
     .nullish(),
   name: z.string(),
   description: z.string(),
+  type: z.string().optional(),
   image: z.enum(['jpeg', 'png']).optional(),
   preservationConfig: z.object({
     archiveAsScreenshot: z.boolean().optional(),

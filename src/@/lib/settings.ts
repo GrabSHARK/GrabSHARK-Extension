@@ -17,6 +17,7 @@ export interface ExtensionPreferences {
     showHighlights: boolean;
     smartCaptureShortcut: ShortcutConfig;
     defaultHighlightColor: 'yellow' | 'red' | 'blue' | 'green';
+    savePageOnHighlight: boolean;
 }
 
 export const DEFAULT_PREFERENCES: ExtensionPreferences = {
@@ -32,7 +33,8 @@ export const DEFAULT_PREFERENCES: ExtensionPreferences = {
         altKey: false,
         metaKey: false
     },
-    defaultHighlightColor: 'yellow'
+    defaultHighlightColor: 'yellow',
+    savePageOnHighlight: true
 };
 
 

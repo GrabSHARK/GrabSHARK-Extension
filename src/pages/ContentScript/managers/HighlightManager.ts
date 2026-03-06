@@ -8,6 +8,7 @@ import {
 } from '../highlightRenderer';
 import { showToast } from '../HighlightToolbox';
 import { sendMessage } from '../utils/messaging';
+import { getPreferences } from '../../../@/lib/settings';
 
 interface LinkData {
     id: number;
@@ -171,12 +172,36 @@ export const HighlightManager = {
         // If page not saved yet, save it first
         if (!currentPageLinkId) {
 
+            // Check if user wants to save the full page or just create a lightweight anchor
+            let shouldSavePage = true;
+            try {
+                const prefs = await getPreferences();
+                shouldSavePage = prefs.savePageOnHighlight ?? true;
+            } catch (e) {
+                // Fallback to default (save page)
+            }
+
             showToast('Saving page to Linkwarden...', 'success');
 
-            const linkResponse = await sendMessage<{ link: LinkData }>('CREATE_LINK', {
+            const linkPayload: Record<string, any> = {
                 url: window.location.href,
                 title: document.title,
-            });
+            };
+
+            // If user disabled page saving, create a hidden "highlight" type link with no archiving
+            if (!shouldSavePage) {
+                linkPayload.type = 'highlight';
+                linkPayload.preservationConfig = {
+                    archiveAsScreenshot: false,
+                    archiveAsMonolith: false,
+                    archiveAsPDF: false,
+                    archiveAsReadable: false,
+                    archiveAsWaybackMachine: false,
+                    aiTag: false,
+                };
+            }
+
+            const linkResponse = await sendMessage<{ link: LinkData }>('CREATE_LINK', linkPayload);
 
             if (!linkResponse.success || !linkResponse.data?.link) {
                 showToast('Failed to save page', 'error');
