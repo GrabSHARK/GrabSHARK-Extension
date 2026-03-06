@@ -57,7 +57,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         ? format(new Date(link.createdAt), 'MMM d', { locale: i18n.language === 'tr' ? tr : enUS })
         : t('savedLink.justNow');
 
-    const collectionName = link.collection?.name || 'Unorganized';
+    const collectionName = link.collection?.name || t('bookmark.unorganized');
     const linkName = link.name; // Name is now guaranteed by state initialization
     // Polling state: poll if we expect AI tags but don't have them yet
     const [isPollingTags, setIsPollingTags] = useState(() => {

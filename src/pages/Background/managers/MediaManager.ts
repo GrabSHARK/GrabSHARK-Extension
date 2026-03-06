@@ -1,7 +1,44 @@
 
 export class MediaManager {
 
+    /**
+     * Security: Validate URLs to prevent SSRF attacks.
+     * Only allows http/https protocols and blocks internal/reserved IPs.
+     * URLs targeting the configured Spark baseUrl are always allowed.
+     */
+    private static validateUrl(url: string, allowedBaseUrl?: string): { valid: boolean; error?: string } {
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+                return { valid: false, error: 'Only HTTP/HTTPS URLs are allowed' };
+            }
+            // Allow requests to the configured Spark instance (self-hosted, may be localhost)
+            if (allowedBaseUrl) {
+                try {
+                    const allowed = new URL(allowedBaseUrl);
+                    if (parsed.hostname === allowed.hostname && parsed.port === allowed.port) {
+                        return { valid: true };
+                    }
+                } catch { /* ignore invalid baseUrl */ }
+            }
+            // Block internal/reserved IPs for external requests
+            const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'];
+            if (blockedHosts.includes(parsed.hostname) || parsed.hostname.startsWith('169.254.') || parsed.hostname.startsWith('10.') || parsed.hostname.startsWith('192.168.')) {
+                return { valid: false, error: 'Internal network addresses are blocked' };
+            }
+            return { valid: true };
+        } catch {
+            return { valid: false, error: 'Invalid URL' };
+        }
+    }
+
     static async fetchImageBlob(config: { baseUrl: string; apiKey: string }, url: string) {
+        // Security: Validate URL before fetching
+        const urlCheck = this.validateUrl(url, config.baseUrl);
+        if (!urlCheck.valid) {
+            return { success: false, error: urlCheck.error };
+        }
+
         try {
             // Fetch the image with Authorization header
             const response = await fetch(url, {
@@ -33,6 +70,14 @@ export class MediaManager {
 
     static async saveImage(config: { baseUrl: string; apiKey: string }, data: any) {
         const { url, title, pageContext, description } = data;
+
+        // Security: Validate URL before fetching (skip for data: URLs which are local)
+        if (!url.startsWith('data:')) {
+            const urlCheck = this.validateUrl(url, config.baseUrl);
+            if (!urlCheck.valid) {
+                return { success: false, error: urlCheck.error };
+            }
+        }
 
         // Helper functions (extracted from original file)
         const getFilenameFromUrl = (fileUrl: string): string | null => {

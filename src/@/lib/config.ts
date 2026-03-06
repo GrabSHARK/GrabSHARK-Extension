@@ -4,7 +4,7 @@ import { configType } from './validators/config.ts';
 const DEFAULTS: configType = {
   baseUrl: '',
   apiKey: '',
-  defaultCollection: 'Unorganized',
+  defaultCollection: '',
   syncBookmarks: false,
 };
 
@@ -35,7 +35,7 @@ export async function clearConfig() {
     JSON.stringify({
       baseUrl: '',
       apiKey: '',
-      defaultCollection: 'Unorganized',
+      defaultCollection: '',
       syncBookmarks: false,
     })
   );

@@ -126,7 +126,7 @@ export async function createLinkForHighlight(
     const url = `${baseUrl}/api/v1/links`;
 
     // Resolve default collection by ID, not hardcoded name
-    let collection: any = { name: 'Unorganized' };
+    let collection: any = {};
     try {
         const colResponse = await fetch(`${baseUrl}/api/v1/collections`, {
             headers: { Authorization: `Bearer ${apiKey}` },

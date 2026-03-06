@@ -220,7 +220,7 @@ const ToastCard = ({
     const formattedDate = link.createdAt
         ? format(new Date(link.createdAt), 'MMM d', { locale: i18n.language === 'tr' ? tr : enUS })
         : t('savedLink.justNow');
-    const collectionName = link.collection?.name || 'Unorganized';
+    const collectionName = link.collection?.name || t('bookmark.unorganized');
 
     useEffect(() => {
         const loadImage = async () => {

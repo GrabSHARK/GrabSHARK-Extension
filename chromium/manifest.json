@@ -52,10 +52,12 @@
       "all_frames": true
     }
   ],
-
   "host_permissions": [
     "<all_urls>"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'self';"
+  },
   "commands": {
     "_execute_action": {
       "suggested_key": {

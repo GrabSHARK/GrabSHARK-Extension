@@ -296,7 +296,7 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
                                 }}
                               >
                                 <Check
-                                  className={`mr-2 h-4 w-4 ${field.value?.name === 'Unorganized'
+                                  className={`mr-2 h-4 w-4 ${field.value?.name === t('bookmark.unorganized')
                                     ? 'opacity-100'
                                     : 'opacity-0'
                                     }`}

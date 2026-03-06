@@ -40,13 +40,13 @@ export const OptionsFormContent = ({ onSuccess, showButton = true, onLoadingChan
     const form = useForm<optionsFormValues>({
         resolver: zodResolver(optionsFormSchema),
         defaultValues: {
-            baseUrl: 'http://localhost:3000',
+            baseUrl: '',
             method: 'username',
-            username: '123',
-            password: '123123123',
+            username: '',
+            password: '',
             apiKey: '',
             syncBookmarks: false,
-            defaultCollection: 'Unorganized',
+            defaultCollection: '',
         },
     });
 

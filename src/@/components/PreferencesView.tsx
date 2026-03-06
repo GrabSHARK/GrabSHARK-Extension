@@ -387,7 +387,7 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
             </div>
 
             {/* Content - Scrollable */}
-            <div className="flex-1 overflow-y-auto space-y-5 pr-1">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-5 pr-1">
 
                 <AppearanceSection
                     selectedTheme={selectedTheme}

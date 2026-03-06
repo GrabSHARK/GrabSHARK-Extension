@@ -49,13 +49,13 @@ const OptionsForm = () => {
   const form = useForm<optionsFormValues>({
     resolver: zodResolver(optionsFormSchema),
     defaultValues: {
-      baseUrl: 'http://localhost:3000',
-      method: 'username', // Default to 'username'
-      username: '123', // DEV default - change for production
-      password: '123123123', // DEV default - change for production
+      baseUrl: '',
+      method: 'username',
+      username: '',
+      password: '',
       apiKey: '',
       syncBookmarks: false,
-      defaultCollection: 'Unorganized',
+      defaultCollection: '',
     },
   });
 
@@ -86,7 +86,7 @@ const OptionsForm = () => {
         password: '',
         apiKey: '',
         syncBookmarks: false,
-        defaultCollection: 'Unorganized',
+        defaultCollection: '',
       });
       await clearConfig();
       await clearBookmarksMetadata();

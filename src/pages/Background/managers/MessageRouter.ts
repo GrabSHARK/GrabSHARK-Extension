@@ -5,15 +5,31 @@ import { LinksManager } from './LinksManager';
 import { MediaManager } from './MediaManager';
 import { getCollections } from '../../../@/lib/actions/collections';
 import { getTags } from '../../../@/lib/actions/tags';
+import { MESSAGE_SCHEMAS } from '../../../@/lib/validations/messageSchemas';
 
 export class MessageRouter {
 
     static async route(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
         try {
+            // Security: Reject messages from other extensions or external sources
+            if (sender.id && sender.id !== chrome.runtime.id) {
+                sendResponse({ success: false, error: 'Unauthorized sender' });
+                return;
+            }
+
+            // Security: Validate message.data payload against Zod schema (if schema exists for this type)
+            const schema = MESSAGE_SCHEMAS[message.type];
+            if (schema && message.data) {
+                const result = schema.safeParse(message.data);
+                if (!result.success) {
+                    sendResponse({ success: false, error: `Invalid payload: ${result.error.issues.map(i => i.message).join(', ')}` });
+                    return;
+                }
+            }
+
             const configured = await isConfigured();
             const config = await getConfig();
 
-            // Pass-through validation for certain types if needed, or handle in managers
 
             switch (message.type) {
                 case 'CHECK_CONFIG':

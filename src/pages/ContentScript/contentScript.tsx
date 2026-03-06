@@ -50,6 +50,71 @@ function cleanup(): void {
 window.addEventListener('beforeunload', cleanup);
 
 /**
+ * Process validated extension messages (called after origin verification)
+ */
+function processExtensionMessage(event: MessageEvent): void {
+    if (event.data?.type === 'LW_PING') {
+        try {
+            chrome.runtime.sendMessage({ type: 'CHECK_CONFIG' }, (response) => {
+                const configured = response?.success && response?.data?.configured;
+                window.postMessage({ type: 'LW_PONG', version: '1.3.3', configured }, '*');
+            });
+        } catch (e) {
+            // Extension context invalidated - ignore
+        }
+        return;
+    }
+
+    if (event.data?.type === 'SPARK_SMART_CAPTURE') {
+        if (smartCaptureMode) {
+            const lwLinkIdElement = document.querySelector('[data-lw-link-id]');
+            if (lwLinkIdElement) {
+                smartCaptureMode.setContainer('[data-lw-link-id]');
+            }
+            smartCaptureMode.toggle();
+        } else {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                try { iframe.contentWindow?.postMessage({ type: 'SPARK_SMART_CAPTURE' }, '*'); } catch (e) { }
+            });
+        }
+    }
+
+    if (event.data?.type === 'SPARK_CLIP') {
+        if (smartCaptureMode) {
+            const selection = event.data.selection;
+            if (selection && selection.text && selection.rect) {
+                const rect = new DOMRect(selection.rect.x, selection.rect.y, selection.rect.width, selection.rect.height);
+                SmartCaptureHandlers.handleClip({
+                    type: 'TEXT_BLOCK',
+                    rect,
+                    title: selection.text,
+                    extracted: { text: selection.text },
+                    pageContext: {
+                        pageUrl: window.location.href,
+                        pageTitle: document.title,
+                        capturedAt: Date.now()
+                    }
+                });
+            }
+        } else {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                try { iframe.contentWindow?.postMessage({ type: 'SPARK_CLIP', selection: event.data.selection }, '*'); } catch (e) { }
+            });
+        }
+    }
+
+    if (event.data?.type === 'SPARK_DEACTIVATE_SMART_CAPTURE') {
+        smartCaptureMode?.deactivate();
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+            try { iframe.contentWindow?.postMessage({ type: 'SPARK_DEACTIVATE_SMART_CAPTURE' }, '*'); } catch (e) { }
+        });
+    }
+}
+
+/**
  * Signal extension presence to the page
  */
 function signalExtensionPresence(): void {
@@ -71,66 +136,25 @@ function signalExtensionPresence(): void {
         const isFromParent = event.source === window.parent;
         if (!isFromSelf && !isFromParent) return;
 
-        if (event.data?.type === 'LW_PING') {
+        // Security: Validate message origin — only accept from same page origin
+        // This prevents hostile scripts on the page from injecting postMessage commands
+        if (isFromSelf && event.origin !== window.location.origin) return;
+        // For parent frames, only accept if origin matches (Spark iframe embedding)
+        if (isFromParent && event.origin !== window.location.origin) {
+            // Allow parent only if it's the configured Spark instance
             try {
                 chrome.runtime.sendMessage({ type: 'CHECK_CONFIG' }, (response) => {
-                    const configured = response?.success && response?.data?.configured;
-                    window.postMessage({ type: 'LW_PONG', version: '1.3.3', configured }, '*');
+                    if (!response?.data?.baseUrl) return;
+                    const sparkOrigin = new URL(response.data.baseUrl).origin;
+                    if (event.origin !== sparkOrigin) return;
+                    // Origin verified — process the message
+                    processExtensionMessage(event);
                 });
-            } catch (e) {
-                // Extension context invalidated - ignore
-            }
+            } catch { /* Extension context invalidated */ }
             return;
         }
 
-        if (event.data?.type === 'SPARK_SMART_CAPTURE') {
-            if (smartCaptureMode) {
-                // Dynamically set container selector (it may have been added after init)
-                const lwLinkIdElement = document.querySelector('[data-lw-link-id]');
-                if (lwLinkIdElement) {
-                    smartCaptureMode.setContainer('[data-lw-link-id]');
-                }
-                smartCaptureMode.toggle();
-            } else {
-                const iframes = document.querySelectorAll('iframe');
-                iframes.forEach(iframe => {
-                    try { iframe.contentWindow?.postMessage({ type: 'SPARK_SMART_CAPTURE' }, '*'); } catch (e) { }
-                });
-            }
-        }
-
-        if (event.data?.type === 'SPARK_CLIP') {
-            if (smartCaptureMode) {
-                const selection = event.data.selection;
-                if (selection && selection.text && selection.rect) {
-                    const rect = new DOMRect(selection.rect.x, selection.rect.y, selection.rect.width, selection.rect.height);
-                    SmartCaptureHandlers.handleClip({
-                        type: 'TEXT_BLOCK',
-                        rect,
-                        title: selection.text,
-                        extracted: { text: selection.text },
-                        pageContext: {
-                            pageUrl: window.location.href,
-                            pageTitle: document.title,
-                            capturedAt: Date.now()
-                        }
-                    });
-                }
-            } else {
-                const iframes = document.querySelectorAll('iframe');
-                iframes.forEach(iframe => {
-                    try { iframe.contentWindow?.postMessage({ type: 'SPARK_CLIP', selection: event.data.selection }, '*'); } catch (e) { }
-                });
-            }
-        }
-
-        if (event.data?.type === 'SPARK_DEACTIVATE_SMART_CAPTURE') {
-            smartCaptureMode?.deactivate();
-            const iframes = document.querySelectorAll('iframe');
-            iframes.forEach(iframe => {
-                try { iframe.contentWindow?.postMessage({ type: 'SPARK_DEACTIVATE_SMART_CAPTURE' }, '*'); } catch (e) { }
-            });
-        }
+        processExtensionMessage(event);
     };
 
     window.addEventListener('message', extensionMessageHandler);
@@ -411,6 +435,7 @@ function setupReadableViewObserver(_sparkBaseUrl: string): void {
         }
     });
     observer.observe(document.body, { childList: true, subtree: true });
+    cleanupRegistry.push(() => observer.disconnect());
 }
 
 function setupWebViewMessageListener(): void {
@@ -426,7 +451,7 @@ function setupWebViewMessageListener(): void {
 
 function setupGlobalListeners(): void {
     try {
-        chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+        const runtimeMessageHandler = (message: any, _sender: any, sendResponse: any) => {
             if (message.type === 'TOGGLE_EMBEDDED_MENU') {
                 toggleEmbeddedMenu();
                 sendResponse({ success: true });
@@ -445,7 +470,9 @@ function setupGlobalListeners(): void {
                 sendResponse({ success: true });
             }
             return true;
-        });
+        };
+        chrome.runtime.onMessage.addListener(runtimeMessageHandler);
+        cleanupRegistry.push(() => chrome.runtime.onMessage.removeListener(runtimeMessageHandler));
     } catch (e) {
         // Extension context invalidated - ignore
     }

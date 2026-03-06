@@ -12,6 +12,8 @@ export class CaptureOverlay {
     private isVisible = false;
     private isLocked = false;
     private labelTimeout: number | null = null;
+    private boundResizeHandler: (() => void) | null = null;
+    private boundScrollHandler: (() => void) | null = null;
 
     constructor() {
         this.createOverlay();
@@ -56,7 +58,7 @@ export class CaptureOverlay {
     private setupResizeHandler(): void {
         let resizeTimeout: number;
 
-        window.addEventListener('resize', () => {
+        this.boundResizeHandler = () => {
             if (resizeTimeout) {
                 clearTimeout(resizeTimeout);
             }
@@ -65,13 +67,16 @@ export class CaptureOverlay {
                     this.updatePosition(this.currentTarget);
                 }
             }, 100);
-        });
+        };
 
-        window.addEventListener('scroll', () => {
+        this.boundScrollHandler = () => {
             if (this.isVisible && this.currentTarget) {
                 this.updatePosition(this.currentTarget);
             }
-        }, { passive: true });
+        };
+
+        window.addEventListener('resize', this.boundResizeHandler);
+        window.addEventListener('scroll', this.boundScrollHandler, { passive: true });
     }
 
     private currentTarget: CaptureTarget | null = null;
@@ -206,11 +211,21 @@ export class CaptureOverlay {
         if (this.labelTimeout) {
             clearTimeout(this.labelTimeout);
         }
+        // Remove window event listeners to prevent memory leaks
+        if (this.boundResizeHandler) {
+            window.removeEventListener('resize', this.boundResizeHandler);
+            this.boundResizeHandler = null;
+        }
+        if (this.boundScrollHandler) {
+            window.removeEventListener('scroll', this.boundScrollHandler);
+            this.boundScrollHandler = null;
+        }
         if (this.overlay) {
             this.overlay.remove();
             this.overlay = null;
             this.targetIcon = null;
             this.cycleLabel = null;
         }
+        this.currentTarget = null;
     }
 }
