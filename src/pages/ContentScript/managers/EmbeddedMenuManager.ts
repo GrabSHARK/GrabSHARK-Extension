@@ -1,17 +1,14 @@
-import { createRoot, Root } from 'react-dom/client';
-import React from 'react';
-import { EmbeddedApp } from '../EmbeddedApp';
 import { getStorageItem } from '../../../@/lib/utils';
 import embeddedStyles from '../embedded.css?inline';
+import { loadReactModule } from '../utils/reactLoader';
 
 // Global reference for the embedded root
-let embeddedRoot: Root | null = null;
+let embeddedRoot: any | null = null;
 let embeddedHost: HTMLElement | null = null;
 
 export async function toggleEmbeddedMenu() {
     // Only show popup in top frame, not in iframes (video players, game embeds, etc.)
     if (window.self !== window.top) {
-
         return;
     }
 
@@ -21,6 +18,9 @@ export async function toggleEmbeddedMenu() {
         window.dispatchEvent(new CustomEvent('spark-toggle-close'));
         return;
     }
+
+    // Lazy-load the React UI module (first time: ~200ms, cached after)
+    const { createRoot, React, EmbeddedApp } = await loadReactModule();
 
     // Create host element
     embeddedHost = document.createElement('div');

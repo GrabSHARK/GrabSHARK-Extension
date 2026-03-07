@@ -74,7 +74,8 @@
         "48.png",
         "128.png",
         "style.css",
-        "contentScript.css"
+        "contentScript.css",
+        "embeddedUI.js"
       ],
       "matches": [
         "<all_urls>"

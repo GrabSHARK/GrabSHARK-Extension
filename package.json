@@ -8,7 +8,7 @@
   "description": "SPARK browser extension",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && vite build -c vite.config.content.ts",
+    "build": "tsc && vite build && vite build -c vite.config.content.ts && vite build -c vite.config.embedded.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

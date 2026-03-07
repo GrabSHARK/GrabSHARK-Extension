@@ -36,15 +36,31 @@ export class ThemeManager {
 
         // Listen for storage changes
         try {
-            chrome.storage.onChanged.addListener((changes, area) => {
-                if (area === 'local' && changes['vite-ui-theme']) {
-                    const newValue = changes['vite-ui-theme'].newValue;
-                    if (newValue && ['dark', 'light', 'system', 'website'].includes(newValue)) {
-                        ThemeManager.cachedExtensionTheme = newValue;
-                        ThemeManager.handleThemeChange();
-                    }
-                }
-            });
+            chrome.storage.onChanged.addListener(ThemeManager.storageChangeHandler);
+        } catch (e) {
+            // Ignore
+        }
+    }
+
+    /**
+     * Named handler for storage changes (allows cleanup)
+     */
+    private static storageChangeHandler = (changes: { [key: string]: chrome.storage.StorageChange }, area: string): void => {
+        if (area === 'local' && changes['vite-ui-theme']) {
+            const newValue = changes['vite-ui-theme'].newValue;
+            if (newValue && ['dark', 'light', 'system', 'website'].includes(newValue)) {
+                ThemeManager.cachedExtensionTheme = newValue;
+                ThemeManager.handleThemeChange();
+            }
+        }
+    };
+
+    /**
+     * Cleanup storage listener (call on page unload)
+     */
+    public static cleanup(): void {
+        try {
+            chrome.storage.onChanged.removeListener(ThemeManager.storageChangeHandler);
         } catch (e) {
             // Ignore
         }

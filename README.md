@@ -135,6 +135,14 @@ src/
 
 ---
 
+## ❤️ Support
+
+If you find SPARK useful, consider supporting its development:
+
+<a href="https://www.patreon.com/cw/fklnc94" target="_blank"><img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Support on Patreon" /></a>
+
+---
+
 ## License
 
 This extension is part of the [SPARK](https://github.com/spark-archive/spark) project, licensed under the [MIT License](./LICENSE).

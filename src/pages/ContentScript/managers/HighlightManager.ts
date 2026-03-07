@@ -31,9 +31,7 @@ export const HighlightManager = {
     setLinkId: (id: number | null) => { currentPageLinkId = id; },
     setFileId: (id: number | null) => { currentPageFileId = id; },
 
-    /**
-     * Load highlights for the current page by URL
-     */
+    /** Load highlights for the current page by URL */
     async loadHighlightsForPage(): Promise<void> {
         const pageUrl = window.location.href;
 
@@ -59,18 +57,14 @@ export const HighlightManager = {
                 currentHighlights = response.data.highlights || [];
 
                 if (currentHighlights.length > 0) {
-
                     applyHighlights(currentHighlights);
                 }
             }
         }
     },
 
-    /**
-     * Load highlights for a specific link ID (used in Web View context)
-     */
+    /** Load highlights for a specific link ID (used in Web View context) */
     async loadHighlightsForLinkId(linkId: number): Promise<void> {
-
         currentPageLinkId = linkId;
 
         const response = await sendMessage<{ highlights: Highlight[] }>(
@@ -82,26 +76,19 @@ export const HighlightManager = {
             currentHighlights = response.data.highlights || [];
 
             if (currentHighlights.length > 0) {
-
-
                 // Checks for scoped container first (Readable View)
                 const readableContainer = document.querySelector('[data-lw-link-id]') as HTMLElement;
                 if (readableContainer) {
-
                     applyHighlights(currentHighlights, readableContainer, true);
                 } else {
-
                     applyHighlights(currentHighlights, document.body, true);
                 }
             }
         }
     },
 
-    /**
-     * Load highlights for a specific file ID (used in file view context)
-     */
+    /** Load highlights for a specific file ID (used in file view context) */
     async loadHighlightsForFileId(fileId: number): Promise<void> {
-
         currentPageFileId = fileId;
         currentPageLinkId = null; // Clear link ID since we're in file context
 
@@ -114,12 +101,9 @@ export const HighlightManager = {
             currentHighlights = response.data.highlights || [];
 
             if (currentHighlights.length > 0) {
-
-
                 // Checks for scoped container first (File View)
                 const fileContainer = document.querySelector('[data-ext-lw-file-id]') as HTMLElement;
                 if (fileContainer) {
-
                     applyHighlights(currentHighlights, fileContainer, true);
                 } else {
                     applyHighlights(currentHighlights, document.body, true);
@@ -128,9 +112,7 @@ export const HighlightManager = {
         }
     },
 
-    /**
-     * Create a new highlight (and auto-save link if needed)
-     */
+    /** Create a new highlight (and auto-save link if needed) */
     async createHighlight(
         selectionInfo: NonNullable<ReturnType<typeof getSelectionInfo>>,
         color: HighlightColor,
@@ -139,7 +121,6 @@ export const HighlightManager = {
     ): Promise<void> {
         // If we're in file context, use file highlight API directly (no link creation)
         if (currentPageFileId) {
-
 
             const response = await sendMessage<{ highlight: Highlight }>('CREATE_FILE_HIGHLIGHT', {
                 fileId: currentPageFileId,
@@ -171,7 +152,6 @@ export const HighlightManager = {
 
         // If page not saved yet, save it first
         if (!currentPageLinkId) {
-
             // Check if user wants to save the full page or just create a lightweight anchor
             let shouldSavePage = true;
             try {
@@ -241,9 +221,7 @@ export const HighlightManager = {
         }
     },
 
-    /**
-     * Update an existing highlight (color or comment)
-     */
+    /** Update an existing highlight (color or comment) */
     async updateHighlight(
         highlight: Highlight,
         color: HighlightColor,
@@ -291,9 +269,7 @@ export const HighlightManager = {
         }
     },
 
-    /**
-     * Delete a highlight
-     */
+    /** Delete a highlight */
     async deleteHighlight(highlightId: number): Promise<void> {
         const response = await sendMessage<{ linkId?: number }>('DELETE_HIGHLIGHT', { highlightId, linkId: currentPageLinkId });
 

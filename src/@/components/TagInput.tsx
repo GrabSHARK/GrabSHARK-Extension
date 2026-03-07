@@ -75,7 +75,6 @@ export function TagInput({ value, onChange, tags, className, placeholder, contai
   const handleSelect = (tag: Tag) => {
     onChange([...value, { name: tag.name, id: tag.id }]);
     setSearchValue('');
-    // Keep focus on input after selection
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 

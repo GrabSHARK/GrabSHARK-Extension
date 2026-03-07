@@ -44,21 +44,20 @@ i18n
         },
     });
 
-// Load language from storage
-chrome.storage.local.get(['spark_locale'], (result) => {
-    if (result.spark_locale) {
-        i18n.changeLanguage(result.spark_locale);
-    } else {
-        // Try to detect browser language if no setting (optional, but requested sync from main app)
-        // For now default to en, logic to sync from app will save to spark_locale
-    }
-});
+// Load language from storage (guarded for page context where chrome.storage is unavailable)
+if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.get(['spark_locale'], (result) => {
+        if (result.spark_locale) {
+            i18n.changeLanguage(result.spark_locale);
+        }
+    });
 
-// Listen for changes
-chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && changes.spark_locale) {
-        i18n.changeLanguage(changes.spark_locale.newValue);
-    }
-});
+    // Listen for changes
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.spark_locale) {
+            i18n.changeLanguage(changes.spark_locale.newValue);
+        }
+    });
+}
 
 export default i18n;

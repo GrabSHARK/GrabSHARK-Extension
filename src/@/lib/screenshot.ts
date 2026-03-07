@@ -1,8 +1,5 @@
 import browser from 'webextension-polyfill';
-
-const loadImage = (blob: Blob): Promise<ImageBitmap> => {
-  return createImageBitmap(blob);
-};
+const loadImage = (blob: Blob): Promise<ImageBitmap> => createImageBitmap(blob);
 
 const drawImagesOnCanvas = async (
   blobs: Blob[],
@@ -14,27 +11,14 @@ const drawImagesOnCanvas = async (
   const canvas = new OffscreenCanvas(viewportWidth * dpr, totalHeight * dpr);
   const ctx = canvas.getContext('2d');
 
-  if (!ctx) {
-    throw new Error('Failed to get canvas context.');
-  }
+  if (!ctx) throw new Error('Failed to get canvas context.');
 
   ctx.scale(dpr, dpr);
-
   let currentHeight = 0;
 
   for (let index = 0; index < blobs.length - 1; index++) {
     const img = await loadImage(blobs[index]);
-    ctx.drawImage(
-      img,
-      0,
-      0,
-      img.width,
-      img.height,
-      0,
-      currentHeight,
-      viewportWidth,
-      viewportHeight
-    );
+    ctx.drawImage(img, 0, 0, img.width, img.height, 0, currentHeight, viewportWidth, viewportHeight);
     currentHeight += viewportHeight;
   }
 
@@ -42,18 +26,7 @@ const drawImagesOnCanvas = async (
   if (remainingHeight > 0) {
     const lastImage = await loadImage(blobs[blobs.length - 1]);
     const cropTop = (viewportHeight - remainingHeight) * dpr;
-    const neededHeight = remainingHeight * dpr;
-    ctx.drawImage(
-      lastImage,
-      0,
-      cropTop,
-      lastImage.width,
-      neededHeight,
-      0,
-      currentHeight,
-      viewportWidth,
-      remainingHeight
-    );
+    ctx.drawImage(lastImage, 0, cropTop, lastImage.width, remainingHeight * dpr, 0, currentHeight, viewportWidth, remainingHeight);
   }
 
   return await canvas.convertToBlob({ type: 'image/png' });
@@ -224,11 +197,7 @@ async function captureFullPageScreenshot(options?: CaptureOptions): Promise<Blob
   for (let i = 0; i < numShots; i++) {
     // Check for ESC cancellation
     cancelled = await executeScript(tab.id, checkCancelled) as boolean;
-    if (cancelled) {
-
-      if (options?.onCancel) options.onCancel();
-      break;
-    }
+    if (cancelled) { if (options?.onCancel) options.onCancel(); break; }
 
     const currentScroll =
       i < numShots - 1 ? i * viewportHeight : totalHeight - viewportHeight;
@@ -311,4 +280,3 @@ async function captureFullPageScreenshot(options?: CaptureOptions): Promise<Blob
 }
 
 export default captureFullPageScreenshot;
-

@@ -1,4 +1,5 @@
-import captureScreenshot from '../screenshot.ts';
+// captureScreenshot is dynamically imported to prevent webextension-polyfill
+// from being bundled into embeddedUI.js (which runs in page context)
 import { bookmarkFormValues } from '../validators/bookmarkForm.ts';
 
 import { bookmarkMetadata } from '../cache.ts';
@@ -37,6 +38,7 @@ export async function postLink(
   if (uploadImage) {
     setState('capturing');
 
+    const { default: captureScreenshot } = await import('../screenshot.ts');
     const screenshot = await captureScreenshot();
 
     setState('uploading');

@@ -1,16 +1,3 @@
-/**
- * ContentExtractor - Extract links, images, videos, files from targets and selections
- * 
- * Features:
- * - Extract links from CaptureTarget (Smart Capture)
- * - Extract links from text selection (Highlight Toolbox)
- * - Extract images, videos, files from targets
- * - Filter out file extensions from link lists
- * - Multi-block selection aggregation
- * 
- * Used by: CaptureActionBar, HighlightToolbox
- */
-
 import { CaptureTarget } from '../SmartCapture/types';
 
 // Video extensions to distinguish from images
@@ -27,9 +14,7 @@ export interface ExtractedContent {
 }
 
 export class ContentExtractor {
-    /**
-     * Extract all content types from a CaptureTarget
-     */
+    /** Extract all content from a CaptureTarget */
     public static extractFromTarget(target: CaptureTarget): ExtractedContent {
         return {
             links: ContentExtractor.getLinksWithLabels(target),
@@ -39,9 +24,6 @@ export class ContentExtractor {
         };
     }
 
-    /**
-     * Check if target contains a link
-     */
     public static hasLink(target: CaptureTarget): boolean {
         // Check if target itself is a link
         if (target.type === 'LINK' || target.secondaryType === 'LINK') return true;
@@ -51,39 +33,24 @@ export class ContentExtractor {
         return ContentExtractor.getLinks(target).length > 0;
     }
 
-    /**
-     * Check if target contains an image (not video)
-     */
     public static hasImage(target: CaptureTarget): boolean {
         return ContentExtractor.getImages(target).length > 0;
     }
 
-    /**
-     * Check if target contains a video
-     */
     public static hasVideo(target: CaptureTarget): boolean {
         return ContentExtractor.getVideos(target).length > 0;
     }
 
-    /**
-     * Check if target contains a downloadable file
-     */
     public static hasFile(target: CaptureTarget): boolean {
         return ContentExtractor.getFiles(target).length > 0;
     }
 
-    /**
-     * Check if target contains highlightable text content
-     */
     public static hasTextContent(target: CaptureTarget): boolean {
         return target.type === 'TEXT_BLOCK' ||
             target.type === 'GENERIC_BLOCK' ||
             target.type === 'LINK';
     }
 
-    /**
-     * Get all link URLs from target (excluding files/images)
-     */
     public static getLinks(target: CaptureTarget): string[] {
         const links: string[] = [];
 
@@ -111,9 +78,6 @@ export class ContentExtractor {
         return links;
     }
 
-    /**
-     * Get all links with labels from target (for dropdown display)
-     */
     public static getLinksWithLabels(target: CaptureTarget): Array<{ url: string; label: string }> {
         const linksMap = new Map<string, { url: string; label: string }>();
 
@@ -134,9 +98,6 @@ export class ContentExtractor {
         return Array.from(linksMap.values());
     }
 
-    /**
-     * Get all images from target (excluding videos, including multi-block)
-     */
     public static getImages(target: CaptureTarget): string[] {
         const images: string[] = [];
 
@@ -175,9 +136,6 @@ export class ContentExtractor {
         return images;
     }
 
-    /**
-     * Get all videos from target (including multi-block)
-     */
     public static getVideos(target: CaptureTarget): string[] {
         const videos: string[] = [];
 
@@ -222,9 +180,6 @@ export class ContentExtractor {
         return videos;
     }
 
-    /**
-     * Get all files from target (including multi-block)
-     */
     public static getFiles(target: CaptureTarget): Array<{ url: string; label: string }> {
         const files: Map<string, string> = new Map();
 
@@ -257,9 +212,6 @@ export class ContentExtractor {
         return Array.from(files.entries()).map(([url, label]) => ({ url, label }));
     }
 
-    /**
-     * Extract links from the current text selection (for HighlightToolbox)
-     */
     public static extractLinksFromSelection(): Array<{ url: string; label: string }> {
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0) return [];
@@ -317,9 +269,6 @@ export class ContentExtractor {
         return Array.from(linksMap.values());
     }
 
-    /**
-     * Extract filename from URL
-     */
     public static getFilenameFromUrl(url: string): string {
         try {
             const urlPath = new URL(url).pathname;

@@ -1,7 +1,9 @@
-import { createRoot, Root } from 'react-dom/client';
-import React from 'react';
-import { SaveNotificationToast, ToastLinkData } from '../SaveNotificationToast';
+import { loadReactModule } from '../utils/reactLoader';
 import componentStyles from '../components.css?inline';
+import type { ToastLinkData } from '../SaveNotificationToast';
+
+// React types (actual imports are lazy-loaded)
+type Root = import('react-dom/client').Root;
 
 // Toast notification state
 let toastHost: HTMLDivElement | null = null;
@@ -18,11 +20,8 @@ let renderKey = 0; // Incremented on close to force fresh component instance
  * Accumulates links into a queue so multiple saves show in one toast
  * @param newLinks - Array of newly saved links to add to notification
  */
-export function showSaveNotification(newLinks: ToastLinkData[]): void {
-
-
+export async function showSaveNotification(newLinks: ToastLinkData[]): Promise<void> {
     if (newLinks.length === 0) {
-
         return;
     }
 
@@ -40,9 +39,11 @@ export function showSaveNotification(newLinks: ToastLinkData[]): void {
     // Track which links are newly added (for animation)
     const newLinkIds = uniqueNewLinks.map(l => l.id);
 
+    // Lazy-load the React UI module
+    const { createRoot, React, SaveNotificationToast } = await loadReactModule();
+
     // Create Shadow DOM host if not exists
     if (!toastHost) {
-
         toastHost = document.createElement('div');
         toastHost.id = 'ext-lw-toast-notification-host';
         toastHost.style.cssText = 'position: fixed; top: 0; right: 0; z-index: 2147483647; pointer-events: none;';
@@ -103,7 +104,6 @@ export function showSaveNotification(newLinks: ToastLinkData[]): void {
     // Render the React component into Shadow DOM with accumulated queue
     // Use key prop to force fresh component instance after close
     if (toastRoot) {
-
         toastRoot.render(
             React.createElement(SaveNotificationToast, {
                 key: renderKey,

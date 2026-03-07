@@ -1,15 +1,13 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SaveLinkCard } from '../../@/components/SaveLinkCard.tsx';
 import { getStorageItem, setStorageItem } from '../../@/lib/utils.ts';
 import { isConfigured } from '../../@/lib/config.ts';
 import Modal from '../../@/components/Modal.tsx';
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
-// import '../Popup/index.css';
 import { LinkWithHighlights } from '../../@/lib/types/highlight.ts';
 import { AlreadySavedView } from '../../@/components/AlreadySavedView.tsx';
 import { ThemeProvider } from '../../@/components/ThemeProvider.tsx';
 import { ThemeDetector } from './SmartCapture/ThemeDetector.ts';
-
 import { EditLinkView } from '../../@/components/EditLinkView.tsx';
 import { PreferencesView } from '../../@/components/PreferencesView.tsx';
 import { getCurrentUser } from '../../@/lib/actions/users.ts';
@@ -23,210 +21,56 @@ interface EmbeddedAppProps {
     cachedUserTheme?: "dark" | "light";
 }
 
-// Separate component to use useQueryClient hook or access queryClient
-const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setContainerRef, isVisible, setIsVisible, handleClose, handleThemeLoaded }: any) => {
-    const currentUrl = window.location.href;
-    const queryClient = useQueryClient();
+// --- Embedded Events (inlined from useEmbeddedEvents) ---
 
-    const [isAllConfigured, setIsAllConfigured] = useState<boolean>();
+/** Convert toast link data to LinkWithHighlights format */
+function toastLinkToLinkWithHighlights(toastLink: any): LinkWithHighlights {
+    return {
+        id: toastLink.id,
+        url: toastLink.url,
+        name: toastLink.name,
+        createdAt: toastLink.createdAt || new Date().toISOString(),
+        collection: toastLink.collection ? {
+            id: 0, name: toastLink.collection.name,
+            color: toastLink.collection.color || '', icon: toastLink.collection.icon || '',
+            parentId: null, ownerId: 0,
+        } : null,
+        highlights: [],
+        description: '',
+        type: 'url',
+        collectionId: 0,
+        tags: [],
+        pinnedBy: [],
+        _skipAiPolling: true,
+    } as any;
+}
+
+function useEmbeddedEvents({ handleClose, setIsVisible, handleSuccess }: {
+    handleClose: () => void;
+    setIsVisible: (v: boolean) => void;
+    handleSuccess: (linkData: any, openEdit?: boolean) => void;
+}) {
+    const [overrideLink, setOverrideLink] = useState<LinkWithHighlights | null>(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [sharedImgSrc, setSharedImgSrc] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false);
     const isUploadingRef = useRef(false);
-    const [hasOpened, setHasOpened] = useState(false);
-    const [isViewingPreferences, setIsViewingPreferences] = useState(false);
-    // Track where preferences was opened from: 'save' | 'saved' | null
-    const [_preferencesOrigin, setPreferencesOrigin] = useState<'save' | 'saved' | null>(null);
 
-
-
-
-    // Optimistic Cache Read
-    const [cachedLink] = useState<LinkWithHighlights | null>(() => {
-        try {
-            const cacheKey = `lw_cache_${currentUrl}`;
-            const cached = sessionStorage.getItem(cacheKey);
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                return parsed.link;
-            }
-        } catch (e) { }
-        return null;
-    });
-
-    const [loading, setLoading] = useState(!cachedLink);
-
-    // Unified State: Use React Query with Optimistic Initial Data
-    const { data: savedLink } = useQuery({
-        queryKey: ['link', currentUrl],
-        queryFn: async () => {
-            const cachedOptions = await isConfigured();
-            if (!cachedOptions) return null;
-
-            try {
-                const response = await chrome.runtime.sendMessage({
-                    type: 'GET_LINK_WITH_HIGHLIGHTS',
-                    data: { url: currentUrl }
-                });
-                if (response.success && response.data?.link) {
-                    // Update cache on fresh fetch
-                    try {
-                        sessionStorage.setItem(`lw_cache_${currentUrl}`, JSON.stringify({
-                            timestamp: Date.now(),
-                            link: response.data.link
-                        }));
-                    } catch (e) { }
-                    return response.data.link as LinkWithHighlights;
-                }
-            } catch (e) {
-
-            }
-            return null;
-        },
-        initialData: cachedLink || undefined, // Use cache if available!
-        staleTime: 1000 * 60 * 5,
-    });
-
-    // Check configuration
-    useEffect(() => {
-        (async () => {
-            const cachedOptions = await isConfigured();
-            setIsAllConfigured(cachedOptions);
-            setLoading(false);
-        })();
-    }, []);
-
-    // Sync ref
-    useEffect(() => {
-        isUploadingRef.current = isUploading;
-    }, [isUploading]);
-
-    // Track open state
-    useEffect(() => {
-        if (isVisible) {
-            setHasOpened(true);
-            chrome.runtime.sendMessage({ type: 'SYNC_USER_LOCALE' }).catch(() => { });
-        }
-    }, [isVisible]);
-
-    const [baseUrl, setBaseUrl] = useState<string | null>(null);
-    const [apiKey, setApiKey] = useState<string | null>(null);
+    useEffect(() => { isUploadingRef.current = isUploading; }, [isUploading]);
 
     useEffect(() => {
-        getConfig().then((config) => {
-            setBaseUrl(config.baseUrl);
-            setApiKey(config.apiKey);
-        });
-    }, []);
+        const onToggleClose = () => handleClose();
 
-    const { data: userProfile } = useQuery({
-        queryKey: ['userProfile'],
-        queryFn: () => apiKey && baseUrl ? getCurrentUser(baseUrl, apiKey) : Promise.reject('No config'),
-        enabled: !!apiKey && !!baseUrl,
-        retry: 1,
-        staleTime: 0, // Always re-validate for instant theme sync
-    });
-
-    const resolveTheme = useCallback((theme: string): "dark" | "light" | undefined => {
-        if (theme === 'website') {
-            const detector = new ThemeDetector();
-            return detector.isDarkMode() ? 'dark' : 'light';
-        }
-
-        // Handle "Follow SPARK" (mapped to 'system' in ModeToggle)
-        if (theme === 'system') {
-            const profileTheme = userProfile?.theme || cachedUserTheme;
-            if (profileTheme === 'light') return 'light';
-            if (profileTheme === 'dark') return 'dark';
-        }
-
-
-
-        return undefined;
-    }, [userProfile, cachedUserTheme]);
-
-    // Self-Healing Cache: Update storage when we fetch distinct user profile
-    useEffect(() => {
-        if (userProfile?.theme) {
-            getStorageItem('cached_user_prefs').then((existing: any) => {
-                const prefs = existing || {};
-                if (prefs.theme !== userProfile.theme) {
-                    setStorageItem('cached_user_prefs', { ...prefs, theme: userProfile.theme });
-                }
-            });
-        }
-    }, [userProfile]);
-
-    // Override link from Toast - when user clicks Edit/Show on a toast card
-    const [overrideLink, setOverrideLink] = useState<LinkWithHighlights | null>(null);
-
-    // Listen for toggle close event from content script (when user clicks extension icon again)
-    useEffect(() => {
-        const onToggleClose = () => {
-            handleClose();
-        };
-
-        // Toast Edit button clicked - open embedded app with edit view
         const onOpenEdit = (event: CustomEvent) => {
-
             if (event.detail?.link) {
-                // Convert ToastLinkData to LinkWithHighlights format
-                const toastLink = event.detail.link;
-                setOverrideLink({
-                    id: toastLink.id,
-                    url: toastLink.url,
-                    name: toastLink.name,
-                    createdAt: toastLink.createdAt || new Date().toISOString(),
-                    collection: toastLink.collection ? {
-                        id: 0, // Will be fetched
-                        name: toastLink.collection.name,
-                        color: toastLink.collection.color || '',
-                        icon: toastLink.collection.icon || '',
-                        parentId: null,
-                        ownerId: 0,
-                    } : null,
-                    highlights: [],
-                    // Minimal required fields
-                    description: '',
-                    type: 'url',
-                    collectionId: 0,
-                    tags: [],
-                    pinnedBy: [],
-                    // Flag to skip AI polling - Toast links are already saved
-                    _skipAiPolling: true,
-                } as any);
+                setOverrideLink(toastLinkToLinkWithHighlights(event.detail.link));
             }
             setIsEditing(true);
             setIsVisible(true);
         };
 
-        // Toast Show button clicked - open embedded app with saved view  
         const onOpenSaved = (event: CustomEvent) => {
-
             if (event.detail?.link) {
-                const toastLink = event.detail.link;
-                setOverrideLink({
-                    id: toastLink.id,
-                    url: toastLink.url,
-                    name: toastLink.name,
-                    createdAt: toastLink.createdAt || new Date().toISOString(),
-                    collection: toastLink.collection ? {
-                        id: 0,
-                        name: toastLink.collection.name,
-                        color: toastLink.collection.color || '',
-                        icon: toastLink.collection.icon || '',
-                        parentId: null,
-                        ownerId: 0,
-                    } : null,
-                    highlights: [],
-                    description: '',
-                    type: 'url',
-                    collectionId: 0,
-                    tags: [],
-                    pinnedBy: [],
-                    // Flag to skip AI polling - Toast links are already saved
-                    _skipAiPolling: true,
-                } as any);
+                setOverrideLink(toastLinkToLinkWithHighlights(event.detail.link));
             }
             setIsEditing(false);
             setIsVisible(true);
@@ -235,7 +79,7 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
         const onMessage = (message: any) => {
             if (message.type === 'LINK_SAVE_PROGRESS' && message.status === 'uploading') {
                 setIsUploading(true);
-                isUploadingRef.current = true; // Sync ref immediately
+                isUploadingRef.current = true;
                 setIsVisible(true);
             } else if (message.type === 'LINK_SAVE_SUCCESS') {
                 handleSuccess(message.data);
@@ -255,55 +99,87 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
         };
     }, [handleClose, setIsVisible, isUploadingRef]);
 
-    const transitionView = (callback: () => void) => {
-        setIsVisible(false); // Animate out
-        setTimeout(() => {
-            callback();      // Change state (Edit/Saved)
-            requestAnimationFrame(() => {
-                setIsVisible(true); // Animate in
+    return { overrideLink, setOverrideLink, isEditing, setIsEditing, isUploading, setIsUploading, isUploadingRef };
+}
+
+// --- EmbeddedApp Content ---
+
+const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setContainerRef, isVisible, setIsVisible, handleClose, handleThemeLoaded }: any) => {
+    const currentUrl = window.location.href;
+    const qc = useQueryClient();
+    const [isAllConfigured, setIsAllConfigured] = useState<boolean>();
+    const [sharedImgSrc, setSharedImgSrc] = useState<string>('');
+    const [hasOpened, setHasOpened] = useState(false);
+    const [isViewingPreferences, setIsViewingPreferences] = useState(false);
+    const [_preferencesOrigin, setPreferencesOrigin] = useState<'save' | 'saved' | null>(null);
+
+    // Optimistic cache read
+    const [cachedLink] = useState<LinkWithHighlights | null>(() => {
+        try { const c = sessionStorage.getItem(`lw_cache_${currentUrl}`); return c ? JSON.parse(c).link : null; } catch { return null; }
+    });
+    const [loading, setLoading] = useState(!cachedLink);
+
+    const { data: savedLink } = useQuery({
+        queryKey: ['link', currentUrl],
+        queryFn: async () => {
+            if (!(await isConfigured())) return null;
+            try {
+                const r = await chrome.runtime.sendMessage({ type: 'GET_LINK_WITH_HIGHLIGHTS', data: { url: currentUrl } });
+                if (r.success && r.data?.link) { try { sessionStorage.setItem(`lw_cache_${currentUrl}`, JSON.stringify({ timestamp: Date.now(), link: r.data.link })); } catch { } return r.data.link as LinkWithHighlights; }
+            } catch { }
+            return null;
+        },
+        initialData: cachedLink || undefined,
+        staleTime: 1000 * 60 * 5,
+    });
+
+    useEffect(() => { (async () => { setIsAllConfigured(await isConfigured()); setLoading(false); })(); }, []);
+    useEffect(() => { if (isVisible) { setHasOpened(true); chrome.runtime.sendMessage({ type: 'SYNC_USER_LOCALE' }).catch(() => { }); } }, [isVisible]);
+
+    const [baseUrl, setBaseUrl] = useState<string | null>(null);
+    const [apiKey, setApiKey] = useState<string | null>(null);
+    useEffect(() => { getConfig().then(c => { setBaseUrl(c.baseUrl); setApiKey(c.apiKey); }); }, []);
+
+    const { data: userProfile } = useQuery({
+        queryKey: ['userProfile'],
+        queryFn: () => apiKey && baseUrl ? getCurrentUser(baseUrl, apiKey) : Promise.reject('No config'),
+        enabled: !!apiKey && !!baseUrl, retry: 1, staleTime: 0,
+    });
+
+    const resolveTheme = useCallback((theme: string): "dark" | "light" | undefined => {
+        if (theme === 'website') return new ThemeDetector().isDarkMode() ? 'dark' : 'light';
+        if (theme === 'system') { const t = userProfile?.theme || cachedUserTheme; if (t === 'light' || t === 'dark') return t; }
+        return undefined;
+    }, [userProfile, cachedUserTheme]);
+
+    useEffect(() => {
+        if (userProfile?.theme) {
+            getStorageItem('cached_user_prefs').then((existing: any) => {
+                const p = existing || {};
+                if (p.theme !== userProfile.theme) setStorageItem('cached_user_prefs', { ...p, theme: userProfile.theme });
             });
-        }, 300);
+        }
+    }, [userProfile]);
+
+    const transitionView = (callback: () => void) => {
+        setIsVisible(false);
+        setTimeout(() => { callback(); requestAnimationFrame(() => setIsVisible(true)); }, 300);
     };
 
     const handleSuccess = (linkData: any, openEdit = false) => {
-        // Here we UNIFY the state: Update the query cache directly
-        queryClient.setQueryData(['link', currentUrl], linkData);
-
-        if (isUploadingRef.current || isUploading) {
-            setIsUploading(false);
-            setIsEditing(openEdit);
-            setIsVisible(true);
-        } else {
-            // Check if we are already showing this link
-            if (savedLink && savedLink.id === linkData.id && isEditing === openEdit) {
-                return;
-            }
-            // Transition
-            transitionView(() => {
-                setIsEditing(openEdit);
-            });
-        }
+        qc.setQueryData(['link', currentUrl], linkData);
+        if (isUploadingRef.current || isUploading) { setIsUploading(false); setIsEditing(openEdit); setIsVisible(true); }
+        else { if (savedLink && savedLink.id === linkData.id && isEditing === openEdit) return; transitionView(() => setIsEditing(openEdit)); }
     };
 
-    const handleHideForCapture = useCallback((callback: () => void) => {
-        setIsVisible(false);
-        setTimeout(() => {
-            callback();
-        }, 350);
-    }, [setIsVisible]);
+    const { overrideLink, setOverrideLink, isEditing, setIsEditing, isUploading, setIsUploading, isUploadingRef } =
+        useEmbeddedEvents({ handleClose, setIsVisible, handleSuccess });
 
-    // Handle updates from EditLinkView
+    const handleHideForCapture = useCallback((callback: () => void) => { setIsVisible(false); setTimeout(callback, 350); }, [setIsVisible]);
     const handleLinkUpdate = (updatedLink: Partial<LinkWithHighlights>) => {
-        queryClient.setQueryData(['link', currentUrl], (old: LinkWithHighlights | undefined) => {
-            if (!old) return undefined;
-            return { ...old, ...updatedLink };
-        });
+        qc.setQueryData(['link', currentUrl], (old: LinkWithHighlights | undefined) => old ? { ...old, ...updatedLink } : undefined);
     };
 
-
-
-    // Calculate effective initial theme to prevent flash
-    // If we have a cached user theme and the setting is 'system', start with the cached value
     const startTheme = (initialTheme === 'system' && cachedUserTheme) ? cachedUserTheme : initialTheme;
 
     return (
@@ -311,122 +187,47 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
             <div ref={setContainerRef} className="bg-void-bg p-1.5 rounded-[28px] shadow-2xl dark:shadow-black/60 shadow-black/10">
                 <div className="bg-void-island/40 backdrop-blur-xl w-[350px] rounded-[24px] border border-void-border/10 font-sans text-left">
                     <div>
-                        {/* Header - Only show for New Link form, AlreadySavedView has its own minimal header implicitly via the card */}
-                        {/* Header - Removed as SaveLinkCard handles its own header now */}
-
-
-                        {/* Content */}
-                        {hasOpened && (
-                            <>
-                                {loading ? (
-                                    <div className="flex justify-center py-8">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 dark:border-slate-100"></div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {/* Only render SaveCard/AlreadySavedView after Modal is done */}
-                                        {isAllConfigured && (
-                                            <>
-                                                {/* Show PreferencesView if viewing preferences */}
-                                                {isViewingPreferences ? (
-                                                    <PreferencesView
-                                                        onClose={handleClose}
-                                                        onBack={() => {
-                                                            transitionView(() => setIsViewingPreferences(false));
-                                                        }}
-                                                    />
+                        {hasOpened && (<>
+                            {loading ? (
+                                <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 dark:border-slate-100"></div></div>
+                            ) : (<>
+                                {isAllConfigured && (<>
+                                    {isViewingPreferences ? (
+                                        <PreferencesView onClose={handleClose} onBack={() => transitionView(() => setIsViewingPreferences(false))} />
+                                    ) : (<>
+                                        {(() => {
+                                            const effectiveLink = overrideLink || savedLink;
+                                            return (effectiveLink || isUploading) ? (<>
+                                                {isEditing ? (
+                                                    <div className="p-4">
+                                                        <EditLinkView link={effectiveLink!} onClose={handleClose}
+                                                            onBack={() => transitionView(() => setIsEditing(false))}
+                                                            containerRef={containerRef} onUpdate={handleLinkUpdate}
+                                                            sharedImgSrc={sharedImgSrc} onImgSrcChange={setSharedImgSrc}
+                                                            onDelete={() => { qc.removeQueries(['link', currentUrl]); qc.setQueryData(['link', currentUrl], null); setOverrideLink(null); transitionView(() => setIsEditing(false)); }} />
+                                                    </div>
                                                 ) : (
-                                                    <>
-                                                        {/* Use overrideLink from Toast if available, otherwise use savedLink */}
-                                                        {(() => {
-                                                            const effectiveLink = overrideLink || savedLink;
-                                                            return (effectiveLink || isUploading) ? (
-                                                                <>
-                                                                    {isEditing ? (
-                                                                        <div className="p-4">
-                                                                            <EditLinkView
-                                                                                link={effectiveLink!}
-                                                                                onClose={handleClose}
-                                                                                onBack={() => {
-                                                                                    // Keep overrideLink so AlreadySavedView shows the correct link
-                                                                                    transitionView(() => setIsEditing(false));
-                                                                                }}
-                                                                                containerRef={containerRef}
-                                                                                onUpdate={handleLinkUpdate}
-                                                                                sharedImgSrc={sharedImgSrc}
-                                                                                onImgSrcChange={setSharedImgSrc}
-                                                                                onDelete={() => {
-                                                                                    // Clear cache immediately so UI resets to "Save" state
-                                                                                    queryClient.removeQueries(['link', currentUrl]);
-                                                                                    queryClient.setQueryData(['link', currentUrl], null);
-                                                                                    setOverrideLink(null); // Clear override on delete
-                                                                                    transitionView(() => setIsEditing(false));
-                                                                                }}
-                                                                            />
-                                                                        </div>
-                                                                    ) : (
-                                                                        <AlreadySavedView
-                                                                            key={effectiveLink ? JSON.stringify(effectiveLink) : 'empty'}
-                                                                            link={effectiveLink}
-                                                                            onEdit={(freshLink) => {
-                                                                                // If we have fresh data (e.g. from polling tags), update cache before editing
-                                                                                if (freshLink && currentUrl) {
-                                                                                    queryClient.setQueryData(['link', currentUrl], freshLink);
-                                                                                }
-                                                                                transitionView(() => setIsEditing(true));
-                                                                            }}
-                                                                            sharedImgSrc={sharedImgSrc}
-                                                                            onImgSrcChange={setSharedImgSrc}
-                                                                            onClose={handleClose}
-                                                                            isUploading={isUploading}
-                                                                            onPreferences={() => {
-                                                                                setPreferencesOrigin('saved');
-                                                                                transitionView(() => setIsViewingPreferences(true));
-                                                                            }}
-                                                                        />
-                                                                    )}
-                                                                </>
-                                                            ) : (
-                                                                <div style={{ display: (effectiveLink || isUploading) ? 'none' : 'block' }}>
-                                                                    <SaveLinkCard
-                                                                        onClose={handleClose}
-                                                                        onSuccess={handleSuccess}
-                                                                        onHideForCapture={handleHideForCapture}
-                                                                        onPreferences={() => {
-                                                                            setPreferencesOrigin('save');
-                                                                            transitionView(() => setIsViewingPreferences(true));
-                                                                        }}
-                                                                        containerRef={containerRef}
-                                                                    />
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                    </>
+                                                    <AlreadySavedView key={effectiveLink ? JSON.stringify(effectiveLink) : 'empty'}
+                                                        link={effectiveLink} onEdit={(freshLink) => { if (freshLink && currentUrl) qc.setQueryData(['link', currentUrl], freshLink); transitionView(() => setIsEditing(true)); }}
+                                                        sharedImgSrc={sharedImgSrc} onImgSrcChange={setSharedImgSrc} onClose={handleClose} isUploading={isUploading}
+                                                        onPreferences={() => { setPreferencesOrigin('saved'); transitionView(() => setIsViewingPreferences(true)); }} />
                                                 )}
-                                            </>
-                                        )}
-                                    </>
-                                )}
-                            </>
-                        )}
-
-
-
-                        <Modal
-                            open={!isAllConfigured}
-                            onDone={(_linkExists: boolean) => {
-                                // Modal has already completed its own 300ms closing animation (isClosing)
-                                // Now: 1) Slide out container, 2) Update state, 3) Slide in SaveCard
-                                setIsVisible(false);
-                                setTimeout(() => {
-                                    setIsAllConfigured(true);
-                                    queryClient.invalidateQueries(['link', currentUrl]);
-                                }, 300); // Wait for slide-out
-                                setTimeout(() => {
-                                    setIsVisible(true);
-                                }, 400); // Slide in after state updated
-                            }}
-                        />
+                                            </>) : (
+                                                <div style={{ display: (effectiveLink || isUploading) ? 'none' : 'block' }}>
+                                                    <SaveLinkCard onClose={handleClose} onSuccess={handleSuccess} onHideForCapture={handleHideForCapture}
+                                                        onPreferences={() => { setPreferencesOrigin('save'); transitionView(() => setIsViewingPreferences(true)); }} containerRef={containerRef} />
+                                                </div>
+                                            );
+                                        })()}
+                                    </>)}
+                                </>)}
+                            </>)}
+                        </>)}
+                        <Modal open={!isAllConfigured} onDone={() => {
+                            setIsVisible(false);
+                            setTimeout(() => { setIsAllConfigured(true); qc.invalidateQueries(['link', currentUrl]); }, 300);
+                            setTimeout(() => setIsVisible(true), 400);
+                        }} />
                     </div>
                 </div>
             </div>
@@ -437,59 +238,15 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
 export const EmbeddedApp = ({ onClose, initialTheme, cachedUserTheme }: EmbeddedAppProps) => {
     const [isVisible, setIsVisible] = useState(false);
     const [containerRef, setContainerRef] = useState<HTMLElement | null>(null);
+    const handleClose = useCallback(() => { if (!isVisible) return; setIsVisible(false); setTimeout(onClose, 300); }, [onClose, isVisible]);
+    const handleThemeLoaded = useCallback(() => { requestAnimationFrame(() => { requestAnimationFrame(() => setIsVisible(true)); }); }, []);
 
-    const handleClose = useCallback(() => {
-        // If already closing or closed, do nothing
-        if (!isVisible) return;
-
-        setIsVisible(false);
-        setTimeout(onClose, 300); // Wait for exit animation
-    }, [onClose, isVisible]); // Added isVisible dependency
-
-    // resolveTheme moved to content
-    /* 
-    const resolveTheme = useCallback((theme: string): "dark" | "light" | undefined => {
-        if (theme === 'website') {
-            const detector = new ThemeDetector();
-            return detector.isDarkMode() ? 'dark' : 'light';
-        }
-        return undefined;
-    }, []); 
-    */
-
-    const handleThemeLoaded = useCallback(() => {
-        // Theme is applied (or at least loaded). Now trigger animation.
-        // Use double RAF to ensure class is applied and painted before transitioning transform
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                setIsVisible(true);
-            });
-        });
-    }, []);
-
-    // Outer shell only handles Provider and mounting logic
     return (
         <QueryClientProvider client={queryClient}>
-            {/* Outer Wrapper: Handles Positioning and Entrance Animation */}
-            {/* React controls this className completely. ThemeProvider does NOT touch this. */}
-            <div
-                className={`fixed top-[10px] right-[10px] z-[999999] transition-all duration-300 ease-out transform ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'
-                    }`}
-                onWheel={(e) => {
-                    // Prevent scroll from propagating to the underlying page
-                    e.stopPropagation();
-                }}
-            >
-                <EmbeddedAppContent
-                    initialTheme={initialTheme}
-                    cachedUserTheme={cachedUserTheme}
-                    containerRef={containerRef}
-                    setContainerRef={setContainerRef}
-                    isVisible={isVisible}
-                    setIsVisible={setIsVisible}
-                    handleClose={handleClose}
-                    handleThemeLoaded={handleThemeLoaded}
-                />
+            <div className={`fixed top-[10px] right-[10px] z-[999999] transition-all duration-300 ease-out transform ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}
+                onWheel={(e) => e.stopPropagation()}>
+                <EmbeddedAppContent initialTheme={initialTheme} cachedUserTheme={cachedUserTheme} containerRef={containerRef}
+                    setContainerRef={setContainerRef} isVisible={isVisible} setIsVisible={setIsVisible} handleClose={handleClose} handleThemeLoaded={handleThemeLoaded} />
             </div>
         </QueryClientProvider>
     );
