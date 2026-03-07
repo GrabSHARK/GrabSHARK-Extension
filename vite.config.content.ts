@@ -15,6 +15,7 @@ export default defineConfig({
     build: {
         emptyOutDir: false, // Don't wipe the dist folder (main build runs first)
         outDir: 'dist',
+        minify: process.env.NODE_ENV === 'development' ? false : 'esbuild',
         lib: {
             entry: path.resolve(__dirname, 'src/pages/ContentScript/contentScript.tsx'),
             name: 'SPARKContentScript',
@@ -33,5 +34,8 @@ export default defineConfig({
                 },
             },
         },
+    },
+    esbuild: {
+        drop: process.env.NODE_ENV === 'development' ? [] : ['console', 'debugger'],
     },
 });

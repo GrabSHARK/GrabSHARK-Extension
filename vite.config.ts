@@ -11,6 +11,7 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 600, // Extension popup bundles can be larger
+    minify: process.env.NODE_ENV === 'development' ? false : 'esbuild',
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
@@ -22,6 +23,9 @@ export default defineConfig({
         assetFileNames: '[name].[ext]',
       },
     },
+  },
+  esbuild: {
+    drop: process.env.NODE_ENV === 'development' ? [] : ['console', 'debugger'],
   },
 });
 
