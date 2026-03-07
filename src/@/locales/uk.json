@@ -13,7 +13,7 @@
         "title": "Ви вже зберегли",
         "savedMultiple": "Збережено {{count}} посилань",
         "edit": "Редагувати",
-        "openInLinkwarden": "Відкрити в SPARK",
+        "openInSPARK": "Відкрити в SPARK",
         "justNow": "Щойно",
         "untitled": "Без назви"
     },
@@ -37,7 +37,7 @@
         "delete": "Видалити",
         "archive": "Архівувати",
         "unarchive": "Розархівувати",
-        "openInLinkwarden": "Відкрити в SPARK",
+        "openInSPARK": "Відкрити в SPARK",
         "areYouSure": "Ви впевнені?",
         "linkDeleted": "Посилання видалено",
         "linkUpdated": "Посилання оновлено",

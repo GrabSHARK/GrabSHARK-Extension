@@ -13,7 +13,7 @@
         "title": "Bu bağlantıyı zaten kaydettiniz",
         "savedMultiple": "{{count}} bağlantı kaydedildi",
         "edit": "Düzenle",
-        "openInLinkwarden": "SPARK'ta Aç",
+        "openInSPARK": "SPARK'ta Aç",
         "justNow": "Az önce",
         "untitled": "Başlıksız"
     },
@@ -37,7 +37,7 @@
         "delete": "Sil",
         "archive": "Arşivle",
         "unarchive": "Arşivden Çıkar",
-        "openInLinkwarden": "SPARK'ta Aç",
+        "openInSPARK": "SPARK'ta Aç",
         "areYouSure": "Emin misiniz?",
         "linkDeleted": "Bağlantı Silindi",
         "linkUpdated": "Bağlantı Güncellendi",

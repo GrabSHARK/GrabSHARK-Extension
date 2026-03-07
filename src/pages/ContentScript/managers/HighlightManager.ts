@@ -181,7 +181,7 @@ export const HighlightManager = {
                 // Fallback to default (save page)
             }
 
-            showToast('Saving page to Linkwarden...', 'success');
+            showToast('Saving page to SPARK...', 'success');
 
             const linkPayload: Record<string, any> = {
                 url: window.location.href,

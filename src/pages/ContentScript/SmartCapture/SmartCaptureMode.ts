@@ -301,7 +301,7 @@ export class SmartCaptureMode {
     private handleGlobalKeydown(e: KeyboardEvent): void {
         if (!this.enableSmartCapture) return;
 
-        // Check if user is interacting with Linkwarden's own UI or inputs
+        // Check if user is interacting with SPARK's own UI or inputs
         // OR if global shortcut recording is active
         if (document.body.classList.contains('ext-lw-recording-shortcut')) return;
 
@@ -319,7 +319,7 @@ export class SmartCaptureMode {
                 return;
             }
 
-            // Check if inside Linkwarden UI components (Shadow Hosts)
+            // Check if inside SPARK UI components (Shadow Hosts)
             // Note: closest() does not cross Shadow Boundary, so we must check the path
             const isInsideUI = path.some(node => {
                 const el = node as HTMLElement;
@@ -397,7 +397,7 @@ export class SmartCaptureMode {
         // Check if recording shortcut
         if (document.body.classList.contains('ext-lw-recording-shortcut')) return;
 
-        // Ignore if interacting with Linkwarden UI
+        // Ignore if interacting with SPARK UI
         const path = e.composedPath();
         if (path.length > 0) {
             const isInsideUI = path.some(node => {

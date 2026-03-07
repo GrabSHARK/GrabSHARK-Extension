@@ -13,7 +13,7 @@
         "title": "Już zapisano",
         "savedMultiple": "Zapisano {{count}} linków",
         "edit": "Edytuj",
-        "openInLinkwarden": "Otwórz w SPARK",
+        "openInSPARK": "Otwórz w SPARK",
         "justNow": "Przed chwilą",
         "untitled": "Bez tytułu"
     },
@@ -37,7 +37,7 @@
         "delete": "Usuń",
         "archive": "Archiwizuj",
         "unarchive": "Przywróć",
-        "openInLinkwarden": "Otwórz w SPARK",
+        "openInSPARK": "Otwórz w SPARK",
         "areYouSure": "Czy na pewno?",
         "linkDeleted": "Link usunięty",
         "linkUpdated": "Link zaktualizowany",

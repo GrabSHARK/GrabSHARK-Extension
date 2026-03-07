@@ -13,7 +13,7 @@
         "title": "您已儲存",
         "savedMultiple": "已儲存 {{count}} 個連結",
         "edit": "編輯",
-        "openInLinkwarden": "在 SPARK 中開啟",
+        "openInSPARK": "在 SPARK 中開啟",
         "justNow": "剛剛",
         "untitled": "無標題"
     },
@@ -37,7 +37,7 @@
         "delete": "刪除",
         "archive": "封存",
         "unarchive": "取消封存",
-        "openInLinkwarden": "在 SPARK 中開啟",
+        "openInSPARK": "在 SPARK 中開啟",
         "areYouSure": "您確定嗎？",
         "linkDeleted": "連結已刪除",
         "linkUpdated": "連結已更新",

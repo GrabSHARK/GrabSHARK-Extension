@@ -124,7 +124,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
         <div className="shrink-0 -mt-[11px] mb-10 w-14 h-14 flex items-center justify-center">
           <img
             src={logoSrc}
-            alt="Linkwarden"
+            alt="SPARK"
             className={cn(
               "w-14 h-14 transition-all duration-500 ease-out origin-top",
               step === 2 && "scale-[0.75]"

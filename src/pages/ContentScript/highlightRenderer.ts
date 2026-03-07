@@ -24,7 +24,7 @@ const HIGHLIGHT_DATA_ATTR = 'data-ext-lw-highlight-id';
  * Apply all highlights to the page
  * Integrates with HighlightObserver for SPA resilience
  * 
- * @param skipObserver - If true, skip initializing the observer (used on Linkwarden instance
+ * @param skipObserver - If true, skip initializing the observer (used on SPARK instance
  *                       where the main app already handles highlight rendering)
  */
 export function applyHighlights(
@@ -46,7 +46,7 @@ export function applyHighlights(
         results.set(highlight.id, success);
     }
 
-    // Initialize the Observer with results (unless on Linkwarden instance)
+    // Initialize the Observer with results (unless on SPARK instance)
     // It will watch for DOM changes and retry pending highlights
     if (!skipObserver) {
         initializeObserver(highlights, results);
@@ -722,7 +722,7 @@ export function updateHighlightClasses(
 /**
  * Get highlight ID from clicked element
  * Checks both extension attribute (data-ext-lw-highlight-id) and 
- * main app attribute (data-highlight-id) for Linkwarden instance compatibility
+ * main app attribute (data-highlight-id) for SPARK instance compatibility
  */
 export function getHighlightIdFromElement(element: HTMLElement): number | null {
     // Check extension attribute first
@@ -731,7 +731,7 @@ export function getHighlightIdFromElement(element: HTMLElement): number | null {
         return parseInt(extId, 10);
     }
 
-    // Check main app attribute (for Linkwarden readable view)
+    // Check main app attribute (for SPARK readable view)
     const appId = element.getAttribute('data-highlight-id');
     if (appId) {
         return parseInt(appId, 10);

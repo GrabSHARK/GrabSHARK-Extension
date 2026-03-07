@@ -13,7 +13,7 @@
         "title": "Вы уже сохранили",
         "savedMultiple": "Сохранено {{count}} ссылок",
         "edit": "Редактировать",
-        "openInLinkwarden": "Открыть в SPARK",
+        "openInSPARK": "Открыть в SPARK",
         "justNow": "Только что",
         "untitled": "Без названия"
     },
@@ -37,7 +37,7 @@
         "delete": "Удалить",
         "archive": "Архивировать",
         "unarchive": "Разархивировать",
-        "openInLinkwarden": "Открыть в SPARK",
+        "openInSPARK": "Открыть в SPARK",
         "areYouSure": "Вы уверены?",
         "linkDeleted": "Ссылка удалена",
         "linkUpdated": "Ссылка обновлена",

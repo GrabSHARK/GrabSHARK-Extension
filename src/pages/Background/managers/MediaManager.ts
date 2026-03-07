@@ -167,7 +167,7 @@ export class MediaManager {
         // Fallback Download
         await chrome.downloads.download({
             url: url,
-            filename: `Linkwarden/${filename}`,
+            filename: `SPARK/${filename}`,
             saveAs: true,
         });
         return { success: true, data: { fallback: true } };
@@ -201,7 +201,7 @@ export class MediaManager {
             // Fallback
             await chrome.downloads.download({
                 url: dataUrl,
-                filename: `Linkwarden/Clips/${filename}`,
+                filename: `SPARK/Clips/${filename}`,
                 saveAs: true,
             });
             return { success: true, data: { fallback: true, error: error.message } };

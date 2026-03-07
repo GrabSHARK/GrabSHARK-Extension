@@ -79,7 +79,7 @@ export const LinkFooter: FC<LinkFooterProps> = ({
                     className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium transition-colors"
                     onClick={onOpenInSpark}
                 >
-                    {t('editLink.openInLinkwarden')}
+                    {t('editLink.openInSPARK')}
                 </button>
             </div>
         </div>

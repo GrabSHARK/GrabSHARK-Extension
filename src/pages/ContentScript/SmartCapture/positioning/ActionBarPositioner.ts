@@ -2,7 +2,7 @@
  * ActionBarPositioner - Position calculation for CaptureActionBar
  * 
  * Features:
- * - Detect navbar/header height (Linkwarden modal headers)
+ * - Detect navbar/header height (SPARK modal headers)
  * - Detect viewport boundaries (scroll containers)
  * - Calculate optimal position (above/below/centered)
  * - Clamp to visible area
@@ -36,7 +36,7 @@ export class ActionBarPositioner {
 
     /**
      * Get the navbar/header height for the current context
-     * Detects Linkwarden's modal header to properly clamp the action bar
+     * Detects SPARK's modal header to properly clamp the action bar
      */
     public static getNavbarHeight(): number {
         // Method 1: Find the readable content container (has data-ext-lw-link-id)
@@ -73,7 +73,7 @@ export class ActionBarPositioner {
 
     /**
      * Get the viewport bottom boundary for the current context
-     * Detects Linkwarden's scroll container bottom to properly clamp the action bar
+     * Detects SPARK's scroll container bottom to properly clamp the action bar
      */
     public static getViewportBottom(): number {
         // Find the scroll container - its bottom position is where content ends

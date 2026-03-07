@@ -133,7 +133,7 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
             return detector.isDarkMode() ? 'dark' : 'light';
         }
 
-        // Handle "Follow Linkwarden" (mapped to 'system' in ModeToggle)
+        // Handle "Follow SPARK" (mapped to 'system' in ModeToggle)
         if (theme === 'system') {
             const profileTheme = userProfile?.theme || cachedUserTheme;
             if (profileTheme === 'light') return 'light';

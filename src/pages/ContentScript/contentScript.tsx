@@ -1,5 +1,5 @@
 /// <reference types="chrome" />
-// Linkwarden Content Script - Main entry point
+// SPARK Content Script - Main entry point
 import './content-armor.css';
 import './components.css';
 
@@ -222,10 +222,10 @@ async function init(): Promise<void> {
         if (match) dataLwFileId = match[1];
     }
 
-    // On Linkwarden instance (main page OR iframe): skip extension toolbox
-    // Native toolbox handles UI on all Linkwarden pages
+    // On SPARK instance (main page OR iframe): skip extension toolbox
+    // Native toolbox handles UI on all SPARK pages
     if (sparkBaseUrl && isOnSparkInstance(sparkBaseUrl as string)) {
-        console.log('[LW Extension] On Linkwarden instance, skipping extension toolbox');
+        console.log('[LW Extension] On SPARK instance, skipping extension toolbox');
 
         // Load highlights only on main page (not iframes)
         if (!isInIframe) {
@@ -395,12 +395,12 @@ function isOnSparkInstance(baseUrl: string): boolean {
 function setupReadableViewObserver(_sparkBaseUrl: string): void {
     let observerInitialized = false;
 
-    // On Linkwarden pages, we only load highlights - native toolbox handles UI
+    // On SPARK pages, we only load highlights - native toolbox handles UI
     const loadHighlightsOnly = async (linkId: string | null, fileId: string | null) => {
         if (observerInitialized) return;
         observerInitialized = true;
 
-        console.log('[LW Extension] On Linkwarden page, loading highlights only (native toolbox will be used)', { linkId, fileId });
+        console.log('[LW Extension] On SPARK page, loading highlights only (native toolbox will be used)', { linkId, fileId });
 
         // Load highlights for the detected view
         if (linkId) await HighlightManager.loadHighlightsForLinkId(Number(linkId));
@@ -440,7 +440,7 @@ function setupReadableViewObserver(_sparkBaseUrl: string): void {
 
 function setupWebViewMessageListener(): void {
     const webViewMessageHandler = (event: MessageEvent) => {
-        if (event.data?.type === 'LINKWARDEN_WEB_VIEW_CONTEXT') {
+        if (event.data?.type === 'SPARK_WEB_VIEW_CONTEXT') {
             const { linkId } = event.data;
             if (linkId && typeof linkId === 'number') HighlightManager.loadHighlightsForLinkId(linkId);
         }

@@ -329,7 +329,7 @@ export class CaptureActionBar {
      */
     /**
      * Get the navbar/header height for the current context
-     * This detects Linkwarden's modal header to properly clamp the action bar
+     * This detects SPARK's modal header to properly clamp the action bar
      */
     private getNavbarHeight(): number {
         // Method 1: Find the readable content container (has data-ext-lw-link-id)
@@ -370,7 +370,7 @@ export class CaptureActionBar {
 
     /**
      * Get the viewport bottom boundary for the current context
-     * This detects Linkwarden's scroll container bottom to properly clamp the action bar
+     * This detects SPARK's scroll container bottom to properly clamp the action bar
      */
     private getViewportBottom(): number {
         // Find the scroll container - its bottom position is where content ends

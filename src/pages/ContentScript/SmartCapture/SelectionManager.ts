@@ -259,7 +259,7 @@ export class SelectionManager {
 
     /**
      * Get the navbar/header height for the current context
-     * This detects Linkwarden's modal header to properly clamp overlays
+     * This detects SPARK's modal header to properly clamp overlays
      */
     private getNavbarHeight(): number {
         // Method 1: Find the readable content container (has data-ext-lw-link-id)
@@ -300,7 +300,7 @@ export class SelectionManager {
 
     /**
      * Get the viewport bottom boundary for the current context
-     * This detects Linkwarden's scroll container bottom to properly clamp overlays
+     * This detects SPARK's scroll container bottom to properly clamp overlays
      */
     private getViewportBottom(): number {
         // Find the scroll container - its bottom position is where content ends
@@ -325,7 +325,7 @@ export class SelectionManager {
         const padding = 8; // Expanded visual padding
 
         // Detect navbar/header height dynamically
-        // Look for Linkwarden's modal header (the bar with X, cloud, pen icons)
+        // Look for SPARK's modal header (the bar with X, cloud, pen icons)
         const navbarHeight = this.getNavbarHeight();
 
         // Viewport bounds (accounting for navbar AND scroll container bottom)

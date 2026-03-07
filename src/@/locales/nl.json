@@ -13,7 +13,7 @@
         "title": "Je hebt al opgeslagen",
         "savedMultiple": "{{count}} links opgeslagen",
         "edit": "Bewerken",
-        "openInLinkwarden": "Openen in SPARK",
+        "openInSPARK": "Openen in SPARK",
         "justNow": "Zojuist",
         "untitled": "Naamloos"
     },
@@ -37,7 +37,7 @@
         "delete": "Verwijderen",
         "archive": "Archiveren",
         "unarchive": "Dearchiveren",
-        "openInLinkwarden": "Openen in SPARK",
+        "openInSPARK": "Openen in SPARK",
         "areYouSure": "Weet je het zeker?",
         "linkDeleted": "Link verwijderd",
         "linkUpdated": "Link bijgewerkt",

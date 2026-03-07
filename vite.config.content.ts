@@ -17,7 +17,7 @@ export default defineConfig({
         outDir: 'dist',
         lib: {
             entry: path.resolve(__dirname, 'src/pages/ContentScript/contentScript.tsx'),
-            name: 'LinkwardenContentScript',
+            name: 'SPARKContentScript',
             formats: ['iife'], // Force IIFE to bundle everything into one file without imports
             fileName: () => 'contentScript.js',
         },

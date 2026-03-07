@@ -13,7 +13,7 @@
         "title": "您已保存",
         "savedMultiple": "已保存 {{count}} 个链接",
         "edit": "编辑",
-        "openInLinkwarden": "在 SPARK 中打开",
+        "openInSPARK": "在 SPARK 中打开",
         "justNow": "刚刚",
         "untitled": "无标题"
     },
@@ -37,7 +37,7 @@
         "delete": "删除",
         "archive": "归档",
         "unarchive": "取消归档",
-        "openInLinkwarden": "在 SPARK 中打开",
+        "openInSPARK": "在 SPARK 中打开",
         "areYouSure": "您确定吗？",
         "linkDeleted": "链接已删除",
         "linkUpdated": "链接已更新",

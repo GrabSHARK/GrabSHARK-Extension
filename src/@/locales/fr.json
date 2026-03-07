@@ -13,7 +13,7 @@
         "title": "Vous avez déjà enregistré",
         "savedMultiple": "{{count}} liens enregistrés",
         "edit": "Modifier",
-        "openInLinkwarden": "Ouvrir dans SPARK",
+        "openInSPARK": "Ouvrir dans SPARK",
         "justNow": "À l'instant",
         "untitled": "Sans titre"
     },
@@ -37,7 +37,7 @@
         "delete": "Supprimer",
         "archive": "Archiver",
         "unarchive": "Désarchiver",
-        "openInLinkwarden": "Ouvrir dans SPARK",
+        "openInSPARK": "Ouvrir dans SPARK",
         "areYouSure": "Êtes-vous sûr ?",
         "linkDeleted": "Lien supprimé",
         "linkUpdated": "Lien mis à jour",

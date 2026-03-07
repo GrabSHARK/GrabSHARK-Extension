@@ -13,7 +13,7 @@
         "title": "Bereits gespeichert",
         "savedMultiple": "{{count}} Links gespeichert",
         "edit": "Bearbeiten",
-        "openInLinkwarden": "In SPARK öffnen",
+        "openInSPARK": "In SPARK öffnen",
         "justNow": "Gerade eben",
         "untitled": "Unbenannt"
     },
@@ -37,7 +37,7 @@
         "delete": "Löschen",
         "archive": "Archivieren",
         "unarchive": "Dearchivieren",
-        "openInLinkwarden": "In SPARK öffnen",
+        "openInSPARK": "In SPARK öffnen",
         "areYouSure": "Sind Sie sicher?",
         "linkDeleted": "Link gelöscht",
         "linkUpdated": "Link aktualisiert",

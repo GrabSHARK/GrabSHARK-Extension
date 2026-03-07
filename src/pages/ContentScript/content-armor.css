@@ -1,4 +1,4 @@
-/* Linkwarden Highlight Styles - Injected by Content Script */
+/* SPARK Highlight Styles - Injected by Content Script */
 
 /* Highlight colors - using !important to override page styles */
 /* ARMOR PROTOCOL: Aggressive defensive reset for ZERO layout impact */
@@ -657,7 +657,7 @@ body.ext-spark-highlights-hidden .ext-lw-has-comment {
     cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIj4KICA8ZGVmcz4KICAgIDxmaWx0ZXIgaWQ9InNoYWRvdyIgeD0iLTUwJSIgeT0iLTUwJSIgd2lkdGg9IjIwMCUiIGhlaWdodD0iMjAwJSI+CiAgICAgIDxmZURyb3BTaGFkb3cgZHg9IjEiIGR5PSIxIiBzdGREZXZpYXRpb249IjEiIGZsb29kLWNvbG9yPSJibGFjayIgZmxvb2Qtb3BhY2l0eT0iMC40Ii8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CiAgPGcgZmlsdGVyPSJ1cmwoI3NoYWRvdykiPgogICAgPCEtLSBDb3JuZXJzIC0tPgogICAgPHBhdGggZD0iTTQgOVY2YTIgMiAwIDAgMSAyLTJoMyBNMTUgNGgzYTIgMiAwIDAgMSAyIDJ2MyBNMjAgMTV2M2EyIDIgMCAwIDEtMiAyaC0zIE05IDIwSDZhMiAyIDAgMCAxLTItMnYtMyIgCiAgICAgICAgICBzdHJva2U9IiM4OGEzZTgiIAogICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyLjAiIAogICAgICAgICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiAKICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICAgIDwhLS0gQ2VudGVyIERvdCAtLT4KICAgIDxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjIuMCIgZmlsbD0iIzg4YTNlOCIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgo8L3N2Zz4=') 12 12, auto !important;
 }
 
-/* Exclude Linkwarden UI elements from crosshair cursor */
+/* Exclude SPARK UI elements from crosshair cursor */
 .ext-lw-capture-mode-active .ext-lw-toolbox,
 .ext-lw-capture-mode-active .ext-lw-toolbox *,
 .ext-lw-capture-mode-active .ext-lw-capture-actionbar,

@@ -13,7 +13,7 @@
         "title": "Você já salvou",
         "savedMultiple": "Salvo {{count}} links",
         "edit": "Editar",
-        "openInLinkwarden": "Abrir no SPARK",
+        "openInSPARK": "Abrir no SPARK",
         "justNow": "Agora mesmo",
         "untitled": "Sem título"
     },
@@ -37,7 +37,7 @@
         "delete": "Excluir",
         "archive": "Arquivar",
         "unarchive": "Desarquivar",
-        "openInLinkwarden": "Abrir no SPARK",
+        "openInSPARK": "Abrir no SPARK",
         "areYouSure": "Tem certeza?",
         "linkDeleted": "Link Excluído",
         "linkUpdated": "Link Atualizado",

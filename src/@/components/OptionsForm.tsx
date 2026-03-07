@@ -212,7 +212,7 @@ const OptionsForm = () => {
               <FormItem>
                 <FormLabel>URL</FormLabel>
                 <FormDescription>
-                  The address of the Linkwarden instance.
+                  The address of the SPARK instance.
                 </FormDescription>
                 <FormControl>
                   <Input
@@ -242,7 +242,7 @@ const OptionsForm = () => {
                   <SelectItem value="light">Light</SelectItem>
                   <SelectItem value="dark">Dark</SelectItem>
                   <SelectItem value="website">Follow Website</SelectItem>
-                  <SelectItem value="system">Follow Linkwarden</SelectItem>
+                  <SelectItem value="system">Follow SPARK</SelectItem>
                 </SelectContent>
               </Select>
             </FormControl>
@@ -287,7 +287,7 @@ const OptionsForm = () => {
                 <FormItem>
                   <FormLabel>API Key</FormLabel>
                   <FormDescription>
-                    Enter your Linkwarden API Key.
+                    Enter your SPARK API Key.
                   </FormDescription>
                   <FormControl>
                     <Input
@@ -309,7 +309,7 @@ const OptionsForm = () => {
                   <FormItem>
                     <FormLabel>Username or Email</FormLabel>
                     <FormDescription>
-                      Your Linkwarden Username or Email.
+                      Your SPARK Username or Email.
                     </FormDescription>
                     <FormControl>
                       <Input placeholder="johnny" {...field} />
@@ -325,7 +325,7 @@ const OptionsForm = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormDescription>
-                      Password for your Linkwarden account.
+                      Password for your SPARK account.
                     </FormDescription>
                     <FormControl>
                       <Input
@@ -369,7 +369,7 @@ const OptionsForm = () => {
               <FormItem>
                 <FormLabel>Sync Bookmarks (Experimental)</FormLabel>
                 <FormDescription>
-                  Sync your bookmarks with Linkwarden.
+                  Sync your bookmarks with SPARK.
                 </FormDescription>
                 <FormControl>
                   <Checkbox

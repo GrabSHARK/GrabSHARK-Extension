@@ -95,7 +95,7 @@ export class InteractionManager {
         if (document.getElementById('ext-lw-highlight-toolbox-host')?.contains(target)) return;
         if (document.getElementById('ext-lw-note-panel-host')?.contains(target)) return;
 
-        // Skip if inside Linkwarden format areas - native toolbox handles these
+        // Skip if inside SPARK format areas - native toolbox handles these
         const sparkFormatArea = document.querySelector('[data-lw-link-id], [data-ext-lw-file-id], #monolith-iframe');
         if (sparkFormatArea && sparkFormatArea.contains(target)) return;
 
@@ -354,7 +354,7 @@ export class InteractionManager {
             }
         });
 
-        // Check main app highlights (for Linkwarden readable view)
+        // Check main app highlights (for SPARK readable view)
         document.querySelectorAll('[data-highlight-id]').forEach(span => {
             if (range.intersectsNode(span)) {
                 const idStr = (span as HTMLElement).dataset.highlightId;

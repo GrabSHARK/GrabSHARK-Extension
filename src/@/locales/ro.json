@@ -13,7 +13,7 @@
         "title": "Ați salvat deja",
         "savedMultiple": "Salvat {{count}} link-uri",
         "edit": "Editează",
-        "openInLinkwarden": "Deschide în SPARK",
+        "openInSPARK": "Deschide în SPARK",
         "justNow": "Chiar acum",
         "untitled": "Fără titlu"
     },
@@ -37,7 +37,7 @@
         "delete": "Șterge",
         "archive": "Arhivează",
         "unarchive": "Dezarhivează",
-        "openInLinkwarden": "Deschide în SPARK",
+        "openInSPARK": "Deschide în SPARK",
         "areYouSure": "Ești sigur?",
         "linkDeleted": "Link Șters",
         "linkUpdated": "Link Actualizat",
