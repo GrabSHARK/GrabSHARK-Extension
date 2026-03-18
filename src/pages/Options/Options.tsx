@@ -1,9 +1,9 @@
-// Options page - redirect to grabsharkapp.tr and trigger extension
+// Options page - redirect to grabshark.app and trigger extension
 // This runs when user clicks "Extension options" from Chrome menu
 
 (async () => {
-  // Open grabsharkapp.tr in a new tab
-  const tab = await chrome.tabs.create({ url: 'https://grabsharkapp.tr/' });
+  // Open grabshark.app in a new tab
+  const tab = await chrome.tabs.create({ url: 'https://grabshark.app/' });
 
   // Wait for the tab to load, then trigger the extension
   chrome.tabs.onUpdated.addListener(function listener(tabId, info) {

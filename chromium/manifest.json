@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "GrabSHARK",
   "description": "The browser extension for GrabSHARK.",
-  "homepage_url": "https://grabsharkapp.tr/",
+  "homepage_url": "https://grabshark.app/",
   "version": "1.0.0",
   "action": {
     "default_icon": {

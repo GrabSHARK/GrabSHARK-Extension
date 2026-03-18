@@ -17,7 +17,7 @@
 
 <div align="center">
 
-[GrabSHARK Website](https://grabsharkapp.tr) · [Documentation](https://docs.grabsharkapp.tr) · [Main Repository](https://github.com/spark-archive/grabshark)
+[GrabSHARK Website](https://grabshark.app) · [Documentation](https://docs.grabshark.app) · [Main Repository](https://github.com/spark-archive/grabshark)
 
 </div>
 
@@ -77,8 +77,8 @@ English, Türkçe, Deutsch, Español, Français, Italiano, 日本語, Nederlands
 
 ### From Store
 
-- **Chrome / Edge / Brave:** [Chrome Web Store](https://grabsharkapp.tr/extension)
-- **Firefox:** [Firefox Add-ons](https://grabsharkapp.tr/extension)
+- **Chrome / Edge / Brave:** [Chrome Web Store](https://grabshark.app/extension)
+- **Firefox:** [Firefox Add-ons](https://grabshark.app/extension)
 
 ### Build From Source
 

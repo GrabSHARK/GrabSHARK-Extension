@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "GrabSHARK",
   "description": "The browser extension for GrabSHARK.",
-  "homepage_url": "https://grabsharkapp.tr/",
+  "homepage_url": "https://grabshark.app/",
   "version": "1.0.0",
   "browser_action": {
     "default_icon": {
@@ -64,7 +64,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "support@grabsharkapp.tr",
+      "id": "support@grabshark.app",
       "strict_min_version": "109.0"
     }
   },
