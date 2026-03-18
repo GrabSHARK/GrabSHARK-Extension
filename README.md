@@ -17,7 +17,7 @@
 
 <div align="center">
 
-[GrabSHARK Website](https://grabshark.app) · [Documentation](https://docs.grabshark.app) · [Main Repository](https://github.com/spark-archive/grabshark)
+[GrabSHARK Website](https://grabshark.app) · [Documentation](https://docs.grabshark.app) · [Main Repository](https://github.com/grabshark/grabshark)
 
 </div>
 
@@ -92,7 +92,7 @@ English, Türkçe, Deutsch, Español, Français, Italiano, 日本語, Nederlands
 
 ```bash
 # 1. Clone
-git clone https://github.com/spark-archive/grabshark-extension.git
+git clone https://github.com/grabshark/grabshark-extension.git
 cd grabshark-extension
 
 # 2. Install dependencies
@@ -156,4 +156,4 @@ If you find GrabSHARK useful, consider supporting its development:
 
 ## License
 
-This extension is part of the [GrabSHARK](https://github.com/spark-archive/grabshark) project, licensed under the [MIT License](./LICENSE).
+This extension is part of the [GrabSHARK](https://github.com/grabshark/grabshark) project, licensed under the [MIT License](./LICENSE).

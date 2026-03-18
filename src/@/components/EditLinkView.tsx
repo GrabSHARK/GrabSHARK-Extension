@@ -189,7 +189,7 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
         setTimeout(() => { ignoreNextOpenChange.current = false; }, 100);
     };
 
-    const handleOpenInSpark = () => {
+    const handleOpenInGrabSHARK = () => {
         if (!link.id || !baseUrl) return;
         const formatMap: Record<string, number> = { 'ORIGINAL': 999, 'PDF': 0, 'MONOLITH': 1, 'SCREENSHOT': 2, 'READABLE': 3, 'DETAILS': 1 };
         const formatNum = formatMap[userProfile?.linksRouteTo || 'MONOLITH'] ?? 1;
@@ -208,7 +208,7 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
                     userProfile={userProfile} isSuggestingTags={isSuggestingTags} handleSuggestTags={handleSuggestTags} containerRef={containerRef || null} />
             </div>
             <LinkFooter form={form} onSave={form.handleSubmit((d) => handleSave(d))} saveSuccess={saveSuccess} isSaving={isSaving} isDeleting={isDeleting}
-                onShowDeleteConfirm={() => setShowDeleteConfirm(true)} isArchived={isArchived} isArchiving={isArchiving} onArchive={() => handleArchive()} onOpenInSpark={handleOpenInSpark} />
+                onShowDeleteConfirm={() => setShowDeleteConfirm(true)} isArchived={isArchived} isArchiving={isArchiving} onArchive={() => handleArchive()} onOpenInGrabSHARK={handleOpenInGrabSHARK} />
             <DeleteDialog isOpen={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} onDelete={() => { handleDelete(); setShowDeleteConfirm(false); }} />
             <Toaster />
         </div>

@@ -8,7 +8,7 @@
  * Pattern: First call loads the script, subsequent calls return cached reference.
  */
 
-export interface SparkReactModule {
+export interface GrabSHARKReactModule {
     createRoot: typeof import('react-dom/client').createRoot;
     React: typeof import('react');
     EmbeddedApp: any;
@@ -17,14 +17,14 @@ export interface SparkReactModule {
 }
 
 let loaded = false;
-let cachedModule: SparkReactModule | null = null;
-let loadPromise: Promise<SparkReactModule> | null = null;
+let cachedModule: GrabSHARKReactModule | null = null;
+let loadPromise: Promise<GrabSHARKReactModule> | null = null;
 
 /**
  * Load the React UI module. First call dynamically imports the ES module,
  * subsequent calls return the cached module immediately.
  */
-export function loadReactModule(): Promise<SparkReactModule> {
+export function loadReactModule(): Promise<GrabSHARKReactModule> {
     // Already loaded — return immediately
     if (loaded && cachedModule) {
         return Promise.resolve(cachedModule);
@@ -41,7 +41,7 @@ export function loadReactModule(): Promise<SparkReactModule> {
             const url = chrome.runtime.getURL('embeddedUI.js');
             const module = await import(/* @vite-ignore */ url);
             loaded = true;
-            cachedModule = module as SparkReactModule;
+            cachedModule = module as GrabSHARKReactModule;
             return cachedModule;
         } catch (err) {
             loadPromise = null;

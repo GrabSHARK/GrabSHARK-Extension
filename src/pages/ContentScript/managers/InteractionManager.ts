@@ -92,8 +92,8 @@ export class InteractionManager {
         if (document.getElementById('ext-lw-highlight-toolbox-host')?.contains(target)) return;
         if (document.getElementById('ext-lw-note-panel-host')?.contains(target)) return;
 
-        const sparkFormatArea = document.querySelector('[data-lw-link-id], [data-ext-lw-file-id], #monolith-iframe');
-        if (sparkFormatArea && sparkFormatArea.contains(target)) return;
+        const grabsharkFormatArea = document.querySelector('[data-lw-link-id], [data-ext-lw-file-id], #monolith-iframe');
+        if (grabsharkFormatArea && grabsharkFormatArea.contains(target)) return;
 
         setTimeout(() => {
             const selectionInfo = getSelectionInfo();

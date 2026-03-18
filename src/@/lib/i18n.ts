@@ -46,16 +46,16 @@ i18n
 
 // Load language from storage (guarded for page context where chrome.storage is unavailable)
 if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-    chrome.storage.local.get(['spark_locale'], (result) => {
-        if (result.spark_locale) {
-            i18n.changeLanguage(result.spark_locale);
+    chrome.storage.local.get(['grabshark_locale'], (result) => {
+        if (result.grabshark_locale) {
+            i18n.changeLanguage(result.grabshark_locale);
         }
     });
 
     // Listen for changes
     chrome.storage.onChanged.addListener((changes, area) => {
-        if (area === 'local' && changes.spark_locale) {
-            i18n.changeLanguage(changes.spark_locale.newValue);
+        if (area === 'local' && changes.grabshark_locale) {
+            i18n.changeLanguage(changes.grabshark_locale.newValue);
         }
     });
 }

@@ -65,26 +65,26 @@ async function captureFullPageScreenshot(options?: CaptureOptions): Promise<Blob
   const addEscListener = () => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        (window as any).__sparkCaptureCancel = true;
+        (window as any).__grabsharkCaptureCancel = true;
         e.preventDefault();
       }
     };
-    (window as any).__sparkCaptureHandler = handler;
-    (window as any).__sparkCaptureCancel = false;
+    (window as any).__grabsharkCaptureHandler = handler;
+    (window as any).__grabsharkCaptureCancel = false;
     document.addEventListener('keydown', handler);
   };
 
   const removeEscListener = () => {
-    const handler = (window as any).__sparkCaptureHandler;
+    const handler = (window as any).__grabsharkCaptureHandler;
     if (handler) {
       document.removeEventListener('keydown', handler);
-      delete (window as any).__sparkCaptureHandler;
+      delete (window as any).__grabsharkCaptureHandler;
     }
-    delete (window as any).__sparkCaptureCancel;
+    delete (window as any).__grabsharkCaptureCancel;
   };
 
   const checkCancelled = () => {
-    return (window as any).__sparkCaptureCancel === true;
+    return (window as any).__grabsharkCaptureCancel === true;
   };
 
   const addHideScrollbarClass = () => {

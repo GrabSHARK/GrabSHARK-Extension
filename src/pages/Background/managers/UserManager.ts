@@ -60,17 +60,17 @@ export class UserManager {
         }
         try {
             // Check if user has manually set a language preference
-            const { spark_locale_setting } = await chrome.storage.local.get(['spark_locale_setting']);
+            const { grabshark_locale_setting } = await chrome.storage.local.get(['grabshark_locale_setting']);
 
             // Only sync from GrabSHARK if user selected 'system' mode or no preference set
-            if (spark_locale_setting && spark_locale_setting !== 'system') {
+            if (grabshark_locale_setting && grabshark_locale_setting !== 'system') {
 
-                return { success: true, locale: spark_locale_setting, skipped: true };
+                return { success: true, locale: grabshark_locale_setting, skipped: true };
             }
 
             const user = await getCurrentUser(config.baseUrl, config.apiKey);
             if (user && user.locale) {
-                await chrome.storage.local.set({ spark_locale: user.locale });
+                await chrome.storage.local.set({ grabshark_locale: user.locale });
 
                 return { success: true, locale: user.locale };
             } else {

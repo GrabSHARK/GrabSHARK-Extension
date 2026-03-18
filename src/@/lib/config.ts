@@ -8,7 +8,7 @@ const DEFAULTS: configType = {
   syncBookmarks: false,
 };
 
-const CONFIG_KEY = 'spark_config';
+const CONFIG_KEY = 'grabshark_config';
 
 export async function getConfig(): Promise<configType> {
   const config = await getStorageItem(CONFIG_KEY);

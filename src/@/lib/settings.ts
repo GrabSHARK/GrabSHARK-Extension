@@ -38,8 +38,8 @@ export const DEFAULT_PREFERENCES: ExtensionPreferences = {
 };
 
 
-const PREFERENCES_KEY = 'spark_preferences';
-const SITE_OVERRIDES_KEY = 'spark_site_overrides';
+const PREFERENCES_KEY = 'grabshark_preferences';
+const SITE_OVERRIDES_KEY = 'grabshark_site_overrides';
 
 
 export async function getPreferences(): Promise<ExtensionPreferences> {

@@ -6,7 +6,7 @@ import { CaptureActionBar } from './CaptureActionBar';
 import { ThemeDetector } from './ThemeDetector';
 import { SmartCaptureCallbacks } from './types';
 import { getEffectivePreferences, getHostname, ShortcutConfig, DEFAULT_PREFERENCES, ExtensionPreferences } from '../../../@/lib/settings';
-import { isExcludedElement, isSelectStartExcluded, isInsideSparkUI, updateHintDisplay, hideHintToast } from './captureUIHelpers';
+import { isExcludedElement, isSelectStartExcluded, isInsideGrabSHARKUI, updateHintDisplay, hideHintToast } from './captureUIHelpers';
 
 const MOUSEMOVE_THROTTLE = 16;
 const MARQUEE_THRESHOLD = 8;
@@ -75,7 +75,7 @@ export class SmartCaptureMode {
         const hostname = getHostname(window.location.href);
         getEffectivePreferences(hostname).then(prefs => { if (prefs) this.updateSettings(prefs); });
         chrome.storage.onChanged.addListener((changes, area) => {
-            if (area === 'local' && (changes.spark_preferences || changes.spark_site_overrides)) {
+            if (area === 'local' && (changes.grabshark_preferences || changes.grabshark_site_overrides)) {
                 getEffectivePreferences(getHostname(window.location.href)).then(prefs => this.updateSettings(prefs));
             }
         });
@@ -159,7 +159,7 @@ export class SmartCaptureMode {
     private handleGlobalKeydown(e: KeyboardEvent): void {
         if (!this.enableSmartCapture) return;
         if (document.body.classList.contains('ext-lw-recording-shortcut')) return;
-        if (isInsideSparkUI(e)) return;
+        if (isInsideGrabSHARKUI(e)) return;
 
         const { code, ctrlKey, shiftKey, altKey, metaKey, isModifierOnly } = this.shortcutConfig;
         let isMatch = false;

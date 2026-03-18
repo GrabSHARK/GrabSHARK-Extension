@@ -41,7 +41,7 @@ export function isSelectStartExcluded(target: HTMLElement): boolean {
 /**
  * Check if a keyboard event is inside GrabSHARK UI
  */
-export function isInsideSparkUI(e: KeyboardEvent | MouseEvent): boolean {
+export function isInsideGrabSHARKUI(e: KeyboardEvent | MouseEvent): boolean {
     const path = e.composedPath();
     if (path.length === 0) return false;
 

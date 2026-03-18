@@ -7,7 +7,7 @@
 
 import { CaptureTarget, SmartCaptureCallbacks } from './types';
 import { ThemeDetector } from './ThemeDetector';
-import { loadReactModule, type SparkReactModule } from '../utils/reactLoader';
+import { loadReactModule, type GrabSHARKReactModule } from '../utils/reactLoader';
 import { positionFloatingBar } from './viewportLayout';
 
 type Root = import('react-dom/client').Root;
@@ -26,7 +26,7 @@ export class CaptureActionBar {
     private resizeObserver: ResizeObserver | null = null;
     private clickOutsideHandler: ((e: MouseEvent) => void) | null = null;
     private reactRoot: Root | null = null;
-    private reactModule: SparkReactModule | null = null;
+    private reactModule: GrabSHARKReactModule | null = null;
 
     constructor(containerElement?: Element) {
         this.containerElement = containerElement || document.body;

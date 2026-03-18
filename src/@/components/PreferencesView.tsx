@@ -62,8 +62,8 @@ function usePreferencesSave(args: {
         } = args;
 
         if (selectedLanguage !== originalLanguage.current) {
-            if (selectedLanguage === 'system') await chrome.storage.local.set({ spark_locale_setting: 'system' });
-            else await chrome.storage.local.set({ spark_locale: selectedLanguage, spark_locale_setting: selectedLanguage });
+            if (selectedLanguage === 'system') await chrome.storage.local.set({ grabshark_locale_setting: 'system' });
+            else await chrome.storage.local.set({ grabshark_locale: selectedLanguage, grabshark_locale_setting: selectedLanguage });
         }
 
         const serverChanged = saveMetaDescriptionToNote !== originalSaveDescription.current ||
@@ -154,8 +154,8 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
 
     // Load initial settings
     useEffect(() => {
-        chrome.storage.local.get(['spark_locale', 'spark_locale_setting'], (result) => {
-            const lang = (result.spark_locale_setting || result.spark_locale || 'en') as LanguageSetting;
+        chrome.storage.local.get(['grabshark_locale', 'grabshark_locale_setting'], (result) => {
+            const lang = (result.grabshark_locale_setting || result.grabshark_locale || 'en') as LanguageSetting;
             setSelectedLanguage(lang);
             setOriginals({ language: lang, saveDesc: false, defCollection: 'UNORGANIZED', selectedColId: null, smartCapture: true, selectionMenu: true, highlightColor: 'yellow', savePageOnHighlight: true });
         });

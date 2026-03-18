@@ -42,7 +42,7 @@ window.addEventListener('beforeunload', cleanup);
 
 // --- Init Helpers (previously in contentScriptInit.ts) ---
 
-function isOnSparkInstance(baseUrl: string): boolean {
+function isOnGrabSHARKInstance(baseUrl: string): boolean {
     try { return new URL(window.location.href).origin === new URL(baseUrl).origin; } catch { return false; }
 }
 
@@ -105,7 +105,7 @@ interface SmartCaptureInitContext {
     smartCaptureModeRef: { current: SmartCaptureMode | null };
 }
 
-function createSparkSmartCaptureCallbacks(ctx: SmartCaptureInitContext) {
+function createGrabSHARKSmartCaptureCallbacks(ctx: SmartCaptureInitContext) {
     return {
         onHighlight: async (target: any) => {
             if (target.extracted?.text && target.elementRef) {
@@ -281,7 +281,7 @@ async function init(): Promise<void> {
     cleanupRegistry.push(() => ThemeManager.cleanup());
 
     const storageChangeHandler = (changes: { [key: string]: chrome.storage.StorageChange }, area: string) => {
-        if (area === 'local' && (changes.spark_preferences || changes.spark_site_overrides)) {
+        if (area === 'local' && (changes.grabshark_preferences || changes.grabshark_site_overrides)) {
             getEffectivePreferences(getHostname(window.location.href)).then(p => {
                 if (typeof p.enableSelectionMenu !== 'undefined') enableSelectionMenu = p.enableSelectionMenu;
                 if (typeof p.showHighlights !== 'undefined') document.body.classList.toggle('ext-grabshark-highlights-hidden', !p.showHighlights);
@@ -309,7 +309,7 @@ async function init(): Promise<void> {
     const configCheck = await sendMessage<{ configured: boolean; baseUrl?: string }>('CHECK_CONFIG');
     if (!configCheck.success || !configCheck.data?.configured) return;
 
-    const sparkBaseUrl = configCheck.data.baseUrl;
+    const grabsharkBaseUrl = configCheck.data.baseUrl;
     const lwLinkIdElement = document.querySelector('[data-lw-link-id]');
     const dataLwLinkId = lwLinkIdElement?.getAttribute('data-lw-link-id');
     const lwFileIdElement = document.querySelector('[data-ext-lw-file-id]');
@@ -319,13 +319,13 @@ async function init(): Promise<void> {
     const containerSelector = dataLwLinkId ? '[data-lw-link-id]' : undefined;
     const smartCaptureModeRef = { current: smartCaptureMode };
 
-    if (sparkBaseUrl && isOnSparkInstance(sparkBaseUrl as string)) {
+    if (grabsharkBaseUrl && isOnGrabSHARKInstance(grabsharkBaseUrl as string)) {
         if (!isInIframe) {
             if (dataLwLinkId) await HighlightManager.loadHighlightsForLinkId(Number(dataLwLinkId));
             if (dataLwFileId) await HighlightManager.loadHighlightsForFileId(Number(dataLwFileId));
             setupReadableViewObserver();
         }
-        smartCaptureMode = new SmartCaptureMode(createSparkSmartCaptureCallbacks({ defaultHighlightColor, notePanel, toolbox, smartCaptureModeRef }), containerSelector);
+        smartCaptureMode = new SmartCaptureMode(createGrabSHARKSmartCaptureCallbacks({ defaultHighlightColor, notePanel, toolbox, smartCaptureModeRef }), containerSelector);
         smartCaptureModeRef.current = smartCaptureMode;
         return;
     }

@@ -155,7 +155,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
     const formattedDate = link.createdAt ? format(new Date(link.createdAt), 'MMM d', { locale: i18n.language === 'tr' ? tr : enUS }) : t('savedLink.justNow');
     const collectionName = link.collection?.name || t('bookmark.unorganized');
 
-    const handleOpenInSpark = () => {
+    const handleOpenInGrabSHARK = () => {
         if (!link.id || !baseUrl) return;
         const formatMap: Record<string, number> = { 'ORIGINAL': 999, 'PDF': 0, 'MONOLITH': 1, 'SCREENSHOT': 2, 'READABLE': 3, 'DETAILS': 1 };
         const formatNum = formatMap[userProfile?.linksRouteTo || 'MONOLITH'] ?? 1;
@@ -218,7 +218,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
 
                 <div className="flex gap-2 p-2">
                     <button onClick={() => onEdit?.(link)} className="flex-1 py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5">{t('savedLink.edit')}</button>
-                    <button onClick={handleOpenInSpark} className="flex-[1.5] py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5">{t('savedLink.openInGrabSHARK')}</button>
+                    <button onClick={handleOpenInGrabSHARK} className="flex-[1.5] py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5">{t('savedLink.openInGrabSHARK')}</button>
                 </div>
             </div>
         </div>

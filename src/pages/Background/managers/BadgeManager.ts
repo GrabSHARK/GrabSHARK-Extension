@@ -25,7 +25,7 @@ export class BadgeManager {
 
         // Listen for preference changes
         browser.storage.onChanged.addListener(async (changes, area) => {
-            if (area === 'local' && changes.spark_preferences) {
+            if (area === 'local' && changes.grabshark_preferences) {
 
                 const tabs = await browser.tabs.query({ active: true });
                 for (const tab of tabs) {
