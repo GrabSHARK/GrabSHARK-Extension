@@ -12,7 +12,7 @@ export function isExcludedElement(target: HTMLElement): boolean {
         target.closest('#ext-lw-capture-actionbar-host') ||
         target.closest('#ext-lw-toast-notification-host') ||
         target.id === 'ext-lw-toast-notification-host' ||
-        target.closest('#spark-embedded-host') ||
+        target.closest('#grabshark-embedded-host') ||
         target.closest('#ext-lw-highlight-toolbox-host') ||
         target.closest('#ext-lw-note-panel-host') ||
         target.closest('.ext-lw-toolbox') ||
@@ -30,7 +30,7 @@ export function isSelectStartExcluded(target: HTMLElement): boolean {
     return !!(
         target.closest('.ext-lw-capture-actionbar') ||
         target.closest('#ext-lw-capture-actionbar-host') ||
-        target.closest('#spark-embedded-host') ||
+        target.closest('#grabshark-embedded-host') ||
         target.closest('#ext-lw-highlight-toolbox-host') ||
         target.closest('#ext-lw-note-panel-host') ||
         target.closest('.ext-lw-toolbox') ||
@@ -39,7 +39,7 @@ export function isSelectStartExcluded(target: HTMLElement): boolean {
 }
 
 /**
- * Check if a keyboard event is inside SPARK UI
+ * Check if a keyboard event is inside GrabSHARK UI
  */
 export function isInsideSparkUI(e: KeyboardEvent | MouseEvent): boolean {
     const path = e.composedPath();
@@ -53,7 +53,7 @@ export function isInsideSparkUI(e: KeyboardEvent | MouseEvent): boolean {
 
     return path.some(node => {
         const el = node as HTMLElement;
-        return el.id === 'spark-embedded-host' ||
+        return el.id === 'grabshark-embedded-host' ||
             el.id === 'ext-lw-highlight-toolbox-host' ||
             el.id === 'ext-lw-note-panel-host' ||
             (el.classList && el.classList.contains('ext-lw-capture-actionbar'));

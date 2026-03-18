@@ -1,12 +1,23 @@
 <div align="center">
   <img src="./public/128.png" width="100px" />
-  <h1>SPARK Browser Extension</h1>
-  <h3>Your gateway to SPARK — right from your browser</h3>
+  <h1>GrabSHARK Browser Extension</h1>
+  <h3>Your gateway to your personal archive — right from your browser</h3>
+
+  <p align="center">
+    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
+    <img src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
+    <img src="https://img.shields.io/badge/Manifest_V3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Manifest V3" />
+    <br />
+    <img src="https://img.shields.io/badge/Chrome_Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome" />
+    <img src="https://img.shields.io/badge/Firefox_Addon-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white" alt="Firefox" />
+  </p>
 </div>
 
 <div align="center">
 
-[SPARK Website](https://sparkapp.tr) · [Documentation](https://docs.sparkapp.tr) · [Main Repository](https://github.com/spark-archive/spark)
+[GrabSHARK Website](https://grabsharkapp.tr) · [Documentation](https://docs.grabsharkapp.tr) · [Main Repository](https://github.com/spark-archive/grabshark)
 
 </div>
 
@@ -14,7 +25,7 @@
 
 ## Introduction
 
-The SPARK browser extension brings the full power of SPARK into your browser. Save pages instantly, highlight text on live websites, take smart captures, and manage your knowledge library — all without leaving the page you're on.
+The GrabSHARK browser extension brings the full power of GrabSHARK into your browser. Save pages instantly, highlight text on live websites, take smart captures, and manage your knowledge library — all without leaving the page you're on.
 
 Available for **Chromium** (Chrome, Edge, Brave, Arc) and **Firefox**.
 
@@ -23,14 +34,14 @@ Available for **Chromium** (Chrome, Edge, Brave, Arc) and **Firefox**.
 ## Features
 
 ### 💾 Save & Organize
-- **One-Click Save** — Save the current page to your SPARK library with a single click
-- **Embedded In-Page UI** — Click the extension icon to open the SPARK panel directly within any webpage — no popup needed
+- **One-Click Save** — Save the current page to your GrabSHARK library with a single click
+- **Embedded In-Page UI** — Click the extension icon to open the GrabSHARK panel directly within any webpage — no popup needed
 - **Duplicate Detection** — Automatically checks if a link already exists before saving
 - **Collection & Tag Picker** — Assign collections and tags right from the save panel
 - **Bulk Save** — Save all tabs in the current window at once
 
 ### 🖍️ Live Highlighting & Notes
-- **Persistent Highlights** — Select text on any live website and highlight it with colors — highlights sync to your SPARK library and reappear when you revisit the page
+- **Persistent Highlights** — Select text on any live website and highlight it with colors — highlights sync to your GrabSHARK library and reappear when you revisit the page
 - **Notes on Live Sites** — Attach notes to any highlight directly on the page via the Note Panel
 - **Highlight Toolbox** — A contextual toolbar appears on text selection for quick highlight/note actions
 
@@ -40,7 +51,7 @@ Available for **Chromium** (Chrome, Edge, Brave, Arc) and **Firefox**.
 - **Capture Action Bar** — Contextual toolbar with capture options after selection
 
 ### 🖱️ Context Menus
-- Right-click on any **page**, **link**, **image**, or **text selection** to save directly to SPARK
+- Right-click on any **page**, **link**, **image**, or **text selection** to save directly to GrabSHARK
 - Quick access to common actions without opening the extension panel
 
 ### 🔔 Badge Notifications
@@ -49,9 +60,9 @@ Available for **Chromium** (Chrome, Edge, Brave, Arc) and **Firefox**.
 
 ### ⚙️ Preferences
 - **Auth** — Sign in with API key or Username/Password
-- **Archive Format Sync** — Your archive format preferences (Screenshot, PDF, Readable, Monolith) sync from your SPARK account
+- **Archive Format Sync** — Your archive format preferences (Screenshot, PDF, Readable, Monolith) sync from your GrabSHARK account
 - **Custom Shortcuts** — Fully configurable keyboard shortcut (default: `Cmd+Shift+Y` on Mac, `Ctrl+Shift+F` on Windows/Linux)
-- **Preferences Sync** — Extension theme and language matches your SPARK preference
+- **Preferences Sync** — Extension theme and language matches your GrabSHARK preference
 - **Bookmark Integration** — Works with your browser's native bookmarks
 
 ### 🌐 Multi-Language Support
@@ -66,8 +77,8 @@ English, Türkçe, Deutsch, Español, Français, Italiano, 日本語, Nederlands
 
 ### From Store
 
-- **Chrome / Edge / Brave:** [Chrome Web Store](https://sparkapp.tr/extension)
-- **Firefox:** [Firefox Add-ons](https://sparkapp.tr/extension)
+- **Chrome / Edge / Brave:** [Chrome Web Store](https://grabsharkapp.tr/extension)
+- **Firefox:** [Firefox Add-ons](https://grabsharkapp.tr/extension)
 
 ### Build From Source
 
@@ -81,8 +92,8 @@ English, Türkçe, Deutsch, Español, Français, Italiano, 日本語, Nederlands
 
 ```bash
 # 1. Clone
-git clone https://github.com/spark-archive/spark-extension.git
-cd spark-extension
+git clone https://github.com/spark-archive/grabshark-extension.git
+cd grabshark-extension
 
 # 2. Install dependencies
 npm install
@@ -128,7 +139,7 @@ src/
 │   │   ├── SmartCapture/ # Element detection, marquee selection, capture UI
 │   │   ├── HighlightToolbox/  # Live highlight creation
 │   │   ├── NotePanel/    # Inline note editing
-│   │   └── EmbeddedApp/  # In-page SPARK panel
+│   │   └── EmbeddedApp/  # In-page GrabSHARK panel
 │   ├── Popup/            # Extension popup (if icon clicked)
 │   └── Options/          # Extension settings page
 ```
@@ -137,7 +148,7 @@ src/
 
 ## ❤️ Support
 
-If you find SPARK useful, consider supporting its development:
+If you find GrabSHARK useful, consider supporting its development:
 
 <a href="https://www.patreon.com/cw/fklnc94" target="_blank"><img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Support on Patreon" /></a>
 
@@ -145,4 +156,4 @@ If you find SPARK useful, consider supporting its development:
 
 ## License
 
-This extension is part of the [SPARK](https://github.com/spark-archive/spark) project, licensed under the [MIT License](./LICENSE).
+This extension is part of the [GrabSHARK](https://github.com/spark-archive/grabshark) project, licensed under the [MIT License](./LICENSE).

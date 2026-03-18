@@ -7,7 +7,7 @@ import { CaptureTarget } from './types';
 
 /**
  * Get the navbar/header height for the current context
- * Detects SPARK's modal header to properly clamp overlays and menus
+ * Detects GrabSHARK's modal header to properly clamp overlays and menus
  */
 export function getNavbarHeight(): number {
     const contentContainer = document.querySelector('[data-ext-lw-link-id]');
@@ -33,7 +33,7 @@ export function getNavbarHeight(): number {
 
 /**
  * Get the viewport bottom boundary for the current context
- * Detects SPARK's scroll container bottom to properly clamp overlays and menus
+ * Detects GrabSHARK's scroll container bottom to properly clamp overlays and menus
  */
 export function getViewportBottom(): number {
     const scrollContainers = document.querySelectorAll('[class*="overflow-auto"]');

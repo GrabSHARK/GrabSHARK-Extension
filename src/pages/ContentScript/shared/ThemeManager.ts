@@ -99,7 +99,7 @@ export class ThemeManager {
             return false;
         }
 
-        // 2.5. Check meta color-scheme (used by SPARK Monoliths)
+        // 2.5. Check meta color-scheme (used by GrabSHARK Monoliths)
         const metaTheme = document.querySelector('meta[name="color-scheme"]')?.getAttribute('content');
         if (metaTheme === 'dark') {
             return true;

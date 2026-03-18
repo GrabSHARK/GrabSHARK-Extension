@@ -36,7 +36,7 @@ export function ModeToggle() {
           Follow Website
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')}>
-          Follow SPARK
+          Follow GrabSHARK
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

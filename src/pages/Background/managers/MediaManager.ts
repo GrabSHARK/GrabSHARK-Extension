@@ -4,7 +4,7 @@ export class MediaManager {
     /**
      * Security: Validate URLs to prevent SSRF attacks.
      * Only allows http/https protocols and blocks internal/reserved IPs.
-     * URLs targeting the configured Spark baseUrl are always allowed.
+     * URLs targeting the configured GrabSHARK baseUrl are always allowed.
      */
     private static validateUrl(url: string, allowedBaseUrl?: string): { valid: boolean; error?: string } {
         try {
@@ -12,7 +12,7 @@ export class MediaManager {
             if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
                 return { valid: false, error: 'Only HTTP/HTTPS URLs are allowed' };
             }
-            // Allow requests to the configured Spark instance (self-hosted, may be localhost)
+            // Allow requests to the configured GrabSHARK instance (self-hosted, may be localhost)
             if (allowedBaseUrl) {
                 try {
                     const allowed = new URL(allowedBaseUrl);
@@ -167,7 +167,7 @@ export class MediaManager {
         // Fallback Download
         await chrome.downloads.download({
             url: url,
-            filename: `SPARK/${filename}`,
+            filename: `GrabSHARK/${filename}`,
             saveAs: true,
         });
         return { success: true, data: { fallback: true } };
@@ -201,7 +201,7 @@ export class MediaManager {
             // Fallback
             await chrome.downloads.download({
                 url: dataUrl,
-                filename: `SPARK/Clips/${filename}`,
+                filename: `GrabSHARK/Clips/${filename}`,
                 saveAs: true,
             });
             return { success: true, data: { fallback: true, error: error.message } };

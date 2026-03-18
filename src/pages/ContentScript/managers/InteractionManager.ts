@@ -102,7 +102,7 @@ export class InteractionManager {
                 return;
             }
 
-            if (!document.body.classList.contains('ext-spark-highlights-hidden')) {
+            if (!document.body.classList.contains('ext-grabshark-highlights-hidden')) {
                 const highlightId = getHighlightIdFromElement(target);
                 if (highlightId) {
                     if (this.hoverTimeout) { clearTimeout(this.hoverTimeout); this.hoverTimeout = null; }
@@ -137,7 +137,7 @@ export class InteractionManager {
         }
 
         if (highlightId && this.isConfigured()) {
-            if (document.body.classList.contains('ext-spark-highlights-hidden')) return;
+            if (document.body.classList.contains('ext-grabshark-highlights-hidden')) return;
             if (this.getSmartCapture()?.isActiveMode()) return;
             if (this.toolbox.isCommentDirty()) return;
             if (this.toolbox.isOpen() && this.toolbox.getCurrentHighlightId() === highlightId) return;

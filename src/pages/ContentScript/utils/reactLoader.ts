@@ -45,7 +45,7 @@ export function loadReactModule(): Promise<SparkReactModule> {
             return cachedModule;
         } catch (err) {
             loadPromise = null;
-            throw err instanceof Error ? err : new Error('[SPARK] Failed to load embeddedUI.js');
+            throw err instanceof Error ? err : new Error('[GrabSHARK] Failed to load embeddedUI.js');
         }
     })();
 

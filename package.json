@@ -1,11 +1,11 @@
 {
-  "name": "spark-extension",
+  "name": "grabshark-extension",
   "private": true,
   "version": "1.0.0",
   "author": "Jordan Higuera Higuera <jordan_higuera@hotmail.com>",
   "type": "module",
   "license": "MIT",
-  "description": "SPARK browser extension",
+  "description": "GrabSHARK browser extension",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && vite build -c vite.config.content.ts && vite build -c vite.config.embedded.ts",

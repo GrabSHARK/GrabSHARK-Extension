@@ -28,7 +28,7 @@ export default defineConfig({
         minify: process.env.NODE_ENV === 'development' ? false : 'esbuild',
         lib: {
             entry: path.resolve(__dirname, 'src/pages/ContentScript/embeddedUI.ts'),
-            name: 'SPARKEmbeddedUI',
+            name: 'GrabSHARKEmbeddedUI',
             formats: ['es'],
             fileName: () => 'embeddedUI.js',
         },

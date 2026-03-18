@@ -18,7 +18,7 @@ export default defineConfig({
         minify: process.env.NODE_ENV === 'development' ? false : 'esbuild',
         lib: {
             entry: path.resolve(__dirname, 'src/pages/ContentScript/contentScript.tsx'),
-            name: 'SPARKContentScript',
+            name: 'GrabSHARKContentScript',
             formats: ['iife'], // Force IIFE to bundle everything into one file without imports
             fileName: () => 'contentScript.js',
         },

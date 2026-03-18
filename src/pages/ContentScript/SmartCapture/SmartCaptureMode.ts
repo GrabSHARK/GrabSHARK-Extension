@@ -183,7 +183,7 @@ export class SmartCaptureMode {
         if (document.body.classList.contains('ext-lw-recording-shortcut')) return;
 
         const path = e.composedPath();
-        if (path.some(n => { const el = n as HTMLElement; return el.id === 'spark-embedded-host' || el.id === 'ext-lw-highlight-toolbox-host' || el.id === 'ext-lw-note-panel-host'; })) return;
+        if (path.some(n => { const el = n as HTMLElement; return el.id === 'grabshark-embedded-host' || el.id === 'ext-lw-highlight-toolbox-host' || el.id === 'ext-lw-note-panel-host'; })) return;
 
         const { isModifierOnly, ctrlKey, shiftKey, altKey, metaKey } = this.shortcutConfig;
         if (isModifierOnly) {

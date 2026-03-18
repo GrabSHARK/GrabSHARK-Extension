@@ -1,9 +1,9 @@
-// Options page - redirect to sparkapp.tr and trigger extension
+// Options page - redirect to grabsharkapp.tr and trigger extension
 // This runs when user clicks "Extension options" from Chrome menu
 
 (async () => {
-  // Open sparkapp.tr in a new tab
-  const tab = await chrome.tabs.create({ url: 'https://sparkapp.tr/' });
+  // Open grabsharkapp.tr in a new tab
+  const tab = await chrome.tabs.create({ url: 'https://grabsharkapp.tr/' });
 
   // Wait for the tab to load, then trigger the extension
   chrome.tabs.onUpdated.addListener(function listener(tabId, info) {

@@ -138,7 +138,7 @@ export const OptionsFormContent = ({ onSuccess, showButton = true, onLoadingChan
                             <FormControl>
                                 <div className="relative">
                                     <Globe className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500 dark:text-zinc-400" />
-                                    <Input placeholder="https://spark.myserver.com" {...field} className="bg-white dark:bg-[#1a1a1c] border border-zinc-200 dark:border-zinc-800/50 focus:ring-zinc-900 dark:focus:ring-zinc-100 rounded-xl h-9 text-sm pl-9 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500" />
+                                    <Input placeholder="https://grabshark.myserver.com" {...field} className="bg-white dark:bg-[#1a1a1c] border border-zinc-200 dark:border-zinc-800/50 focus:ring-zinc-900 dark:focus:ring-zinc-100 rounded-xl h-9 text-sm pl-9 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500" />
                                 </div>
                             </FormControl>
                             <FormMessage />

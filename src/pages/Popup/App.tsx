@@ -64,7 +64,7 @@ function App() {
                 height="30px"
                 width="30px"
                 className="rounded"
-                alt="SPARK Logo"
+                alt="GrabSHARK Logo"
               />
             </a>
             <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Add Link</h1>

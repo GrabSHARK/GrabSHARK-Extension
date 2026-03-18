@@ -1,5 +1,5 @@
 /// <reference types="chrome" />
-// SPARK Content Script - Main entry point
+// GrabSHARK Content Script - Main entry point
 import './content-armor.css';
 import './components.css';
 
@@ -78,7 +78,7 @@ function setupReadableViewObserver(): void {
 
 function setupWebViewMessageListener(): void {
     const handler = (event: MessageEvent) => {
-        if (event.data?.type === 'SPARK_WEB_VIEW_CONTEXT') {
+        if (event.data?.type === 'GrabSHARK_WEB_VIEW_CONTEXT') {
             const { linkId } = event.data;
             if (linkId && typeof linkId === 'number') HighlightManager.loadHighlightsForLinkId(linkId);
         }
@@ -192,17 +192,17 @@ function processExtensionMessage(event: MessageEvent): void {
         return;
     }
 
-    if (event.data?.type === 'SPARK_SMART_CAPTURE') {
+    if (event.data?.type === 'GrabSHARK_SMART_CAPTURE') {
         if (smartCaptureMode) {
             const lwEl = document.querySelector('[data-lw-link-id]');
             if (lwEl) smartCaptureMode.setContainer('[data-lw-link-id]');
             smartCaptureMode.toggle();
         } else {
-            document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'SPARK_SMART_CAPTURE' }, '*'); } catch { } });
+            document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'GrabSHARK_SMART_CAPTURE' }, '*'); } catch { } });
         }
     }
 
-    if (event.data?.type === 'SPARK_CLIP') {
+    if (event.data?.type === 'GrabSHARK_CLIP') {
         const { SmartCaptureHandlers } = require('./managers/SmartCaptureHandlers');
         if (smartCaptureMode) {
             const sel = event.data.selection;
@@ -214,25 +214,25 @@ function processExtensionMessage(event: MessageEvent): void {
                 });
             }
         } else {
-            document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'SPARK_CLIP', selection: event.data.selection }, '*'); } catch { } });
+            document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'GrabSHARK_CLIP', selection: event.data.selection }, '*'); } catch { } });
         }
     }
 
-    if (event.data?.type === 'SPARK_DEACTIVATE_SMART_CAPTURE') {
+    if (event.data?.type === 'GrabSHARK_DEACTIVATE_SMART_CAPTURE') {
         smartCaptureMode?.deactivate();
-        document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'SPARK_DEACTIVATE_SMART_CAPTURE' }, '*'); } catch { } });
+        document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'GrabSHARK_DEACTIVATE_SMART_CAPTURE' }, '*'); } catch { } });
     }
 }
 
 function signalExtensionPresence(): void {
-    if (!document.getElementById('spark-extension-installed')) {
+    if (!document.getElementById('grabshark-extension-installed')) {
         const marker = document.createElement('div');
-        marker.id = 'spark-extension-installed';
+        marker.id = 'grabshark-extension-installed';
         marker.setAttribute('data-version', '1.3.3');
         marker.style.display = 'none';
         document.documentElement.appendChild(marker);
     }
-    document.dispatchEvent(new CustomEvent('spark-extension-ready', { detail: { version: '1.3.3' } }));
+    document.dispatchEvent(new CustomEvent('grabshark-extension-ready', { detail: { version: '1.3.3' } }));
 
     const extensionMessageHandler = (event: MessageEvent) => {
         const isFromSelf = event.source === window;
@@ -284,7 +284,7 @@ async function init(): Promise<void> {
         if (area === 'local' && (changes.spark_preferences || changes.spark_site_overrides)) {
             getEffectivePreferences(getHostname(window.location.href)).then(p => {
                 if (typeof p.enableSelectionMenu !== 'undefined') enableSelectionMenu = p.enableSelectionMenu;
-                if (typeof p.showHighlights !== 'undefined') document.body.classList.toggle('ext-spark-highlights-hidden', !p.showHighlights);
+                if (typeof p.showHighlights !== 'undefined') document.body.classList.toggle('ext-grabshark-highlights-hidden', !p.showHighlights);
             }).catch(() => { });
         }
     };
@@ -299,7 +299,7 @@ async function init(): Promise<void> {
         if (resp.success && resp.data) enableSelectionMenu = resp.data.enableSelectionMenu ?? DEFAULT_PREFERENCES.enableSelectionMenu;
         else { const p = await getEffectivePreferences(hostname); enableSelectionMenu = p?.enableSelectionMenu ?? DEFAULT_PREFERENCES.enableSelectionMenu; }
         const p = await getEffectivePreferences(hostname);
-        if (!(p?.showHighlights ?? true)) document.body.classList.add('ext-spark-highlights-hidden');
+        if (!(p?.showHighlights ?? true)) document.body.classList.add('ext-grabshark-highlights-hidden');
         defaultHighlightColor = (await getPreferences()).defaultHighlightColor || 'yellow';
     } catch { }
 

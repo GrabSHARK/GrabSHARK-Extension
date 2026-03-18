@@ -15,7 +15,7 @@ export async function toggleEmbeddedMenu() {
     if (embeddedRoot) {
         // If already open, trigger smooth close animation via event
         // The component will handle the animation and then call the onClose callback to unmount
-        window.dispatchEvent(new CustomEvent('spark-toggle-close'));
+        window.dispatchEvent(new CustomEvent('grabshark-toggle-close'));
         return;
     }
 
@@ -24,7 +24,7 @@ export async function toggleEmbeddedMenu() {
 
     // Create host element
     embeddedHost = document.createElement('div');
-    embeddedHost.id = 'spark-embedded-host';
+    embeddedHost.id = 'grabshark-embedded-host';
     embeddedHost.style.position = 'absolute';
     embeddedHost.style.top = '0';
     embeddedHost.style.left = '0';

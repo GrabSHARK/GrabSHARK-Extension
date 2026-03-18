@@ -40,7 +40,7 @@ export class ContextManager {
               'audio',
             ];
             for (const context of contexts) {
-              const title: string = 'Add link to SPARK';
+              const title: string = 'Add link to GrabSHARK';
               browser.contextMenus.create({
                 title: title,
                 contexts: [context],
@@ -49,12 +49,12 @@ export class ContextManager {
             }
             browser.contextMenus.create({
               id: 'save-all-tabs',
-              title: 'Save all tabs to SPARK',
+              title: 'Save all tabs to GrabSHARK',
               contexts: ['page'],
             });
             browser.contextMenus.create({
               id: 'highlight-selection',
-              title: 'Highlight with SPARK',
+              title: 'Highlight with GrabSHARK',
               contexts: ['selection'],
             });
             */

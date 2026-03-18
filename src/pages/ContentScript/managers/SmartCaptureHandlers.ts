@@ -234,7 +234,7 @@ export const SmartCaptureHandlers = {
                 if (uploadResponse.data?.fallback) {
                     showToast(`Saved locally (${uploadResponse.data?.error || 'server unavailable'})`, 'success');
                 } else {
-                    showToast('Clipped and saved to SPARK!', 'success');
+                    showToast('Clipped and saved to GrabSHARK!', 'success');
                 }
             } else {
                 showToast(uploadResponse.error || 'Failed to save clip', 'error');

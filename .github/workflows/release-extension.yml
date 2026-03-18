@@ -1,4 +1,4 @@
-name: Release SPARK Extension
+name: Release GrabSHARK Extension
 
 on:
   push:
@@ -30,18 +30,18 @@ jobs:
         run: |
           chmod +x ./build.sh
           ./build.sh
-          zip -r spark-extension-chromium-${{ github.ref_name }}.zip dist/
+          zip -r grabshark-extension-chromium-${{ github.ref_name }}.zip dist/
 
       - name: Build Firefox Extension
         run: |
           ./build.sh --firefox
-          zip -r spark-extension-firefox-${{ github.ref_name }}.zip dist/
+          zip -r grabshark-extension-firefox-${{ github.ref_name }}.zip dist/
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            spark-extension-chromium-${{ github.ref_name }}.zip
-            spark-extension-firefox-${{ github.ref_name }}.zip
+            grabshark-extension-chromium-${{ github.ref_name }}.zip
+            grabshark-extension-firefox-${{ github.ref_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

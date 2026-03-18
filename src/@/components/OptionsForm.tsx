@@ -89,7 +89,7 @@ const ConnectionFields = ({ control, method }: { control: any; method: string })
         render={({ field }) => (
           <FormItem>
             <FormLabel>API Key</FormLabel>
-            <FormDescription>Enter your SPARK API Key.</FormDescription>
+            <FormDescription>Enter your GrabSHARK API Key.</FormDescription>
             <FormControl><Input placeholder="Your API Key" {...field} type="password" /></FormControl>
             <FormMessage />
           </FormItem>
@@ -99,7 +99,7 @@ const ConnectionFields = ({ control, method }: { control: any; method: string })
         render={({ field }) => (
           <FormItem>
             <FormLabel>Username or Email</FormLabel>
-            <FormDescription>Your SPARK Username or Email.</FormDescription>
+            <FormDescription>Your GrabSHARK Username or Email.</FormDescription>
             <FormControl><Input placeholder="johnny" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
@@ -108,7 +108,7 @@ const ConnectionFields = ({ control, method }: { control: any; method: string })
         render={({ field }) => (
           <FormItem>
             <FormLabel>Password</FormLabel>
-            <FormDescription>Password for your SPARK account.</FormDescription>
+            <FormDescription>Password for your GrabSHARK account.</FormDescription>
             <FormControl><Input placeholder="••••••••••••••" {...field} type="password" /></FormControl>
             <FormMessage />
           </FormItem>
@@ -142,7 +142,7 @@ const OptionsForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>URL</FormLabel>
-                <FormDescription>The address of the SPARK instance.</FormDescription>
+                <FormDescription>The address of the GrabSHARK instance.</FormDescription>
                 <FormControl><Input placeholder="http://localhost:3000" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -162,7 +162,7 @@ const OptionsForm = () => {
                   <SelectItem value="light">Light</SelectItem>
                   <SelectItem value="dark">Dark</SelectItem>
                   <SelectItem value="website">Follow Website</SelectItem>
-                  <SelectItem value="system">Follow SPARK</SelectItem>
+                  <SelectItem value="system">Follow GrabSHARK</SelectItem>
                 </SelectContent>
               </Select>
             </FormControl>

@@ -1,4 +1,4 @@
-/* SPARK Highlight Styles - Injected by Content Script */
+/* GrabSHARK Highlight Styles - Injected by Content Script */
 
 /* Highlight colors - using !important to override page styles */
 /* ARMOR PROTOCOL: Aggressive defensive reset for ZERO layout impact */
@@ -201,16 +201,16 @@
 }
 
 /* Hiding highlights mechanism */
-body.ext-spark-highlights-hidden .ext-lw-highlight-yellow,
-body.ext-spark-highlights-hidden .ext-lw-highlight-red,
-body.ext-spark-highlights-hidden .ext-lw-highlight-blue,
-body.ext-spark-highlights-hidden .ext-lw-highlight-green {
+body.ext-grabshark-highlights-hidden .ext-lw-highlight-yellow,
+body.ext-grabshark-highlights-hidden .ext-lw-highlight-red,
+body.ext-grabshark-highlights-hidden .ext-lw-highlight-blue,
+body.ext-grabshark-highlights-hidden .ext-lw-highlight-green {
   background-color: transparent !important;
   /* Reset cursor to normal text cursor when highlights are hidden */
   cursor: text !important;
 }
 
-body.ext-spark-highlights-hidden .ext-lw-has-comment {
+body.ext-grabshark-highlights-hidden .ext-lw-has-comment {
   border-bottom: none !important;
 }
 
@@ -654,14 +654,14 @@ body.ext-spark-highlights-hidden .ext-lw-has-comment {
   cursor: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIj4KICA8ZGVmcz4KICAgIDxmaWx0ZXIgaWQ9InNoYWRvdyIgeD0iLTUwJSIgeT0iLTUwJSIgd2lkdGg9IjIwMCUiIGhlaWdodD0iMjAwJSI+CiAgICAgIDxmZURyb3BTaGFkb3cgZHg9IjEiIGR5PSIxIiBzdGREZXZpYXRpb249IjEiIGZsb29kLWNvbG9yPSJibGFjayIgZmxvb2Qtb3BhY2l0eT0iMC40Ii8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CiAgPGcgZmlsdGVyPSJ1cmwoI3NoYWRvdykiPgogICAgPCEtLSBDb3JuZXJzIC0tPgogICAgPHBhdGggZD0iTTQgOVY2YTIgMiAwIDAgMSAyLTJoMyBNMTUgNGgzYTIgMiAwIDAgMSAyIDJ2MyBNMjAgMTV2M2EyIDIgMCAwIDEtMiAyaC0zIE05IDIwSDZhMiAyIDAgMCAxLTItMnYtMyIgCiAgICAgICAgICBzdHJva2U9IiM4OGEzZTgiIAogICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyLjAiIAogICAgICAgICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiAKICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICAgIDwhLS0gQ2VudGVyIERvdCAtLT4KICAgIDxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjIuMCIgZmlsbD0iIzg4YTNlOCIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgo8L3N2Zz4=') 12 12, auto !important;
 }
 
-/* Exclude SPARK UI elements from crosshair cursor */
+/* Exclude GrabSHARK UI elements from crosshair cursor */
 .ext-lw-capture-mode-active .ext-lw-toolbox,
 .ext-lw-capture-mode-active .ext-lw-toolbox *,
 .ext-lw-capture-mode-active .ext-lw-capture-actionbar,
 .ext-lw-capture-mode-active .ext-lw-capture-actionbar *,
 .ext-lw-capture-mode-active #ext-lw-capture-actionbar-host,
 .ext-lw-capture-mode-active #ext-lw-capture-actionbar-host *,
-.ext-lw-capture-mode-active #spark-embedded-host *,
+.ext-lw-capture-mode-active #grabshark-embedded-host *,
 .ext-lw-capture-mode-active .ext-lw-toast *,
 .ext-lw-capture-mode-active [data-radix-portal] *,
 .ext-lw-capture-mode-active [role="menu"] *,
@@ -669,7 +669,7 @@ body.ext-spark-highlights-hidden .ext-lw-has-comment {
   cursor: auto !important;
 }
 
-.ext-lw-capture-mode-active #spark-embedded-host,
+.ext-lw-capture-mode-active #grabshark-embedded-host,
 .ext-lw-capture-mode-active .ext-lw-toast,
 .ext-lw-capture-mode-active [data-radix-portal],
 .ext-lw-capture-mode-active [role="menu"],
@@ -680,7 +680,7 @@ body.ext-spark-highlights-hidden .ext-lw-has-comment {
 
 .ext-lw-capture-mode-active .ext-lw-toolbox button,
 .ext-lw-capture-mode-active .ext-lw-capture-actionbar button,
-.ext-lw-capture-mode-active #spark-embedded-host button,
+.ext-lw-capture-mode-active #grabshark-embedded-host button,
 .ext-lw-capture-mode-active .ext-lw-toast button,
 .ext-lw-capture-mode-active [data-radix-portal] button,
 .ext-lw-capture-mode-active [role="menu"] button,

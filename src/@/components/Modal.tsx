@@ -124,7 +124,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
         <div className="shrink-0 -mt-[11px] mb-10 w-14 h-14 flex items-center justify-center">
           <img
             src={logoSrc}
-            alt="SPARK"
+            alt="GrabSHARK"
             className={cn(
               "w-14 h-14 transition-all duration-500 ease-out origin-top",
               step === 2 && "scale-[0.75]"
@@ -157,7 +157,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
             {/* Step 1: Welcome */}
             {step === 1 && (
               <div className="p-6 flex flex-col items-center justify-center text-center space-y-2 animate-in fade-in duration-300 fill-mode-forwards">
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Welcome to SPARK</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Welcome to GrabSHARK</h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
                   Save Your Pages, Annotations, Resources & Knowledge. Connect your account to start saving links.
                 </p>
@@ -228,7 +228,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
             </button>
             <button
               onClick={() => setTheme('system')}
-              title="Follow SPARK"
+              title="Follow GrabSHARK"
               className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'system' ? 'bg-blue-600 text-white' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
             >
               <Link2 className="w-4 h-4" />

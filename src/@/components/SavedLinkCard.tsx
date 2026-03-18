@@ -218,7 +218,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
 
                 <div className="flex gap-2 p-2">
                     <button onClick={() => onEdit?.(link)} className="flex-1 py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5">{t('savedLink.edit')}</button>
-                    <button onClick={handleOpenInSpark} className="flex-[1.5] py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5">{t('savedLink.openInSPARK')}</button>
+                    <button onClick={handleOpenInSpark} className="flex-[1.5] py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5">{t('savedLink.openInGrabSHARK')}</button>
                 </div>
             </div>
         </div>

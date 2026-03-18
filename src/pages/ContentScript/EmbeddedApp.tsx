@@ -86,15 +86,15 @@ function useEmbeddedEvents({ handleClose, setIsVisible, handleSuccess }: {
             }
         };
 
-        window.addEventListener('spark-toggle-close', onToggleClose);
-        window.addEventListener('spark-open-edit', onOpenEdit as EventListener);
-        window.addEventListener('spark-open-saved', onOpenSaved as EventListener);
+        window.addEventListener('grabshark-toggle-close', onToggleClose);
+        window.addEventListener('grabshark-open-edit', onOpenEdit as EventListener);
+        window.addEventListener('grabshark-open-saved', onOpenSaved as EventListener);
         chrome.runtime.onMessage.addListener(onMessage);
 
         return () => {
-            window.removeEventListener('spark-toggle-close', onToggleClose);
-            window.removeEventListener('spark-open-edit', onOpenEdit as EventListener);
-            window.removeEventListener('spark-open-saved', onOpenSaved as EventListener);
+            window.removeEventListener('grabshark-toggle-close', onToggleClose);
+            window.removeEventListener('grabshark-open-edit', onOpenEdit as EventListener);
+            window.removeEventListener('grabshark-open-saved', onOpenSaved as EventListener);
             chrome.runtime.onMessage.removeListener(onMessage);
         };
     }, [handleClose, setIsVisible, isUploadingRef]);

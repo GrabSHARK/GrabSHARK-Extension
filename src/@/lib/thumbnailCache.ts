@@ -7,7 +7,7 @@
  * - Blob storage for efficient memory usage
  */
 
-const DB_NAME = 'SPARKThumbnailCache';
+const DB_NAME = 'GrabSHARKThumbnailCache';
 const DB_VERSION = 1;
 const STORE_NAME = 'thumbnails';
 const MAX_ITEMS = 200;
