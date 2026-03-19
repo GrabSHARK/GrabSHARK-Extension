@@ -1,0 +1,1481 @@
+/* GrabSHARK Content Script - Component Styles (Shadow DOM) */
+/* Pure CSS implementation to avoid Tailwind build issues in extension context */
+
+/* Toolbox */
+.ext-lw-toolbox {
+    position: absolute;
+    z-index: 2147483647;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    /* 2 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    height: auto;
+    width: auto;
+    font-size: 0.875rem;
+    /* text-sm */
+    line-height: normal;
+    text-align: left;
+    color: #111827;
+    /* text-gray-900 */
+}
+
+.ext-lw-toolbox-hidden {
+    display: none;
+}
+
+/* ===========================================
+   VOID UNIFIED DOCK - Two-Layer Structure
+   Light Mode: Default
+   Dark Mode: Solid #09090b outer + AlreadySaved card inner
+   =========================================== */
+
+/* Outer Container - Light Mode Default */
+.ext-lw-void-dock-outer {
+    display: inline-flex;
+    padding: 4px;
+    background: #e9e9e5;
+    border-radius: 18px;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.12),
+        0 0 1px 0 rgba(0, 0, 0, 0.08);
+    animation: ext-lw-dock-spring 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    overflow: visible;
+    /* Allow absolute children to escape */
+}
+
+/* Exit Animation - Closing State */
+.ext-lw-void-dock-outer.ext-lw-closing {
+    animation: ext-lw-dock-spring-reverse 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Outer Container - Dark Mode */
+:host(.ext-lw-dark) .ext-lw-void-dock-outer,
+.ext-lw-dark .ext-lw-void-dock-outer {
+    background: #09090b;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.6),
+        0 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Inner Dock - Light Mode (AlreadySaved card style) */
+.ext-lw-void-dock {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 12px;
+    background: #f2f2f0;
+    border: 1px solid rgba(168, 162, 158, 0.15);
+    border-radius: 12px;
+    box-shadow:
+        inset 0 0.5px 0 0 rgba(255, 255, 255, 0.8),
+        0 2px 8px -2px rgba(0, 0, 0, 0.08);
+    overflow: visible;
+    /* Allow absolute children to escape */
+}
+
+/* Inner Dock - Dark Mode (AlreadySaved card style) */
+:host(.ext-lw-dark) .ext-lw-void-dock,
+.ext-lw-dark .ext-lw-void-dock {
+    background: #1e2020;
+    border: 1px solid rgba(168, 162, 158, 0.15);
+    box-shadow:
+        inset 0 0.5px 0 0 rgba(255, 255, 255, 0.06),
+        0 2px 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes ext-lw-dock-spring {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes ext-lw-dock-spring-reverse {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.92) translateY(4px);
+    }
+}
+
+@keyframes ext-lw-dock-spring-centered {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.92) translateY(4px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1) translateY(0);
+    }
+}
+
+/* ===========================================
+   UNIVERSAL VOID DROPDOWN SYSTEM
+   Used by Color Picker, Link Menus, etc.
+   =========================================== */
+
+/* Outer Layer - Shadows & Animation Container */
+.ext-lw-void-dropdown-outer {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    background: #e9e9e5;
+    border-radius: 18px;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.12),
+        0 0 1px 0 rgba(0, 0, 0, 0.08);
+    animation: ext-lw-dock-spring 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    z-index: 2147483647;
+}
+
+/* Outer Layer - Dark Mode */
+:host(.ext-lw-dark) .ext-lw-void-dropdown-outer,
+.ext-lw-dark .ext-lw-void-dropdown-outer {
+    background: #09090b;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.6),
+        0 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Inner Dock - Glassmorphic Content Area */
+.ext-lw-void-dropdown {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    background: #f2f2f0;
+    border: 1px solid rgba(168, 162, 158, 0.15);
+    border-radius: 12px;
+    box-shadow:
+        inset 0 0.5px 0 0 rgba(255, 255, 255, 0.8),
+        0 2px 8px -2px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    height: auto;
+}
+
+/* Inner Dock - Dark Mode */
+:host(.ext-lw-dark) .ext-lw-void-dropdown,
+.ext-lw-dark .ext-lw-void-dropdown {
+    background: #1e2020;
+    border-color: rgba(168, 162, 158, 0.15);
+    box-shadow:
+        inset 0 0.5px 0 0 rgba(255, 255, 255, 0.06),
+        0 2px 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Dock Divider */
+.ext-lw-dock-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(0, 0, 0, 0.12);
+    margin: 0 6px;
+    flex-shrink: 0;
+}
+
+:host(.ext-lw-dark) .ext-lw-dock-divider,
+.ext-lw-dark .ext-lw-dock-divider {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* Dock Icon Button */
+.ext-lw-dock-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    color: rgba(0, 0, 0, 0.55);
+    position: relative;
+}
+
+:host(.ext-lw-dark) .ext-lw-dock-btn,
+.ext-lw-dark .ext-lw-dock-btn {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.ext-lw-dock-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: rgba(0, 0, 0, 0.85);
+}
+
+:host(.ext-lw-dark) .ext-lw-dock-btn:hover,
+.ext-lw-dark .ext-lw-dock-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.ext-lw-dock-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Color Circle in Dock */
+.ext-lw-dock-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    flex-shrink: 0;
+}
+
+:host(.ext-lw-dark) .ext-lw-dock-color,
+.ext-lw-dark .ext-lw-dock-color {
+    border-color: rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.ext-lw-dock-color:hover {
+    transform: scale(1.1);
+    box-shadow: 0 3px 10px -2px rgba(0, 0, 0, 0.25);
+}
+
+/* Color Dropdown (attached to dock) */
+.ext-lw-dock-color-wrapper {
+    position: relative;
+}
+
+.ext-lw-dock-color-dropdown-outer {
+    /* Specialized for centered triggers */
+    display: none;
+    position: absolute;
+    top: calc(100% + 18px);
+    left: 50%;
+    transform: translateX(-50%);
+    animation: ext-lw-dock-spring-centered 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Color dropdown inner - vertical layout with proper spacing */
+.ext-lw-dock-color-dropdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Hover Bridge for Color Picker - Accounts for 18px offset (8px gap + 10px dock structure) */
+.ext-lw-dock-color-dropdown-outer::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: transparent;
+}
+
+/* Mutual Exclusion: Prevent color dropdown when link menu is open */
+.ext-lw-link-menu-open .ext-lw-dock-color-wrapper:hover .ext-lw-dock-color-dropdown-outer {
+    display: none !important;
+}
+
+/* Hover state: Show color picker only if link menu is NOT open */
+.ext-lw-void-dock-outer:not(.ext-lw-link-menu-open) .ext-lw-dock-color-wrapper:hover .ext-lw-dock-color-dropdown-outer {
+    display: flex;
+}
+
+
+.ext-lw-toolbox-feedback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    background-color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    /* gray-200 */
+}
+
+:host(.ext-lw-dark) .ext-lw-toolbox-feedback,
+.ext-lw-dark .ext-lw-toolbox-feedback {
+    background-color: #1f2937;
+    /* gray-800 */
+    border-color: #374151;
+    /* gray-700 */
+}
+
+/* Color Buttons */
+.ext-lw-color-btn {
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: transform 100ms;
+}
+
+:host(.ext-lw-dark) .ext-lw-color-btn,
+.ext-lw-dark .ext-lw-color-btn {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.2);
+}
+
+.ext-lw-color-btn:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+.ext-lw-color-btn-yellow {
+    background-color: rgb(253, 224, 71);
+}
+
+.ext-lw-color-btn-red {
+    background-color: rgb(239, 68, 68);
+}
+
+.ext-lw-color-btn-blue {
+    background-color: rgb(59, 130, 246);
+}
+
+.ext-lw-color-btn-green {
+    background-color: rgb(34, 197, 94);
+}
+
+.ext-lw-color-btn-active {
+    border: 2px solid white !important;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    transform: scale(1.1);
+}
+
+/* Custom check icon if still needed, but making it more subtle or removing as per 'ring' request */
+.ext-lw-color-btn-active::after {
+    content: '';
+    /* Removing checkmark for a cleaner 'ring' look */
+    display: none;
+}
+
+/* Icon Buttons */
+.ext-lw-icon-btn {
+    width: 1.75rem;
+    /* 7 */
+    height: 1.75rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.25rem;
+    transition: background-color 150ms;
+    color: #374151;
+    /* gray-700 */
+}
+
+:host(.ext-lw-dark) .ext-lw-icon-btn,
+.ext-lw-dark .ext-lw-icon-btn {
+    color: #d1d5db;
+    /* gray-300 */
+}
+
+.ext-lw-icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+:host(.ext-lw-dark) .ext-lw-icon-btn:hover,
+.ext-lw-dark .ext-lw-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ext-lw-icon-btn svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Sub Toolboxes (Left/Right) */
+.ext-lw-sub-toolbox {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    padding: 0.375rem;
+    animation: ext-lw-fade-in-zoom 0.2s ease-out forwards;
+}
+
+:host(.ext-lw-dark) .ext-lw-sub-toolbox,
+.ext-lw-dark .ext-lw-sub-toolbox {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+@keyframes ext-lw-fade-in-zoom {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Color Dropdown & Trigger */
+.ext-lw-toolbox-left {
+    position: relative;
+}
+
+.ext-lw-color-trigger {
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+}
+
+.ext-lw-color-trigger:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+:host(.ext-lw-dark) .ext-lw-color-trigger:hover,
+.ext-lw-dark .ext-lw-color-trigger:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ext-lw-color-trigger-circle {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:host(.ext-lw-dark) .ext-lw-color-trigger-circle,
+.ext-lw-dark .ext-lw-color-trigger-circle {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ext-lw-color-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 50;
+    transform-origin: top left;
+}
+
+:host(.ext-lw-dark) .ext-lw-color-dropdown,
+.ext-lw-dark .ext-lw-color-dropdown {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+.ext-lw-toolbox-left:hover .ext-lw-color-dropdown {
+    display: flex;
+}
+
+/* Link Actions */
+.ext-lw-link-save-container {
+    position: relative;
+}
+
+.ext-lw-link-badge {
+    position: absolute;
+    top: -0.25rem;
+    right: -0.25rem;
+    min-width: 16px;
+    height: 1rem;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 0 0.25rem;
+    border: 1px solid white;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+:host(.ext-lw-dark) .ext-lw-link-badge,
+.ext-lw-dark .ext-lw-link-badge {
+    border-color: #111827;
+}
+
+.ext-lw-link-dropdown-outer {
+    /* Uses Universal VOID Dropdown System */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* Exactly match toolbox width */
+    right: 0;
+    margin-top: 8px;
+    display: none;
+    box-sizing: border-box;
+}
+
+/* Link Dropdown Hidden State (handled by JS toggles) */
+.ext-lw-link-dropdown-hidden {
+    display: none !important;
+}
+
+/* Hover Bridge for Link Dropdown */
+.ext-lw-link-dropdown-outer::after {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: transparent;
+}
+
+/* CaptureActionBar Specific Dropdown (Right-side open) */
+.ext-lw-capture-dropdown-outer::before {
+    content: "";
+    position: absolute;
+    left: -20px;
+    /* Bridge 18px offset (8px gap + 10px dock structure) + 2px overlap */
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: transparent;
+}
+
+.ext-lw-link-dropdown-header {
+    padding: 10px 12px 10px 12px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(168, 162, 158, 0.08) !important;
+    margin: 0 0 4px 0 !important;
+}
+
+:host(.ext-lw-dark) .ext-lw-link-dropdown-header,
+.ext-lw-dark .ext-lw-link-dropdown-header {
+    color: #e5e5e5 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.ext-lw-link-dropdown-content {
+    max-height: 240px;
+    height: auto;
+    min-height: min-content;
+    overflow-y: auto;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.ext-lw-link-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: #4b5563 !important;
+    font-size: 12px !important;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 !important;
+}
+
+:host(.ext-lw-dark) .ext-lw-link-item,
+.ext-lw-dark .ext-lw-link-item {
+    color: #d1d5db !important;
+}
+
+.ext-lw-link-item:hover {
+    background: rgba(0, 0, 0, 0.04) !important;
+    color: #111827 !important;
+}
+
+:host(.ext-lw-dark) .ext-lw-link-item:hover,
+.ext-lw-dark .ext-lw-link-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f3f4f6 !important;
+}
+
+.ext-lw-link-save-all {
+    margin-top: 4px !important;
+    padding: 8px !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: #3b82f6 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.025em !important;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    width: 100% !important;
+}
+
+.ext-lw-link-save-all:hover,
+.ext-lw-capture-save-all:hover {
+    background: #3b82f6 !important;
+    color: white !important;
+}
+
+/* Comment Mode */
+.ext-lw-tool-comment {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 280px;
+    padding: 0.75rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+:host(.ext-lw-dark) .ext-lw-tool-comment,
+.ext-lw-dark .ext-lw-tool-comment {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+.ext-lw-comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    margin-bottom: 0.5rem;
+}
+
+:host(.ext-lw-dark) .ext-lw-comment-header,
+.ext-lw-dark .ext-lw-comment-header {
+    border-color: #374151;
+}
+
+.ext-lw-comment-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.ext-lw-comment-textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    color: #111827;
+    background-color: white;
+    font-family: inherit;
+}
+
+:host(.ext-lw-dark) .ext-lw-comment-textarea,
+.ext-lw-dark .ext-lw-comment-textarea {
+    border-color: #4b5563;
+    color: #f3f4f6;
+    background-color: #111827;
+}
+
+.ext-lw-comment-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.ext-lw-comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.ext-lw-btn {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: opacity 150ms;
+}
+
+.ext-lw-btn:hover {
+    opacity: 0.8;
+}
+
+.ext-lw-btn-ghost {
+    background: transparent;
+    color: #4b5563;
+}
+
+:host(.ext-lw-dark) .ext-lw-btn-ghost,
+.ext-lw-dark .ext-lw-btn-ghost {
+    color: #9ca3af;
+}
+
+.ext-lw-btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Note: FeedbackIndicator component uses inline styles (bypass Shadow DOM CSS isolation)
+   Loading/success/error states are rendered directly in FeedbackIndicator.ts */
+
+@keyframes ext-lw-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes ext-lw-zoom-in {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Toast */
+.ext-lw-toast {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    z-index: 2147483647;
+    background-color: #111827;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    font-family: sans-serif;
+    font-size: 0.875rem;
+    animation: ext-lw-slide-in 0.3s ease-out forwards;
+}
+
+@keyframes ext-lw-slide-in {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.ext-lw-toast-success {
+    background-color: #16a34a;
+}
+
+.ext-lw-toast-error {
+    background-color: #dc2626;
+}
+
+/* Capture Action Bar & Overlay */
+/* ===========================================
+   CAPTURE ACTION BAR - VOID Redesign
+   Outer + Inner Container structure
+   =========================================== */
+
+/* Outer Container - Light Mode */
+.ext-lw-capture-actionbar-outer {
+    display: inline-flex;
+    flex-direction: column;
+    pointer-events: auto;
+    padding: 4px;
+    /* VOID standard padding */
+    background: #e9e9e5;
+    border-radius: 18px;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.12),
+        0 0 1px 0 rgba(0, 0, 0, 0.08);
+    /* SLOW SPRING ENTRANCE */
+    animation: ext-lw-dock-spring 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Exit Animation */
+.ext-lw-capture-actionbar-outer.ext-lw-closing {
+    animation: ext-lw-dock-spring-reverse 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Outer Container - Dark Mode */
+:host(.ext-lw-dark) .ext-lw-capture-actionbar-outer,
+.ext-lw-dark .ext-lw-capture-actionbar-outer,
+.ext-lw-capture-actionbar-outer.ext-lw-dark {
+    background: #09090b;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.6),
+        0 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Inner Container - Light Mode */
+.ext-lw-capture-actionbar-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    /* Ensure header/actions fill width */
+    min-width: 160px;
+    /* Reduced for compact look */
+    max-width: 280px;
+    background: #f2f2f0;
+    border: 1px solid rgba(168, 162, 158, 0.15);
+    border-radius: 12px;
+    box-shadow:
+        inset 0 0.5px 0 0 rgba(255, 255, 255, 0.8),
+        0 2px 8px -2px rgba(0, 0, 0, 0.08);
+    overflow: visible;
+    /* Allow dropdown to escape container */
+}
+
+/* Inner Container - Dark Mode */
+:host(.ext-lw-dark) .ext-lw-capture-actionbar-inner,
+.ext-lw-dark .ext-lw-capture-actionbar-inner,
+.ext-lw-dark.ext-lw-capture-actionbar-outer .ext-lw-capture-actionbar-inner {
+    background: #1e2020;
+    border: 1px solid rgba(168, 162, 158, 0.15);
+    box-shadow:
+        inset 0 0.5px 0 0 rgba(255, 255, 255, 0.06),
+        0 2px 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Header Section */
+.ext-lw-capture-actionbar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(168, 162, 158, 0.06);
+    /* Subtler border */
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-actionbar-header,
+.ext-lw-dark .ext-lw-capture-actionbar-header,
+.ext-lw-dark.ext-lw-capture-actionbar-outer .ext-lw-capture-actionbar-header {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.ext-lw-capture-actionbar-title-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ext-lw-capture-actionbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    letter-spacing: -0.01em;
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-actionbar-title,
+.ext-lw-dark .ext-lw-capture-actionbar-title,
+.ext-lw-dark.ext-lw-capture-actionbar-outer .ext-lw-capture-actionbar-title {
+    color: #f9fafb !important;
+    /* Strong contrast for VOID Dark */
+}
+
+/* Actions Section */
+.ext-lw-capture-actionbar-actions {
+    display: flex;
+    flex-direction: column;
+    /* Ensure stack for list view */
+    padding: 4px;
+    background: transparent;
+}
+
+/* Animation & Visibility - Handled by ext-lw-dock-spring and ext-lw-closing */
+.ext-lw-capture-actionbar-outer.ext-lw-capture-actionbar-hidden {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+.ext-lw-capture-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    width: 100%;
+    /* Full width for list style */
+    border: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+    /* Light mode separator */
+    background: transparent;
+    color: #4b5563;
+    border-radius: 0;
+    /* Remove radius for list view */
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    text-decoration: none !important;
+}
+
+.ext-lw-capture-action-btn:last-child {
+    border-bottom: none !important;
+}
+
+.ext-lw-capture-action-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: rgba(0, 0, 0, 0.55);
+    /* VOID Dock light icon color */
+    transition: color 0.15s ease;
+}
+
+.ext-lw-capture-action-btn:hover svg {
+    color: rgba(0, 0, 0, 0.85);
+    /* VOID Dock light icon hover */
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-action-btn,
+.ext-lw-dark .ext-lw-capture-action-btn,
+.ext-lw-dark.ext-lw-capture-actionbar-outer .ext-lw-capture-action-btn {
+    color: #f9fafb !important;
+    /* Force high contrast for labels */
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Dark mode icons normal state */
+:host(.ext-lw-dark) .ext-lw-capture-action-btn svg,
+.ext-lw-dark .ext-lw-capture-action-btn svg,
+.ext-lw-dark.ext-lw-capture-actionbar-outer .ext-lw-capture-action-btn svg {
+    color: rgba(255, 255, 255, 0.65) !important;
+    /* VOID Dock dark icon color */
+}
+
+/* Dark mode icons hover state */
+:host(.ext-lw-dark) .ext-lw-capture-action-btn:hover svg,
+.ext-lw-dark .ext-lw-capture-action-btn:hover svg,
+.ext-lw-dark.ext-lw-capture-actionbar-outer .ext-lw-capture-action-btn:hover svg {
+    color: rgba(255, 255, 255, 0.95) !important;
+    /* VOID Dock dark icon hover */
+}
+
+.ext-lw-capture-action-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #111827;
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-action-btn:hover,
+.ext-lw-dark .ext-lw-capture-action-btn:hover,
+.ext-lw-dark.ext-lw-capture-actionbar-outer .ext-lw-capture-action-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f3f4f6;
+}
+
+.ext-lw-capture-action-label {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Header Buttons (Close) */
+.ext-lw-capture-action-header-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ext-lw-capture-action-header-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #4b5563;
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-action-header-btn:hover,
+.ext-lw-dark .ext-lw-capture-action-header-btn:hover,
+.ext-lw-dark.ext-lw-capture-actionbar-outer .ext-lw-capture-action-header-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f3f4f6;
+}
+
+/* Save Link Dropdowns & Badges */
+.ext-lw-capture-save-link-container {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.ext-lw-capture-save-link-container:hover .ext-lw-capture-link-dropdown {
+    display: flex;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.ext-lw-link-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: #3b82f6;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    margin-left: 2px;
+}
+
+.ext-lw-capture-link-dropdown-outer {
+    /* Uses Universal VOID Dropdown System */
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+.ext-lw-capture-save-link-container:hover .ext-lw-capture-link-dropdown-outer {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Bridge for Capture Link Dropdown */
+.ext-lw-capture-link-dropdown-outer::after {
+    content: "";
+    position: absolute;
+    bottom: -16px;
+    left: 0;
+    right: 0;
+    height: 16px;
+    background: transparent;
+}
+
+.ext-lw-capture-link-dropdown-scroll {
+    max-height: 240px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+    /* Prevent collapse */
+}
+
+.ext-lw-capture-link-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #4b5563;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-link-item,
+.ext-lw-dark .ext-lw-capture-link-item {
+    color: #d1d5db;
+}
+
+.ext-lw-capture-link-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #111827;
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-link-item:hover,
+.ext-lw-dark .ext-lw-capture-link-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f3f4f6;
+}
+
+.ext-lw-capture-link-url {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ext-lw-capture-link-all {
+    margin-top: 4px;
+    padding: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    border: none;
+    border-radius: 8px;
+    color: #3b82f6;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ext-lw-capture-link-all:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.ext-lw-capture-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    pointer-events: none;
+    background-color: rgba(59, 130, 246, 0.1);
+    border: 2px solid #3b82f6;
+    border-radius: 4px;
+    /* Slight radius */
+    transition: all 100ms;
+}
+
+.ext-lw-capture-overlay-hidden {
+    display: none;
+}
+
+.ext-lw-capture-target-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #3b82f6;
+    opacity: 0.7;
+}
+
+
+/* Note Panel (Capture Mode) Fixes */
+.ext-lw-note-panel {
+    background-color: white !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    padding: 4px;
+    display: flex;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    min-width: 280px;
+    height: auto !important;
+}
+
+/* ===========================================
+   NOTE PANEL - Two-Layer VOID Design
+   Same structure as HighlightToolbox dock
+   =========================================== */
+
+/* Root container - no extra styling */
+.ext-lw-note-panel-container {
+    display: inline-block;
+}
+
+/* Colors Wrapper - Rounded container */
+.ext-lw-note-colors-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 10px;
+}
+
+:host(.ext-lw-dark) .ext-lw-note-colors-wrapper,
+.ext-lw-dark .ext-lw-note-colors-wrapper {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Bigger color buttons inside note panel */
+.ext-lw-note-colors-wrapper .ext-lw-color-btn {
+    width: 22px;
+    height: 22px;
+}
+
+/* HIDE checkmark for note panel - use ring overlay instead */
+.ext-lw-note-colors-wrapper .ext-lw-color-btn-active::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Ring overlay for selected color */
+.ext-lw-note-colors-wrapper .ext-lw-color-btn-active {
+    box-shadow: 0 0 0 2.5px rgba(0, 0, 0, 0.5);
+}
+
+:host(.ext-lw-dark) .ext-lw-note-colors-wrapper .ext-lw-color-btn-active,
+.ext-lw-dark .ext-lw-note-colors-wrapper .ext-lw-color-btn-active {
+    box-shadow: 0 0 0 2.5px rgba(255, 255, 255, 0.6);
+}
+
+/* Outer Container - Light Mode */
+.ext-lw-note-outer {
+    display: inline-flex;
+    padding: 4px;
+    background: #e9e9e5;
+    border-radius: 18px;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.12),
+        0 0 1px 0 rgba(0, 0, 0, 0.08);
+    animation: ext-lw-dock-spring 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Outer Container - Dark Mode */
+:host(.ext-lw-dark) .ext-lw-note-outer,
+.ext-lw-dark .ext-lw-note-outer {
+    background: #09090b;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.6),
+        0 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Inner Container - Light Mode */
+.ext-lw-note-inner {
+    display: flex;
+    flex-direction: column;
+    min-width: 280px;
+    padding: 12px;
+    background: #f2f2f0;
+    border: 1px solid rgba(168, 162, 158, 0.15);
+    border-radius: 12px;
+    box-shadow:
+        inset 0 0.5px 0 0 rgba(255, 255, 255, 0.8),
+        0 2px 8px -2px rgba(0, 0, 0, 0.08);
+}
+
+/* Inner Container - Dark Mode */
+:host(.ext-lw-dark) .ext-lw-note-inner,
+.ext-lw-dark .ext-lw-note-inner {
+    background: #1e2020;
+    border-color: rgba(168, 162, 158, 0.15);
+    box-shadow:
+        inset 0 0.5px 0 0 rgba(255, 255, 255, 0.06),
+        0 2px 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+.ext-lw-note-content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+}
+
+:host(.ext-lw-dark) .ext-lw-note-panel,
+.ext-lw-dark .ext-lw-note-panel {
+    background-color: #1f2937 !important;
+    border-color: #374151;
+}
+
+.ext-lw-capture-note-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px 14px;
+    border: 1px solid rgba(168, 162, 158, 0.2);
+    border-radius: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: none;
+    outline: none;
+    color: #374151;
+    background-color: #fafaf9;
+    display: block;
+}
+
+.ext-lw-capture-note-textarea::placeholder {
+    color: #9ca3af;
+}
+
+.ext-lw-capture-note-textarea:focus {
+    border-color: rgba(168, 162, 158, 0.35);
+    box-shadow: none;
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-note-textarea,
+.ext-lw-dark .ext-lw-capture-note-textarea {
+    background-color: #161b22;
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e5e7eb;
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-note-textarea::placeholder,
+.ext-lw-dark .ext-lw-capture-note-textarea::placeholder {
+    color: #6b7280;
+}
+
+:host(.ext-lw-dark) .ext-lw-capture-note-textarea:focus,
+.ext-lw-dark .ext-lw-capture-note-textarea:focus {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.ext-lw-capture-note-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+}
+
+.ext-lw-note-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ext-lw-note-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Icon Action Buttons */
+.ext-lw-note-action-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.ext-lw-note-action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Cancel Button (X) - Dark subtle bg */
+.ext-lw-note-cancel-btn {
+    background: rgba(0, 0, 0, 0.06);
+    color: #6b7280;
+}
+
+.ext-lw-note-cancel-btn:hover {
+    background: rgba(0, 0, 0, 0.12);
+    color: #374151;
+}
+
+:host(.ext-lw-dark) .ext-lw-note-cancel-btn,
+.ext-lw-dark .ext-lw-note-cancel-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: #9ca3af;
+}
+
+:host(.ext-lw-dark) .ext-lw-note-cancel-btn:hover,
+.ext-lw-dark .ext-lw-note-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #e5e7eb;
+}
+
+/* Save Button (Checkmark) - Blue primary (matches SaveLinkCard bg-blue-600) */
+.ext-lw-note-save-btn {
+    background: #2563eb;
+    color: white;
+}
+
+.ext-lw-note-save-btn:hover {
+    background: #1d4ed8;
+}
+
+:host(.ext-lw-dark) .ext-lw-note-save-btn,
+.ext-lw-dark .ext-lw-note-save-btn {
+    background: #2563eb;
+    color: white;
+}
+
+:host(.ext-lw-dark) .ext-lw-note-save-btn:hover,
+.ext-lw-dark .ext-lw-note-save-btn:hover {
+    background: #1d4ed8;
+}
+
+.ext-lw-pin-btn {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+    margin-left: 6px;
+}
+
+.ext-lw-pin-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.ext-lw-pin-btn:hover {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+:host(.ext-lw-dark) .ext-lw-pin-btn:hover,
+.ext-lw-dark .ext-lw-pin-btn:hover {
+    background-color: #374151;
+    color: #d1d5db;
+}
+
+.ext-lw-pin-btn.ext-lw-pinned {
+    color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.1);
+}
