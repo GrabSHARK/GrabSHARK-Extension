@@ -42,6 +42,11 @@ class HighlightObserver {
     };
 
     start(highlights: Highlight[], initialResults: Map<number, boolean>): void {
+        // If already observing, ensure we stop previous timers/observers before restarting or merging
+        if (this.isObserving) {
+            this.stop();
+        }
+
         highlights.forEach(h => this.state.allHighlights.set(h.id, h));
         this.state.lastDocHeight = document.body.scrollHeight;
 

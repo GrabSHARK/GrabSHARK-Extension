@@ -135,16 +135,21 @@ export function useThumbnail({
     useEffect(() => {
         if (!isLoading || imgSrc || !linkId || !baseUrl) return;
 
+        let cancelled = false;
+
         const pollInterval = setInterval(async () => {
             const apiImage = await fetchFromApi();
-            if (apiImage) {
+            if (!cancelled && apiImage) {
                 setImgSrc(apiImage);
                 setIsLoading(false);
                 clearInterval(pollInterval);
             }
         }, 3000);
 
-        return () => clearInterval(pollInterval);
+        return () => {
+            cancelled = true;
+            clearInterval(pollInterval);
+        };
     }, [isLoading, imgSrc, linkId, baseUrl, fetchFromApi]);
 
     return {

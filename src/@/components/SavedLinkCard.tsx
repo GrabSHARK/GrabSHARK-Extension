@@ -72,6 +72,7 @@ function useSavedLinkPolling({
     useEffect(() => {
         let isMounted = true;
         let pollInterval: NodeJS.Timeout | null = null;
+        let timeoutId: NodeJS.Timeout | null = null;
         const hasSharedData = sharedImgSrc?.startsWith('data:');
 
         const fetchData = async () => {
@@ -91,7 +92,7 @@ function useSavedLinkPolling({
                         }
                     } catch { }
                 }, 2000);
-                setTimeout(() => { if (pollInterval) clearInterval(pollInterval); if (isMounted && !link.preview && !imgSrc) setIsLoading(false); }, 30000);
+                timeoutId = setTimeout(() => { if (pollInterval) clearInterval(pollInterval); if (isMounted && !link.preview && !imgSrc) setIsLoading(false); }, 30000);
                 return;
             }
 
@@ -110,7 +111,7 @@ function useSavedLinkPolling({
             }
         };
         fetchData();
-        return () => { isMounted = false; if (pollInterval) clearInterval(pollInterval); };
+        return () => { isMounted = false; if (pollInterval) clearInterval(pollInterval); if (timeoutId) clearTimeout(timeoutId); };
     }, [link.preview, link.url, link.id, baseUrl, sharedImgSrc, onImgSrcChange]);
 
     return { imgSrc, isLoading, isPollingTags, setIsPollingTags };
