@@ -33,6 +33,8 @@ export class SmartCaptureMode {
     private shortcutConfig: ShortcutConfig = DEFAULT_PREFERENCES.smartCaptureShortcut;
     private enableSmartCapture = DEFAULT_PREFERENCES.enableSmartCapture;
 
+    private storageChangeListener: (changes: { [key: string]: chrome.storage.StorageChange }, area: string) => void;
+
     private boundHandlers: {
         mousemove: (e: MouseEvent) => void;
         mousedown: (e: MouseEvent) => void;
@@ -74,11 +76,12 @@ export class SmartCaptureMode {
         document.addEventListener('keyup', this.globalKeyupHandler);
         const hostname = getHostname(window.location.href);
         getEffectivePreferences(hostname).then(prefs => { if (prefs) this.updateSettings(prefs); });
-        chrome.storage.onChanged.addListener((changes, area) => {
+        this.storageChangeListener = (changes, area) => {
             if (area === 'local' && (changes.grabshark_preferences || changes.grabshark_site_overrides)) {
                 getEffectivePreferences(getHostname(window.location.href)).then(prefs => this.updateSettings(prefs));
             }
-        });
+        };
+        chrome.storage.onChanged.addListener(this.storageChangeListener);
     }
     public updateSettings(prefs: ExtensionPreferences) {
         if (prefs.smartCaptureShortcut) this.shortcutConfig = prefs.smartCaptureShortcut;
@@ -293,5 +296,7 @@ export class SmartCaptureMode {
         try { this.deactivate(); } catch { }
         try { this.actionBar?.destroy(); } catch { }
         try { document.removeEventListener('keydown', this.globalKeydownHandler); document.removeEventListener('keyup', this.globalKeyupHandler); } catch { }
+        try { chrome.storage.onChanged.removeListener(this.storageChangeListener); } catch { }
+        if (this.animationFrameId) { cancelAnimationFrame(this.animationFrameId); this.animationFrameId = null; }
     }
 }
