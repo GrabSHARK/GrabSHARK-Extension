@@ -16,6 +16,17 @@ At the start of EVERY conversation, you MUST read ALL core memory bank files bef
 Additionally, check these when relevant:
 - `memory-bank/knownBugs.md` — Before debugging any issue (may already be documented).
 
+## Memory Bank Freshness Check (MANDATORY — Session Start)
+After reading memory bank files, you MUST run this freshness check before writing any code:
+
+1. **Compare timestamps:** Run `git log --oneline -5 -- src/` and `git log --oneline -1 -- memory-bank/` to see if source code has commits newer than the last memory bank update.
+2. **If memory bank is stale** (source has newer commits than memory bank):
+   - Warn the user: "Memory bank appears outdated — source code has changed since the last update."
+   - Review `git log --oneline` for recent changes and update `activeContext.md` and `progress.md` before proceeding.
+3. **Check .txt reference files:** Run `git log --oneline -1 -- "*.txt"` and compare with source changes. If .txt files are older, flag them for review.
+
+This prevents working with outdated context that could lead to incorrect assumptions about the codebase.
+
 ## Memory Bank Update Rule
 After implementing changes, you MUST update the relevant memory bank files.
 
