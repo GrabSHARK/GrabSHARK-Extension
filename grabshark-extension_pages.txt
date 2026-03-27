@@ -1,0 +1,100 @@
+GrabSHARK Browser Extension Pages (Detailed)
+
+== 1. Popup UI (Extension Icon Click) ==
+
+[App.tsx]
+└─ File: grabshark-extension/src/pages/Popup/App.tsx
+└─ Category: Popup Root
+└─ Purpose: Tarayıcının eklenti ikonuna tıklandığında açılan asıl arayüz (Pop-up). Kayıt ve klasör modallarını barındırır.
+
+[main.tsx]
+└─ File: grabshark-extension/src/pages/Popup/main.tsx
+└─ Category: Popup Entry
+└─ Purpose: Pop-up için React DOM başlatıcısı ve ThemeProvider gibi sarmalayıcıların eklendiği kök dosya.
+
+== 2. Options UI (Extension Preferences) ==
+
+[App.tsx]
+└─ File: grabshark-extension/src/pages/Options/App.tsx
+└─ Category: Options Root
+└─ Purpose: Eklentinin sağ tık "Seçenekler" sayfasının ana React bileşeni. Sunucu URL'si ve kısa yol ayarlarını tutar.
+
+[Options.tsx]
+└─ File: grabshark-extension/src/pages/Options/Options.tsx
+└─ Category: Options Entry
+└─ Purpose: Ayarlar sayfası için kapsayıcı React root dosyası.
+
+[options.html]
+└─ File: grabshark-extension/src/pages/Options/options.html
+└─ Category: Options HTML
+└─ Purpose: Tarayıcı tam sayfa (Options) ayarlar ekranı için HTML iskeleti.
+
+== 3. Background Scripts (Service Worker) ==
+
+[index.ts]
+└─ File: grabshark-extension/src/pages/Background/index.ts
+└─ Category: Background Entry
+└─ Purpose: Service Worker altyapısının ana giriş noktası. Arkanda planda sürekli çalışan yönetici servisleri başlatır.
+
+[Background Managers]
+└─ File: grabshark-extension/src/pages/Background/managers/*.ts
+└─ Category: Background Logic
+└─ Purpose: AuthManager, MessageRouter, ContextManager gibi token yenileme ve menü işlemlerini yürüten temel arka plan motorları.
+
+== 4. Content Scripts: Page Interception & UI ==
+
+[contentScript.tsx]
+└─ File: grabshark-extension/src/pages/ContentScript/contentScript.tsx
+└─ Category: Content Entry
+└─ Purpose: Ziyaret edilen web sayfalarına sızan ana içerik betiği (Content Script). Observer ve UI yöneticilerini ayaklandırır.
+
+[EmbeddedApp.tsx]
+└─ File: grabshark-extension/src/pages/ContentScript/EmbeddedApp.tsx
+└─ Category: Injected Root
+└─ Purpose: Shadow DOM vasıtasıyla dış sitenin CSS ve düzeninden (layout) etkilenmeden çalışan, eklentiye ait gömülü arayüzlerin (Toast vb.) sarmalayıcısı.
+
+[embeddedUI.ts]
+└─ File: grabshark-extension/src/pages/ContentScript/embeddedUI.ts
+└─ Category: Shadow DOM
+└─ Purpose: Web sayfasının Document Body'sine izolasyon çerçevesi (Shadow Root) yerleştiren ve React'i buraya bağlayan motor.
+
+== 5. Content Scripts: Highlight System ==
+
+[HighlightManager.ts]
+└─ File: grabshark-extension/src/pages/ContentScript/managers/HighlightManager.ts
+└─ Category: Highlight Logic
+└─ Purpose: Sayfada yapılan metin seçimlerini dinleyen, Background'a kaydeden ve çizim (renderer) motoruna komut veren menajer.
+
+[HighlightToolbox.ts]
+└─ File: grabshark-extension/src/pages/ContentScript/HighlightToolbox.ts
+└─ Category: Highlight UI
+└─ Purpose: Metin seçildiğinde beliren renkli "Fosforlu Kalem" (VOID Dock) balonu ve etkileşimleri.
+
+[highlightRenderer.ts & highlightDOM.ts]
+└─ File: grabshark-extension/src/pages/ContentScript/highlightRenderer.ts
+└─ Category: Highlight Rendering
+└─ Purpose: Sayfanın mevcut HTML ağacını (DOM) bozmadan yalnızca ilgili kelimelerin zeminine renkli vurgu tabakaları (marker layers) çizen sistem.
+
+[SaveNotificationToast]
+└─ File: grabshark-extension/src/pages/ContentScript/SaveNotificationToast/SaveNotificationToast.tsx
+└─ Category: Toast Alert
+└─ Purpose: İçerik kaydedildikten veya bir eylem alındıktan sonra sayfanın sağ alt köşesinden estetik olarak beliren bildirim arayüzü.
+
+== 6. Content Scripts: Smart Capture ==
+
+[SmartCaptureMode.ts]
+└─ File: grabshark-extension/src/pages/ContentScript/SmartCapture/SmartCaptureMode.ts
+└─ Category: Capture Logic
+└─ Purpose: Ekrandan "Akıllı Kırpma" işlemi yapmayı sağlayan, HTML düğümlerini tespit edip maskeleyen sürecin ana denetçisi.
+
+[CaptureDock.tsx]
+└─ File: grabshark-extension/src/pages/ContentScript/SmartCapture/components/CaptureDock.tsx
+└─ Category: Capture UI
+└─ Purpose: Akıllı kırpma modundayken sayfanın ortasında çıkan "İptal/Kaydet" butonlarına sahip kayan kontrol paneli.
+
+== 7. Data Extraction Agents ==
+
+[Agents]
+└─ File: grabshark-extension/src/pages/ContentScript/agents/
+└─ Category: Web Scrapers
+└─ Purpose: Link eklendiği sıralarda sessizce çalışıp Meta başlıklarını, Description ve Thumbnail grafiklerini yakalayan özel toplayıcı ajanlar.

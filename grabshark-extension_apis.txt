@@ -1,0 +1,148 @@
+GrabSHARK Browser Extension Logic & Architecture (API & Actions)
+
+== 1. API Actions (Backend Consumers) ==
+Location: src/@/lib/actions/*
+
+[collections.ts]
+└─ Endpoint: [GET] /api/v1/collections
+└─ Category: API Wrapper
+└─ Purpose: Backend API ile haberleşerek klasör (collections) verilerini getirir (fetch) ve parse eder.
+
+[highlights.ts]
+└─ Endpoint: [GET / POST / DELETE] /api/v1/highlights | /api/v1/links/{id}/highlights
+└─ Category: API Wrapper
+└─ Purpose: Yeni highlight (vurgu/not) kayıtlarını Backend API'sine gönderir (POST), siler (DELETE) veya günceller.
+
+[links.ts]
+└─ Endpoint: [GET / POST / PUT] /api/v1/links | /api/v1/archives/{id}
+└─ Category: API Wrapper
+└─ Purpose: Kullanıcının ziyaret ettiği sayfanın GrabSHARK veritabanında daha önceden eklip olup olmadığını (checkLinkExists) kontrol etme ve yeni bağlantı atma (saveLink) operasyonları.
+
+[tags.ts]
+└─ Endpoint: [GET] /api/v1/tags
+└─ Category: API Wrapper
+└─ Purpose: Kullanıcının var olan tüm etiketlerini (tags) otomatik tamamlama (autocomplete) vb. yapılar için Backend'den çeker.
+
+[users.ts]
+└─ Endpoint: [GET] /api/v1/users/me
+└─ Category: API Wrapper
+└─ Purpose: Aktif üyenin profil sekmesi verilerini (İsim, limit, id) ve ayar özelliklerini çeker.
+
+== 2. Background Script Managers ==
+Location: src/pages/Background/managers/*
+
+[AuthManager.ts]
+└─ Category: Background Manager
+└─ Purpose: Arka planda kullanıcının uygulamasındaki oturum (Bearer Token) durumunu denetler ve senkronizasyonunu sağlar. Token'ın periyodik yenilenmesinden (Refresh) sorumludur.
+
+[BadgeManager.ts]
+└─ Category: Background Manager
+└─ Purpose: Tarayıcının sağ üstteki uzantı ikonunda (Extension Icon) beliren rozetleri (başarı tiki, sayı bildirimleri vs) ve icon renk/durum değişimlerini ayarlar.
+
+[BookmarksManager.ts]
+└─ Category: Background Manager
+└─ Purpose: Varsayılan tarayıcı yer imleri (Chrome/Brave Bookmarks) ile GrabSHARK'a eklenen/silinen bağlantılar arasındaki senkronizasyon kurallarını yönetir.
+
+[ContextManager.ts]
+└─ Category: Background Manager
+└─ Purpose: Kullanıcı sayfada "Sağ tık (Context Menu)" yaptığında menüye "GrabSHARK'a Kaydet" vs gibi operasyon kısayollarını ekleyen ve tetikleyen menajer.
+
+[LinksManager.ts]
+└─ Category: Background Manager
+└─ Purpose: Sayfadan doğrudan POST atıldığında yaşanacak "CORS" kısıtlamalarına takılmamak için linkleri ve güncellemeleri proxy görevi taşıyarak Backend'e iter.
+
+[MediaManager.ts]
+└─ Category: Background Manager
+└─ Purpose: Tarayıcı sekmesinin görsel ekran görüntüsünü alma (Capture Visible Tab) işlemi ve dönen buffer resim manipülasyonunu yönetir.
+
+[MessageRouter.ts]
+└─ Event Payloads: [MESSAGE] SAVE_LINK_FROM_EXTENSION / CHECK_LINK_EXISTS / CAPTURE_VISIBLE_TAB / SAVE_HIGHLIGHT / SMART_CAPTURE
+└─ Category: Background Manager
+└─ Purpose: Uzantının 3 ana unsuru (İçerik Scriptleri, Popup Paneli ve Background Service Worker) arasındaki haberleşmenin dinlendiği ve yönlendirildiği trafik asistanıdır (Message Passing).
+
+[UserManager.ts]
+└─ Category: Background Manager
+└─ Purpose: Eklenti ayarları panelindeki (Tercihler vb) senkronizasyonu yapar.
+
+== 3. Content Script: Root & Interaction ==
+Location: src/pages/ContentScript
+
+[contentScript.tsx]
+└─ Category: Root Injector
+└─ Purpose: Her ziyeret edilen web sayfasına enjekte edilen Eklentinin başlangıç (entry) ve Boot noktası.
+
+[embeddedUI.ts]
+└─ Category: Injector
+└─ Purpose: Ziyaret edilen sayfa içerisine dış sitenin CSS/JS dosyalarından etkilenmemesi (Isolated) için hazırlanan React panellerini Shadow DOM ile bağlayan Frame hazırlayıcısı.
+
+[EmbeddedMenuManager.ts]
+└─ Category: UI Manager
+└─ Purpose: Metin seçildiğinde çıkan Highlight veya Note "VOID Dock" benzeri gömülü yüzen kutuların pencere kaydırıldıkça pozisyon ve konum stabilitesini yönetir.
+
+[InteractionManager.ts]
+└─ Category: DOM Manager
+└─ Purpose: Kullanıcının sayfa üzerindeki klavye kısayolları (Ctrl+Shift+S vb) ve tıklama hareketlerinin master dinleyicisi.
+
+[ToastManager.ts]
+└─ Category: Notification
+└─ Purpose: Sağ alttan çıkan "Başarıyla Kaydedildi" ya da "Hata Oluştu" tarzı toast bildirimlerini sayfadan bağımsız kendi Shadow DOM arayüzü içinden fırlatır.
+
+== 4. Content Script: Smart Capture System ==
+Location: src/pages/ContentScript/SmartCapture/*
+
+[SmartCaptureMode.ts]
+└─ Category: Capture Engine
+└─ Purpose: "Akıllı Ekran Alıntısı (Smart Capture)" modunu başlatan, ESC veya bitiş tıklama hareketleriyle işlemi tamamlayan ana mantık denetçisi.
+
+[CaptureOverlay.ts / CaptureDock.tsx]
+└─ Category: Capture UI
+└─ Purpose: Alıntı işlemi sırasında sayfayı maskeleyerek tüm sekmeyi karanlık moda (Overlay) alıp sadece mouse altındaki alanı aydınlatan panel yöneticisi ve alt kısımdaki "iptal/onayla" paneli.
+
+[ElementDetector.ts & SelectableUnits.ts]
+└─ Category: DOM Scanners
+└─ Purpose: Fare okunun sayfa zemininde gezdiği sıralarda kullanıcının hangi div, image veya tablo sınırlarında olduğunu tespit edip odaklayan akıllı geometrik sınır algoritması.
+
+[MarqueeSelection.ts / SelectionManager.ts]
+└─ Category: Capture Logic
+└─ Purpose: Mouse sol tık basılı tutup sürükleme hareketiyle sayfada birden çok eleman/metin bloğu kapsayan saydam dikdörtgen (Marquee) seçimini çizer ve veriyi tutar.
+
+== 5. Content Script: Highlight System ==
+Location: src/pages/ContentScript/* (Highlighting)
+
+[HighlightToolbox.ts & HighlightToolboxRenderer.ts]
+└─ Category: Highlight UI
+└─ Purpose: Ekranda mouse ile metin okunduktan (selection) milisaniyeler sonra tam metnin seçimi bitişinde gölge pop-up olarak beliren Sarı, Mavi vb vurgu kalemleri/not icon serisinin (VOID Dock) reaksiyonunu yöneten araç kutusu sistemi.
+
+[HighlightManager.ts & highlightObserver.ts]
+└─ Category: Highlight Logic
+└─ Purpose: Orijinal veritabanındna (DB) inen mevcut sayfaya ait geçmiş highlight verilerini ilk açılışta sayfaya işaretleyen, DOM değiştiğinde veya sayfa kaydırıldığında da tetiklenen canlı "Observer" aracı.
+
+[highlightRenderer.ts & highlightDOM.ts]
+└─ Category: Highlight Engine
+└─ Purpose: Geçerli sitenin CSS Selection veya DOM düğüm formatını (nodes) bozmadan tam metinaltı arkaplanlarını GrabSHARK standartlarındaki saydam DaisyUI renkleriyle (oklch) çizip görselleştiren motor.
+
+[anchorUtils (contextCapture.ts, xpathGenerator.ts)]
+└─ Category: Anchor Math
+└─ Purpose: Ekranda vurgulanan kelimenin veya cümlenin HTML Document ağacında tam nerede olduğunu (Context, Range Offset veya XPath formülüyle) matematiksel olarak veri tabanına yazarak, yıllar sonra site tekrar açıldığında "yeniden yerini nokta atışıyla bulma" kütüphanesi.
+
+== 6. Content Script: Data Extraction Agents ==
+Location: src/pages/ContentScript/agents/*
+
+[contextAgent.ts / semanticAgent.ts]
+└─ Category: Web Scraper
+└─ Purpose: Link otomatik olarak GrabSHARK havuzuna atıldığı sırada arka planda görünmez bir şekilde çalışarak mevcut sitenin Meta Açıklamalarını, ikonunu, yazar kimliğini (OpenGraph, Twitter formatları) parse edip toplayan Veri Toplama Ajanları. 
+
+[cssAgent.ts / xpathAgent.ts]
+└─ Category: Web Scraper
+└─ Purpose: HTML sayfası içerisinde en jenerik CSS seçiciler (DOM selector query) ile döküman düğümlerine spesifik olarak odaklanan, arama yeteneğine sahip özelleşmiş okuyucu robotlar.
+
+== 7. Cross-Script Utilities & Functions ==
+Location: src/pages/ContentScript/utils/*
+
+[messaging.ts]
+└─ Category: Communication
+└─ Purpose: Uzantıdaki asenkron `chrome.runtime.sendMessage` operasyonlarını bir söz dizimi (TypeScript Promise) altında sarmalayıp `Background Script Managers` ile giden giden trafiğini kolaylaştıran Tip Güvenli (TypeSafe) API köprüsü.
+
+[domHelpers.ts / imageHelpers.ts]
+└─ Category: DOM / Canvas Utils
+└─ Purpose: İlgili HTML nesnelerinin X/Y koordinatlarını bulma, kopyalama veya Smart Capture sırasında alınan Base64 formatlı HTML kanvas işlemlerinde (Resmi küçültme, kırpma, dönüştürme) standart yardımcı görev (Helpers) fonksiyonları.

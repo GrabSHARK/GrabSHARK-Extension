@@ -1,0 +1,161 @@
+GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
+
+== Core Frameworks & Runtime ==
+
+[Next.js]
+└─ Category: Framework
+└─ Purpose: Ana React frameworkü. Server Side Rendering (SSR), Static Generation (SSG) ve API rotaları sağlayan iskelet yapı.
+
+[React]
+└─ Category: UI Library
+└─ Purpose: Kullanıcı arayüzünü inşa ettiğimiz temel JavaScript kütüphanesi.
+
+[Node.js]
+└─ Category: Environment
+└─ Purpose: Backend ve server-side işlemlerin üzerinde koştuğu çalışma zamanı ortamı.
+
+[TypeScript]
+└─ Category: Language
+└─ Purpose: Proje genelinde statik tip güvenliği (type-safety) sağlayan dil.
+
+== Database, Auth & Security ==
+
+[PostgreSQL]
+└─ Category: Database
+└─ Purpose: Sistemin ana ilişkisel veri tabanı motoru.
+
+[Prisma]
+└─ Category: ORM
+└─ Purpose: PostgreSQL ile sunucu arasındaki veritabanı sorgularının yazılmasını sağlayan soyutlama katmanı.
+
+[NextAuth.js]
+└─ Category: Authentication
+└─ Purpose: Oturum yönetimi, token kontrolü ve kimlik doğrulama çerçevesi.
+
+[Bcrypt]
+└─ Category: Cryptography
+└─ Purpose: Veritabanına kaydedilen şifrelerin güvenli biçimde hashlenmesi.
+
+[DOMPurify]
+└─ Category: Security
+└─ Purpose: HTML formatındaki okuma modunda XSS gibi güvenlik açıklarını engelleyen entegre sanitasyon aracı.
+
+== State Management & Data Fetching ==
+
+[React Query / @tanstack/react-query]
+└─ Category: Server State
+└─ Purpose: API'den çekilen verilerin önbelleklenmesi (caching), yönetim ve anlık senkronizasyonu.
+
+[Zustand]
+└─ Category: Client State
+└─ Purpose: Hafif, basit ve hızlı global istemci (client-side) durum (state) yöneticisi.
+
+[Axios / Node-fetch]
+└─ Category: HTTP Client
+└─ Purpose: Dış veya iç API'lerle haberleşmeyi sağlayan ağ istemcileri.
+
+== UI, Styling & Headless Components ==
+
+[Tailwind CSS]
+└─ Category: Styling Framework
+└─ Purpose: Sayfa ve bileşenlerin utility-class (yardımcı sınıflar) ile hızlıca biçimlendirilmesi.
+
+[Radix UI]
+└─ Category: Headless Components
+└─ Purpose: Erişilebilirliği yüksek (A11y), stilsiz ancak işlevsel alt seviye temel yapılar (Dropdown, Dialog, Context Menu vs.).
+
+[DaisyUI]
+└─ Category: UI Component Kit
+└─ Purpose: Tailwind üzerinde Semantic (Anlamsal) renk sınıflandırması ve hazır yapı taşları.
+
+[Class Variance Authority (CVA) / clsx / tailwind-merge]
+└─ Category: Styling Utility
+└─ Purpose: Dinamik sınıfları kolayca birleştiren ve çakışan Tailwind sınıflarını profesyonelce ezen takım çantası.
+
+[Lucide React / Phosphor / Bootstrap Icons]
+└─ Category: Asset Library
+└─ Purpose: Uygulamanın ihtiyacı olan görsel ikon ve sembollerin kaynağı.
+
+[Sonner]
+└─ Category: Notification
+└─ Purpose: Modern, şık ve düşük performans maliyetli tost (toast) bildirimleri fırlatıcı.
+
+[@dnd-kit]
+└─ Category: Interaction
+└─ Purpose: Uygulama içi sürükle-bırak (Drag & Drop) ve liste/pano sıralama işlemlerinin omurgası.
+
+== Content Parsers & Preview Engines ==
+
+[Himalaya / JSDOM]
+└─ Category: DOM Manipulation
+└─ Purpose: Reader View ve Preservation botlarının indirdiği web sayfalarındaki HTML içeriği sunucu tarafında işlemek ve parse etmek.
+
+[Docx-Preview / xlsx]
+└─ Category: Media Viewer
+└─ Purpose: Kayıtlı Word (DOCX) ve Excel dosyalarını tarayıcı üzerinde görsel olarak render (preview) edebilmek.
+
+[RSS Parser / RSS]
+└─ Category: Content Syndication
+└─ Purpose: Dışarıdaki haber/makale kaynaklarından XML formatlı beslemeleri okuma veya koleksiyonları dışarıya RSS olarak yayınlama.
+
+[Papaparse]
+└─ Category: Data Parser
+└─ Purpose: CSV veya tablo formatındaki dosyaları içe/dışa aktarırken veriyi JavaScript objelerine çeviren ayrıştırıcı.
+
+== Logic, Networking & Utility ==
+
+[Zod]
+└─ Category: Validation
+└─ Purpose: Veri ve API giriş şemalarının son derece katı, type-safe (tür güvenli) doğrulaması.
+
+[https-proxy-agent / socks-proxy-agent]
+└─ Category: Network Tool
+└─ Purpose: Arkaplandaki botların çeşitli IP engellerine takılmaması için gerektiğinde proxy tünellerinden geçmesine olanak tanıyan araç.
+
+[Fuse.js]
+└─ Category: Search
+└─ Purpose: Uygulama içerisinde yapılan harf bazlı ve hoşgörülü (Fuzzy Search) aramaları çalıştıran yerel arama motoru.
+
+[i18next / next-i18next]
+└─ Category: Localization
+└─ Purpose: Uygulamanın farklı dillere çeviri altyapısını kuran çoklu-dil (i18n) motoru.
+
+[Date-fns]
+└─ Category: Date Tool
+└─ Purpose: Native JavaScript tarihleri üzerinde güçlü saat/bölge manipülasyon imkanı veren kütüphane.
+
+== Infrastructure, Workspaces & Testing ==
+
+[Turborepo / Yarn Workspaces]
+└─ Category: Monorepo Management
+└─ Purpose: Kodu tek depoda (packages, apps) yönetebilmek, build sürelerini önbellek (cache) ile ciddi oranda düşürmek.
+
+[Docker]
+└─ Category: Containerization
+└─ Purpose: Veritabanı, arka plan botları ve uygulamanın kendisinin her sunucuda "aynı" çalışabilmesi için kapalı izolasyon ortamı.
+
+[Playwright]
+└─ Category: End-to-End (E2E) Testing
+└─ Purpose: Gerçek bir tarayıcı motoru ayağa kaldırarak tüm kullanıcı kullanım akışlarını otomatik test edebilme aracı.
+
+== Custom (Internal) Monorepo Packages ==
+
+[@grabshark/prisma]
+└─ Category: Shared Module
+└─ Purpose: Tüm veritabanı tip, model ve `PrismaClient` tablolarının ortak paket havuzu.
+
+[@grabshark/lib]
+└─ Category: Shared Module
+└─ Purpose: Genel proje fonksiyonları, formatter'lar ve Zod şemalarının barındığı modüler merkez.
+
+[@grabshark/types]
+└─ Category: Shared Module
+└─ Purpose: Uygulamanın (Web/Ext/Api) her yerinde kullanılan TypeScript interfacelerinin birleştirildiği kütüphane.
+
+[@grabshark/router]
+└─ Category: Shared Module
+└─ Purpose: React Query custom hook'larının oluşturulup tüm uygulamaya güvenli şekilde dağıtıldığı iletişim paketi.
+
+[@grabshark/filesystem]
+└─ Category: Shared Module
+└─ Purpose: S3, Local veya üçüncü parti dosya sistemi soyutlaması üzerinden fiziksel medya/disk ile haberleşme aracı.

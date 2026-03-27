@@ -1,0 +1,137 @@
+GrabSHARK Browser Extension UI Components (Hierarchy & Reference)
+
+== 1. Root Application Shells ==
+
+[PopupApp / main.tsx]
+└─ File: src/pages/Popup/App.tsx & main.tsx
+└─ Category: Root
+└─ Purpose: Tarayıcının eklenti ikonuna tıklandığında açılan o küçük Pop-up (Save Link) penceresinin React kök düğümleri (Root Node/Entry).
+
+[OptionsApp / Options.tsx]
+└─ File: src/pages/Options/App.tsx & Options.tsx
+└─ Category: Root
+└─ Purpose: Eklentinin sağ tık "Seçenekler (Options)" butonundan ulaşılan devasa ayarlar (Preferences) tam sayfa görünümünün kök çerçevesi.
+
+[EmbeddedApp / contentScript.tsx]
+└─ File: src/pages/ContentScript/EmbeddedApp.tsx & contentScript.tsx
+└─ Category: Injected Root
+└─ Purpose: Üzerinde gezinilen dış web sayfasına Shadow DOM aracılığıyla sızdırılan Eklenti UI bileşenlerinin (Örn: bildirimler) kök sarmalayıcısı.
+
+[WholeContainer / Container / ThemeProvider]
+└─ File: src/@/components/WholeContainer.tsx
+└─ Category: Layout Shell
+└─ Purpose: Mode/Dark-Light Tema durumunu barındıran genel UI kutusu.
+
+== 2. Link Saving & Editing Engine (Bookmark Forms) ==
+
+[BookmarkForm]
+└─ File: src/@/components/BookmarkForm.tsx
+└─ Category: Save UI
+└─ Purpose: İçerisinde Collection seçimi, Tag (Etiket) girilmesi, Thumbnail oluşturulmasını yürüten en kritik Ana Kayıt form bileşeni.
+
+[BookmarkCollectionPicker / BookmarkOptions]
+└─ File: src/@/components/Bookmark/BookmarkCollectionPicker.tsx
+└─ Category: Save UI
+└─ Purpose: Kayıt ekranında (Pop-up'ta bile olsa) klasörleri ve spesifik kayıt opsiyonlarını belirleyen asistan alt-bileşenler.
+
+[AlreadySavedView]
+└─ File: src/@/components/AlreadySavedView.tsx
+└─ Category: Status View
+└─ Purpose: Ziyaret edilen sayfa zaten DB'de kayıtlıysa kullanıcının karşısına "Bu link zaten kayıtlı!" penceresi çıkaran engelleme (önleyici) arayüz.
+
+[SaveLinkCard / SavedLinkCard]
+└─ File: src/@/components/SavedLinkCard.tsx
+└─ Category: Data Cards
+└─ Purpose: Halihazırda veritabanında varolan veya yeni eklenen bağlantıların Pop-up ekranında okunaklı görünmesini sağlayan görsel bilgi kartları.
+
+[EditLinkView (Şemsiye Bileşen)]
+└─ File: src/@/components/EditLinkView.tsx
+└─ Category: Update UI
+└─ Purpose: Kaydedilmiş bağlantının başlığını (title), etiketlerini veya medyasını sonradan değiştirmek için açılan yönetim sekmesi.
+
+[EditLink Sub-Components]
+└─ Files: EditLink/DeleteDialog.tsx, EditLinkForm.tsx, LinkFooter.tsx, LinkHeader.tsx, LinkPreviewCard.tsx
+└─ Category: Update Modülleri
+└─ Purpose: Düzenleme sayfasının parçasel modülleri. Modal (Kalıcı silme onayları), Footer (Alt butonlar) ve PreviewCard (Yapay resim gösterimi).
+
+[SaveLink Details]
+└─ Files: SaveLink/CaptureOverlays.tsx, SaveLinkForm.tsx, SaveLinkFooter.tsx, SaveLinkHeader.tsx, SaveLinkPageInteractions.tsx, SaveLinkPreview.tsx
+└─ Category: Save Modülleri
+└─ Purpose: Standart veya Karmaşık (Görselli) kayıt sürecinde parçalanmış header, footer ve preview alanlarını yöneten bloklar.
+
+== 3. Content Script / Hover UI (Ekrana Sızdırılan Arayüzler) ==
+
+[SaveNotificationToast / ToastCard]
+└─ File: src/pages/ContentScript/SaveNotificationToast/SaveNotificationToast.tsx
+└─ Category: Toast Alert
+└─ Purpose: Kullanıcı "Kaydet" dedikten sonra bir siteye göz atmaya devam ediyorsa, Shadow DOM içinden fırlayan "Graceful" başarılı/hata bildirim kartı.
+
+[SmartCapture Dock / ActionComponents]
+└─ File: src/pages/ContentScript/SmartCapture/components/CaptureDock.tsx
+└─ Category: Smart Capture UI
+└─ Purpose: Kullanıcı "Akıllı Seçim (Kırpma)" moduna girdiğinde ekranın alt orta bölgesinde "ESC İptal" - "Onayla" tarzı tuşları renderleyen yüzen kumanda paneli.
+
+[CaptureDockIcons]
+└─ File: src/pages/ContentScript/SmartCapture/components/CaptureDockIcons.tsx
+└─ Category: Capture Component
+└─ Purpose: Sürükle veya element seçme gibi özel seçim modlarının (Kırpıcı paneli üzerinde) dinamik SVG ikon setleri.
+
+== 4. Preferences & Configuration (Ayarlar Paneli) ==
+
+[PreferencesView / ExtensionSettings]
+└─ File: src/@/components/PreferencesView.tsx
+└─ Category: Settings Root
+└─ Purpose: Menülerden girilen yapılandırma sayfasının (Eklentinin çalışacağı Server adresi vs) ana kapsayıcı arayüzü.
+
+[Preferences Sections]
+└─ Files: Preferences/AccountSection.tsx, AppearanceSection.tsx, DisconnectDialog.tsx, InteractionsSection.tsx, SavingSection.tsx
+└─ Category: Config Modülleri
+└─ Purpose: Kullanıcı hesabı bağlama (API Key girişi), görünüm (Dark Mode), Disconnect onayları ve Klavye Kısayolları sekmeleri.
+
+[OptionsForm / OptionsFormContent]
+└─ File: src/@/components/OptionsForm.tsx
+└─ Category: Legacy Config
+└─ Purpose: Eklentinin ilk çalışmasındaki giriş ve server URL tanımlamalarını yürüten eski ayarlar sarmalayıcısı.
+
+== 5. Shared Functionality & Helpers ==
+
+[CollectionPickerModal / Modal]
+└─ File: src/@/components/CollectionPickerModal.tsx (ve Modal.tsx)
+└─ Category: Interactive Shared UI
+└─ Purpose: Uygulama genelinde herhangi bir aşamada (Düzenleme veya Kayıt) mevcut tüm koleksiyonları/klasörleri listeleyip seçim yapmaya yarayan açılır pencere (Popup Modal).
+
+[TagInput]
+└─ File: src/@/components/TagInput.tsx
+└─ Category: Form Input
+└─ Purpose: Varolan etiketleri (Tags) asenkron olarak tamamlayan, klavye ile yeni etiket üretimine izin veren otonom veri girişi bileşeni.
+
+[ShortcutRecorder]
+└─ File: src/@/components/ShortcutRecorder.tsx
+└─ Category: Form Input
+└─ Purpose: Ayarlar ekranında kullanıcının klavye kısayollarını dinleyerek (Örn: Cmd+Shift+S) chrome.commands sistemine atamasını yapan input okuyucu.
+
+[Theme Toggle, CustomIcons & Icon]
+└─ Files: ModeToggle.tsx, CustomIcons.tsx, Icon.tsx
+└─ Category: Visuals
+└─ Purpose: Eklenti panelinin genel tema anahtarı (Dark/Light switch) ve dışarıdan alınmış (Lucide vs) veya el çizimi SVG ikonlarının sarmalanması.
+
+== 6. Radix UI Primitives (Stilsiz iskeletler) ==
+
+Location: src/@/components/ui/*
+└─ Purpose: Headless, yüksek erişilebilirliğe sahip, işlevleri çok sağlam ama görseli sıfır (Tailwind ile stillendirdiğimiz) temeller.
+
+[UI Components]:
+1. Button.tsx (Core Butonlar)
+2. CheckBox.tsx (Onay kutuları)
+3. Command.tsx (Mac Spotlight benzeri arama çubuğu)
+4. Dialog.tsx (Radix Dialog Modal temeli)
+5. DropDownMenu.tsx (Açılır seçenek listeleri)
+6. Form.tsx (Hook form bağlayıcıları)
+7. Input.tsx (Metin bazlı veri girişi / Textbox)
+8. Label.tsx (Form alanları için HTML Label bağı)
+9. Popover.tsx (Butona basınca dışarıya fırlayan detay kutusu)
+10. Select.tsx (Native Select/Option yapısının modern hali)
+11. Separator.tsx (Araya çizgi / HR)
+12. Switch.tsx (Checkbox'ın modern iOS switch stili)
+13. Textarea.tsx (Çok satırlı alanlar)
+14. Toast.tsx & Toaster.tsx (Oluşturma, yönlendirme, iptal etme vb. toast bildirim sarmalları)

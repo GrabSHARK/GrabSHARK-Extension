@@ -1,0 +1,624 @@
+GrabSHARK Main Application Components (Complete List)
+
+== General & Layout Components ==
+
+[Announcement]
+└─ File: grabshark/apps/web/components/Announcement.tsx
+└─ Category: General
+└─ Purpose: Üst kısımda duyuru çubuğu gösterimi.
+
+[CardContainer]
+└─ File: grabshark/apps/web/components/CardContainer.tsx
+└─ Category: Container
+└─ Purpose: Grid veya liste görünümünde öğe barındıran temel zemin nesnesi.
+
+[Checkbox]
+└─ File: grabshark/apps/web/components/Checkbox.tsx
+└─ Category: Form Element
+└─ Purpose: Standart onay kutusu bileşeni.
+
+[ClickAwayHandler]
+└─ File: grabshark/apps/web/components/ClickAwayHandler.tsx
+└─ Category: Utility
+└─ Purpose: Element dışına tıklanıldığını algılayan sarmalayıcı bileşen.
+
+[CollectionCard]
+└─ File: grabshark/apps/web/components/CollectionCard.tsx
+└─ Category: Listing
+└─ Purpose: Koleksiyonları listelerken gösterilen ana kart elementi.
+
+[CollectionContextMenu]
+└─ File: grabshark/apps/web/components/CollectionContextMenu.tsx
+└─ Category: Menu
+└─ Purpose: Koleksiyon kartına sağ tıklandığında açılan menü.
+
+[CollectionListing]
+└─ File: grabshark/apps/web/components/CollectionListing.tsx
+└─ Category: Listing
+└─ Purpose: Ana koleksiyonlar sayfası ve liste yöneticisi.
+
+[ConfirmationModal]
+└─ File: grabshark/apps/web/components/ConfirmationModal.tsx
+└─ Category: Modal
+└─ Purpose: Genel "Emin misiniz?" onay penceresi.
+
+[CopyButton]
+└─ File: grabshark/apps/web/components/CopyButton.tsx
+└─ Category: Action
+└─ Purpose: Panoya içerik kopyalama butonu.
+
+[DragNDrop]
+└─ File: grabshark/apps/web/components/DragNDrop.tsx
+└─ Category: Utility
+└─ Purpose: Sürükle ve bırak mekanizmasını yöneten bileşen.
+
+[Drawer]
+└─ File: grabshark/apps/web/components/Drawer.tsx
+└─ Category: Layout
+└─ Purpose: Yandan açılan çekmece menü bileşeni.
+
+[Dropdown]
+└─ File: grabshark/apps/web/components/Dropdown.tsx
+└─ Category: Form Element / Menu
+└─ Purpose: Genel amaçlı açılır menü bileşeni.
+
+[Droppable]
+└─ File: grabshark/apps/web/components/Droppable.tsx
+└─ Category: Utility
+└─ Purpose: Sürüklenen bir nesnenin bırakılabileceği hedef alanı.
+
+[FileDetails]
+└─ File: grabshark/apps/web/components/FileDetails.tsx
+└─ Category: View Component
+└─ Purpose: Detaylı dosya inceleme görünümü.
+
+[FilePreviewModal]
+└─ File: grabshark/apps/web/components/FilePreviewModal.tsx
+└─ Category: Modal
+└─ Purpose: Dosyaları modal içerisinde önizleme (resim/metin vb).
+
+[GroupedHighlightCard]
+└─ File: grabshark/apps/web/components/GroupedHighlightCard.tsx
+└─ Category: Listing
+└─ Purpose: Vurgulanmış metinleri gruplayarak kart halinde gösterme.
+
+[HighlightCard]
+└─ File: grabshark/apps/web/components/HighlightCard.tsx
+└─ Category: Listing
+└─ Purpose: Tekil vurgu ögesini gösteren kart.
+
+[HighlightDrawer]
+└─ File: grabshark/apps/web/components/HighlightDrawer.tsx
+└─ Category: Layout / Dialog
+└─ Purpose: Vurgu detaylarını yandan çekmece panel olarak sunma.
+
+[HighlightExpandModal]
+└─ File: grabshark/apps/web/components/HighlightExpandModal.tsx
+└─ Category: Modal
+└─ Purpose: Gruplanmış highlight'ları modalda genişletme penceresi.
+
+[HighlightListOptions]
+└─ File: grabshark/apps/web/components/HighlightListOptions.tsx
+└─ Category: Bar
+└─ Purpose: Vurgular listesini filtreleme, sıralama seçenekleri çubuğu.
+
+[HighlightSingleExpandModal]
+└─ File: grabshark/apps/web/components/HighlightSingleExpandModal.tsx
+└─ Category: Modal
+└─ Purpose: Tek bir vurgunun tüm notları ve içeriğiyle büyütüldüğü ekran.
+
+[HighlightViewDropdown]
+└─ File: grabshark/apps/web/components/HighlightViewDropdown.tsx
+└─ Category: Menu
+└─ Purpose: Vurgu listeleme görünümlerini (liste/grup) seçme açılır menüsü.
+
+[Icon]
+└─ File: grabshark/apps/web/components/Icon.tsx
+└─ Category: Primitive
+└─ Purpose: Simgeleri sarmalayan dinamik render aracı.
+
+[IconGrid]
+└─ File: grabshark/apps/web/components/IconGrid.tsx
+└─ Category: Listing
+└─ Purpose: Simge seçicide ikonları grid olarak konumlandırma.
+
+[IconPicker]
+└─ File: grabshark/apps/web/components/IconPicker.tsx
+└─ Category: Form Input
+└─ Purpose: Kullanıcıya yeni koleksiyon veya etiket simgesi seçtirme arayüzü.
+
+[IconPopover]
+└─ File: grabshark/apps/web/components/IconPopover.tsx
+└─ Category: Menu
+└─ Purpose: İkon seçicisinin açıldığı ufak pencere (popover).
+
+[ImportDropdown]
+└─ File: grabshark/apps/web/components/ImportDropdown.tsx
+└─ Category: Menu
+└─ Purpose: Dışa ve içe aktarım araçlarının olduğu açılır ekran.
+
+[InstallApp]
+└─ File: grabshark/apps/web/components/InstallApp.tsx
+└─ Category: Banner
+└─ Purpose: PWA web uygulamasının kurulabilir uyarı bandı.
+
+[LinkDetails]
+└─ File: grabshark/apps/web/components/LinkDetails.tsx
+└─ Category: View Component
+└─ Purpose: Kayıtlı link hakkında arşiv vb. detay listeleme.
+
+[LinkListOptions]
+└─ File: grabshark/apps/web/components/LinkListOptions.tsx
+└─ Category: Bar
+└─ Purpose: Linklerin görünüm, arama ve sıralama opsiyonlarını tutan çubuk.
+
+[LinkPreviewModal]
+└─ File: grabshark/apps/web/components/LinkPreviewModal.tsx
+└─ Category: Modal
+└─ Purpose: Link tıklandığında orjinal içeriği sekme halinde önizleyen ekran.
+
+[MissingFormatRow]
+└─ File: grabshark/apps/web/components/MissingFormatRow.tsx
+└─ Category: Listing
+└─ Purpose: Korunmamış (arşivlenmemiş) dosya veya içeriklerin eksiklik bildirim satırı.
+
+[MobileNavigation]
+└─ File: grabshark/apps/web/components/MobileNavigation.tsx
+└─ Category: Layout
+└─ Purpose: Mobil cihazlarda alt tarafta beliren ana navigasyon çubuğu.
+
+[MobileNavigationButton]
+└─ File: grabshark/apps/web/components/MobileNavigationButton.tsx
+└─ Category: Layout Element
+└─ Purpose: Mobil navigasyon çubuğunun tekil buton nesnesi.
+
+[Modal]
+└─ File: grabshark/apps/web/components/Modal.tsx
+└─ Category: Utility
+└─ Purpose: Modal yapılarını oluştururken temel oluşturan boş container.
+
+[Navbar]
+└─ File: grabshark/apps/web/components/Navbar.tsx
+└─ Category: Layout
+└─ Purpose: Tüm uygulamanın en tepesindeki arama ve ayar barı.
+
+[NoLinksFound]
+└─ File: grabshark/apps/web/components/NoLinksFound.tsx
+└─ Category: Placeholder
+└─ Purpose: Sonuç bulunmadığında çıkan bildirim ekranı.
+
+[PageHead]
+└─ File: grabshark/apps/web/components/PageHead.tsx
+└─ Category: Layout / SEO
+└─ Purpose: Head elementi ve sayfa başlığını yöneten SEO bileşeni.
+
+[PageHeader]
+└─ File: grabshark/apps/web/components/PageHeader.tsx
+└─ Category: Layout Element
+└─ Purpose: Sayfa başlığını (Title) görselleştiren üst kısım.
+
+[Popover]
+└─ File: grabshark/apps/web/components/Popover.tsx
+└─ Category: Utility
+└─ Purpose: Herhangi bir nesneye tıklandığında üzerine çıkan kayan içerik modülü.
+
+[PreserverdFormatRow]
+└─ File: grabshark/apps/web/components/PreserverdFormatRow.tsx
+└─ Category: Listing
+└─ Purpose: Korunmuş, arşiv formatlarının görüntülendiği satır alanı.
+
+[ProfileDropdown]
+└─ File: grabshark/apps/web/components/ProfileDropdown.tsx
+└─ Category: Menu
+└─ Purpose: Kullanıcı profili fotosuna tıklandığında açılan ayarlar menüsü.
+
+[ProfilePhoto]
+└─ File: grabshark/apps/web/components/ProfilePhoto.tsx
+└─ Category: Visual
+└─ Purpose: Kullanıcının yuvarlak avatar resmini çağırma.
+
+[RadioButton]
+└─ File: grabshark/apps/web/components/RadioButton.tsx
+└─ Category: Form Element
+└─ Purpose: Radyo (tek seçenekli) input.
+
+[RowCountSelector]
+└─ File: grabshark/apps/web/components/RowCountSelector.tsx
+└─ Category: Form Element
+└─ Purpose: Listelerde satır sıklık veya boyutunu belirleme.
+
+[SearchBar]
+└─ File: grabshark/apps/web/components/SearchBar.tsx
+└─ Category: Form Element
+└─ Purpose: Navbar veya headerda arama işlemini tetikleyen bar.
+
+[SelectInput]
+└─ File: grabshark/apps/web/components/SelectInput.tsx
+└─ Category: Form Element
+└─ Purpose: Zengin özellikli yeni tip listbox form nesnesi.
+
+[SettingsSidebar]
+└─ File: grabshark/apps/web/components/SettingsSidebar.tsx
+└─ Category: Layout
+└─ Purpose: Ayarlar sayfası yan navigasyon menüsü.
+
+[Sidebar]
+└─ File: grabshark/apps/web/components/Sidebar.tsx
+└─ Category: Layout
+└─ Purpose: Desktop için uygulamanın ana sol menüsü.
+
+[SidebarBottomDock]
+└─ File: grabshark/apps/web/components/SidebarBottomDock.tsx
+└─ Category: Layout
+└─ Purpose: Sol alt köşedeki (Ayarlar/Kullanıcı) kısmı yöneten menü modülü.
+
+[SidebarHighlightLink]
+└─ File: grabshark/apps/web/components/SidebarHighlightLink.tsx
+└─ Category: Layout
+└─ Purpose: Yan menüde seçili linki vurgulayan bağlantı nesnesi.
+
+[Skeletons]
+└─ File: grabshark/apps/web/components/Skeletons.tsx
+└─ Category: Loading States
+└─ Purpose: Veriler yüklenirken gösterilen animasyonlu silüet bileşenleri.
+
+[SortDropdown]
+└─ File: grabshark/apps/web/components/SortDropdown.tsx
+└─ Category: Menu
+└─ Purpose: Sıralama yapılandırma menüsü.
+
+[TagCard]
+└─ File: grabshark/apps/web/components/TagCard.tsx
+└─ Category: Listing
+└─ Purpose: Etiket menüsünde etiketleri gösterme kartı.
+
+[TagContextMenu]
+└─ File: grabshark/apps/web/components/TagContextMenu.tsx
+└─ Category: Menu
+└─ Purpose: Etiketlere özel sağ tık eylemleri.
+
+[TagListing]
+└─ File: grabshark/apps/web/components/TagListing.tsx
+└─ Category: Listing
+└─ Purpose: Etiketler sayfası ana görünümü.
+
+[TextInput]
+└─ File: grabshark/apps/web/components/TextInput.tsx
+└─ Category: Form Element
+└─ Purpose: Giriş kutusu (input) nesnesi.
+
+[TextStyleDropdown]
+└─ File: grabshark/apps/web/components/TextStyleDropdown.tsx
+└─ Category: Form Element
+└─ Purpose: Metin editlemleri özel açılır menü.
+
+[Textarea]
+└─ File: grabshark/apps/web/components/Textarea.tsx
+└─ Category: Form Element
+└─ Purpose: Çok satırlı giriş kutusu.
+
+[ToggleCardFrame]
+└─ File: grabshark/apps/web/components/ToggleCardFrame.tsx
+└─ Category: Form Element
+└─ Purpose: Kart etrafında özel TV formatı gibi çerçeve geçiş düğmesi.
+
+[ToggleDarkMode]
+└─ File: grabshark/apps/web/components/ToggleDarkMode.tsx
+└─ Category: Context Element
+└─ Purpose: Karanlık / Aydınlık mod butonu.
+
+[ToggleGradient]
+└─ File: grabshark/apps/web/components/ToggleGradient.tsx
+└─ Category: Form Element
+└─ Purpose: Gradyan görünüm destekleyen buton.
+
+[UserListing]
+└─ File: grabshark/apps/web/components/UserListing.tsx
+└─ Category: Listing
+└─ Purpose: Yönetici ekranında uygulamanın kullanıcılarını listeleme sayfası.
+
+[ViewDropdown]
+└─ File: grabshark/apps/web/components/ViewDropdown.tsx
+└─ Category: Menu
+└─ Purpose: Tema veya kart/list düzen tercihi menüsü.
+
+== Dashboard Components ==
+
+[SectionRouter]
+└─ File: grabshark/apps/web/components/Dashboard/SectionRouter.tsx
+└─ Category: Router
+└─ Purpose: Pano (dashboard) bloklarını ilgili türüne göre sayfada organize etmek.
+
+[CollectionSection]
+└─ File: grabshark/apps/web/components/Dashboard/sections/CollectionSection.tsx
+└─ Category: Dashboard Block
+└─ Purpose: Koleksiyon istatistiklerinin pano bloğu.
+
+[FilesSection]
+└─ File: grabshark/apps/web/components/Dashboard/sections/FilesSection.tsx
+└─ Category: Dashboard Block
+└─ Purpose: Son dosyaları gösteren pano bloğu.
+
+[HighlightsSection]
+└─ File: grabshark/apps/web/components/Dashboard/sections/HighlightsSection.tsx
+└─ Category: Dashboard Block
+└─ Purpose: Son alınan vurguların olduğu pano bloğu.
+
+[LinksSection]
+└─ File: grabshark/apps/web/components/Dashboard/sections/LinksSection.tsx
+└─ Category: Dashboard Block
+└─ Purpose: Yeni kaydedilen bağlantıların bulunduğu pano bloğu.
+
+[StatsSection]
+└─ File: grabshark/apps/web/components/Dashboard/sections/StatsSection.tsx
+└─ Category: Dashboard Block
+└─ Purpose: Genel (sayısal) kullanıcı istatistik bloğu.
+
+[DashboardFiles]
+└─ File: grabshark/apps/web/components/DashboardFiles.tsx
+└─ Category: Legacy View
+└─ Purpose: Eski dashboard yapısında dosya paneli.
+
+[DashboardHighlights]
+└─ File: grabshark/apps/web/components/DashboardHighlights.tsx
+└─ Category: Legacy View
+└─ Purpose: Eski dashboard yapısında highlights paneli.
+
+[DashboardItem]
+└─ File: grabshark/apps/web/components/DashboardItem.tsx
+└─ Category: Dashboard Block
+└─ Purpose: Küçük başlık, icon ve sayaç içeren veri izleme kartı.
+
+[DashboardLayoutDropdown]
+└─ File: grabshark/apps/web/components/DashboardLayoutDropdown.tsx
+└─ Category: Menu
+└─ Purpose: Panonun listeleme modunu değiştiren ayar menüsü.
+
+[DashboardLinks]
+└─ File: grabshark/apps/web/components/DashboardLinks.tsx
+└─ Category: Legacy View
+└─ Purpose: Eski dashboard yapısında bağlantı bloğu.
+
+== FileViews Components ==
+
+[DocxPreview] / [SvgPreview] / [TextPreview] / [XlsxPreview]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/...Preview.tsx
+└─ Category: File Previews
+└─ Purpose: Format özelinde ilgili içeriği modal ekranında gösteren (render eden) bileşenler grubu.
+
+[FileActions]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileActions.tsx
+└─ Category: Actions Group
+└─ Purpose: Dosya üzerinde hızlı arşiv, pin ve sil işlemlerinin düğmeleri.
+
+[FileCard]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileCard.tsx
+└─ Category: Listing
+└─ Purpose: Tekil dosyayı tutan ana kart formu.
+
+[FileCollection]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileCollection.tsx
+└─ Category: Decorator
+└─ Purpose: Dosyanın koleksiyonunu dosya kartı içine basan element.
+
+[FileDate]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileDate.tsx
+└─ Category: Decorator
+└─ Purpose: Eklenme tarihini formatlayan kart eklentisi.
+
+[FileFormatBadge]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileFormatBadge.tsx
+└─ Category: Decorator
+└─ Purpose: Dosyanın PDF mi HTML mi gibi detay format tagi.
+
+[FileIcon]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileIcon.tsx
+└─ Category: Visual
+└─ Purpose: Dosyanın uzantısına özel ikon bastıran nesne.
+
+[FileList]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileList.tsx
+└─ Category: Layout View
+└─ Purpose: Dosyaları bir satır (liste) halinde gösterme formatı.
+
+[FileMasonry]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileMasonry.tsx
+└─ Category: Layout View
+└─ Purpose: Dosya kartlarını eşit olmayan uzunlukta olsa bile sıradan grid ile dizme.
+
+[FileNoteBadge]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileNoteBadge.tsx
+└─ Category: Visual Badge
+└─ Purpose: Dosyada not varsa bunu gösteren rozet.
+
+[FilePin]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FilePin.tsx
+└─ Category: Action
+└─ Purpose: Dosyayı panoya iğneleyen ikon buton.
+
+[FileThumbnailBadges]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileThumbnailBadges.tsx
+└─ Category: Visual
+└─ Purpose: Görsellerde köşelere asılan ufak özellik logoları.
+
+[FileTypeBadge]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileTypeBadge.tsx
+└─ Category: Visual Badge
+└─ Purpose: Belge tipini ifade eden ikonlu text alanı.
+
+[FileListOptions]
+└─ File: grabshark/apps/web/components/FileViews/FileListOptions.tsx
+└─ Category: Menubar
+└─ Purpose: Dosya listesinde yukarıdaki ayar şeridi (top bar).
+
+[FileViewDropdown]
+└─ File: grabshark/apps/web/components/FileViews/FileViewDropdown.tsx
+└─ Category: Menu
+└─ Purpose: List, card veya masonry düzen geçişini sağlayan liste.
+
+[Files]
+└─ File: grabshark/apps/web/components/FileViews/Files.tsx
+└─ Category: Root Component
+└─ Purpose: Bileşenlerin tümünü bir araya getirerek ana "Dosyalar" sayfasını oluşturan kapsayıcı.
+
+== LinkViews Components ==
+
+[LinkActions] / [LinkCard] / [LinkCollection] / [LinkDate] / [LinkFormats]
+└─ File: grabshark/apps/web/components/LinkViews/LinkComponents/...
+└─ Category: Listing Elements
+└─ Purpose: Link kartı ve üzerindeki (Tarih, Koleksiyon, Arşiv tipi vs) öğeleri basan parçacıklar.
+
+[LinkHighlightBadge] / [LinkNoteBadge] / [LinkTypeBadge] / [LinkThumbnailBadges]
+└─ File: grabshark/apps/web/components/LinkViews/LinkComponents/Link...Badge.tsx
+└─ Category: Visual Badges
+└─ Purpose: Linklerin meta verilerini simgeleyen minik etiketler (Not var mı, HTML mi vs).
+
+[LinkIcon] / [LinkPin]
+└─ File: grabshark/apps/web/components/LinkViews/LinkComponents/...
+└─ Category: Decorator & Actions
+└─ Purpose: Favicon tutucu ve panoya iğneleme işlemi ikonları.
+
+[LinkList] / [LinkMasonry]
+└─ File: grabshark/apps/web/components/LinkViews/LinkComponents/...
+└─ Category: Layout Views
+└─ Purpose: Listeleme hiyerarşileri (Masonry ızgara veya Klasik Liste).
+
+[Links]
+└─ File: grabshark/apps/web/components/LinkViews/Links.tsx
+└─ Category: Root Component
+└─ Purpose: Link modüllerini barındıran temel Links Sayfası kapsayıcısı.
+
+== Modal Content Components ==
+
+[BulkDeleteFilesModal] / [BulkDeleteLinksModal] / [BulkDeleteTagsModal]
+└─ File: grabshark/apps/web/components/ModalContent/BulkDelete...
+└─ Category: Modal View
+└─ Purpose: Çoklu öge seçip silindiğinde çıkan uyarı pencereleri.
+
+[BulkEditFilesModal] / [BulkEditLinksModal]
+└─ File: grabshark/apps/web/components/ModalContent/BulkEdit...
+└─ Category: Modal View
+└─ Purpose: Seçili belgelerin toplu halde verilerini etiket/koleksiyon açısından değiştiren pencere.
+
+[DeleteCollectionModal] / [DeleteFormatModal] / [DeleteLinkModal] / [DeleteRssSubscriptionModal] / [DeleteTagModal] / [DeleteUserModal]
+└─ File: grabshark/apps/web/components/ModalContent/Delete...
+└─ Category: Modal View
+└─ Purpose: Belirli bir öğeyi tamamen silmeden önce beliren ikaz modalları.
+
+[EditCollectionModal] / [EditCollectionSharingModal]
+└─ File: grabshark/apps/web/components/ModalContent/EditCollection...
+└─ Category: Modal Update
+└─ Purpose: Koleksiyon düzenlemesi ve dışarı paylaşımı açma kapatma eylemleri.
+
+[EmailChangeVerificationModal]
+└─ File: grabshark/apps/web/components/ModalContent/EmailChangeVerificationModal.tsx
+└─ Category: Modal View
+└─ Purpose: E-posta değiştirildiğinde güvenlik amaçlı yeni onay pini formunu barındıran ekran.
+
+[FileModal] / [LinkModal]
+└─ File: grabshark/apps/web/components/ModalContent/[File|Link]Modal.tsx
+└─ Category: Modal View
+└─ Purpose: Hızlı erişim için varlığı direkt güncelleyen form popup'ları.
+
+[ImportSummaryModal]
+└─ File: grabshark/apps/web/components/ModalContent/ImportSummaryModal.tsx
+└─ Category: Modal View
+└─ Purpose: İçe aktarım işlemi bittiğinde "Kaç dosya aktarıldı?" yanıtını veren rapor penceresi.
+
+[InviteModal]
+└─ File: grabshark/apps/web/components/ModalContent/InviteModal.tsx
+└─ Category: Modal View
+└─ Purpose: Kayıt olma maili ve davetiyesi göndermek.
+
+[MergeTagsModal]
+└─ File: grabshark/apps/web/components/ModalContent/MergeTagsModal.tsx
+└─ Category: Modal View
+└─ Purpose: Aynı gruptaki X ve Y etiketlerini tek potada birleştirici modal.
+
+[NewCollectionModal] / [NewLinkModal] / [NewRssSubscriptionModal] / [NewTagModal] / [NewTokenModal] / [NewUserModal]
+└─ File: grabshark/apps/web/components/ModalContent/New...
+└─ Category: Modal Creation Groups
+└─ Purpose: Sisteme eleman eklenmesini sağlayan Create işlem pencereleri.
+
+[RenameTagModal]
+└─ File: grabshark/apps/web/components/ModalContent/RenameTagModal.tsx
+└─ Category: Modal Update
+└─ Purpose: Etiket adı değiştirme.
+
+[RevokeTokenModal]
+└─ File: grabshark/apps/web/components/ModalContent/RevokeTokenModal.tsx
+└─ Category: Modal Action
+└─ Purpose: API yetki belirtecini iptal etme onayı.
+
+[SurveyModal]
+└─ File: grabshark/apps/web/components/ModalContent/SurveyModal.tsx
+└─ Category: Modal View
+└─ Purpose: Uygulama içi memnuniyet anketi amaçlı pop-up.
+
+[UploadFileModal]
+└─ File: grabshark/apps/web/components/ModalContent/UploadFileModal.tsx
+└─ Category: Modal Creation
+└─ Purpose: Yeni dosya barındırmak (Drag&Drop dahil) için aktarım bölgesi.
+
+== Input Components ==
+
+[CollectionSelection] / [TagSelection]
+└─ File: grabshark/apps/web/components/InputSelect/...
+└─ Category: Complex Form Input
+└─ Purpose: Bir nesneyi veya kategoriyi listeden dropdown usulü arayıp seçecek yapı.
+
+== Preservation Components ==
+
+[HighlightMenu] / [HighlightToolbox]
+└─ File: grabshark/apps/web/components/Preservation/Highlight...
+└─ Category: Editor
+└─ Purpose: Arka planda metin çizerken veya highlight oluştururkenki alet çubuğu (toolbox).
+
+[NotePanel]
+└─ File: grabshark/apps/web/components/Preservation/NotePanel.tsx
+└─ Category: Content Panel
+└─ Purpose: Vurgulanmış/Kaydedilmiş metne not düşmeyi sağlayan kenar ekranı.
+
+[PreservationContent] / [PreservationPageContent] / [PreservationNavbar]
+└─ File: grabshark/apps/web/components/Preservation/...
+└─ Category: App Wrapper
+└─ Purpose: İzole arşivi sarmalayan navigasyon ve zemin iskeleti bileşenleri.
+
+[ReadableView]
+└─ File: grabshark/apps/web/components/Preservation/ReadableView.tsx
+└─ Category: Clean Reader
+└─ Purpose: Makale vb. yapıları reklamdan arındırılmış saf haliyle sunan görünüm.
+
+[SmartRepreserveButton]
+└─ File: grabshark/apps/web/components/Preservation/SmartRepreserveButton.tsx
+└─ Category: Action
+└─ Purpose: Bozulan arşivi aynı URL üzerinden tekrardan zorla alma komutu veren buton.
+
+== Settings Components ==
+
+[AISettings]
+└─ File: grabshark/apps/web/components/Settings/AISettings.tsx
+└─ Category: Setting Page
+└─ Purpose: Otomatik etiket oluşturuma dahil AI parametreleri yapılandırma ekranı.
+
+[ArchiveSettings]
+└─ File: grabshark/apps/web/components/Settings/ArchiveSettings.tsx
+└─ Category: Setting Page
+└─ Purpose: Ne kadarlık içerik kaydedilecek, yedekleme ayarları ekranı.
+
+[DisplaySettings]
+└─ File: grabshark/apps/web/components/Settings/DisplaySettings.tsx
+└─ Category: Setting Page
+└─ Purpose: Görüntüleme, grid sıklığı ve arayüz yapılandırma modülü.
+
+[ThemeSettings]
+└─ File: grabshark/apps/web/components/Settings/ThemeSettings.tsx
+└─ Category: Setting Page
+└─ Purpose: Açık, Koyu mod ve genel tema seçeneği modülü.
+
+== UI Primitives (Radix-based) ==
+
+[button] / [checkbox] / [context-menu] / [dropdown-menu] / [icons] / [separator] / [tabs] / [tooltip] / [Loader]
+└─ File: grabshark/apps/web/components/ui/[Component].tsx
+└─ Category: Core UI Primitives
+└─ Purpose: Radix UI temelinde yazılmış, projenin yapıtaşı durumundaki düşük seviyeli (saf) bileşen taslakları.

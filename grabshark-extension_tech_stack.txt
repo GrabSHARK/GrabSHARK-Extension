@@ -1,0 +1,91 @@
+GrabSHARK Browser Extension Tech Stack (Infrastructure & Libraries)
+
+== Core Frameworks & Build Environment ==
+
+[React]
+└─ Category: Framework
+└─ Purpose: Eklentinin Pop-up, Ayarlar paneli ve sayfalara gömülü (Shadow DOM) çalışan "Smart Capture" vb. bileşenlerini yöneten ana kullanıcı arabirimi altyapısı.
+
+[Vite]
+└─ Category: Build Tool
+└─ Purpose: Yüksek performanslı modern derleyici (Bundler). Eklentinin farklı bağlamlarda (`Content Script`, `Background`, `Popup`) çalışan kodlarını ayrı paketler halinde derler.
+
+[TypeScript]
+└─ Category: Language
+└─ Purpose: Statik tür kontrolü ile kod güvenliğini koruyan asıl geliştirme dili.
+
+[Manifest V3]
+└─ Category: Web Extension API
+└─ Purpose: Chrome (Chromium) ve Edge tarayıcılarında çalışan modern, güvenlikli uzantı manifest standart formatı.
+
+[webextension-polyfill]
+└─ Category: Compatibility Layer
+└─ Purpose: Eklentinin Google Chrome dışında Mozilla Firefox gibi diğer tarayıcılarda (Browser API farklılıklarını örterek) sorunsuz (Cross-browser) çalışmasını sağlayan uyumluluk paketi.
+
+== State Management & Data Fetching ==
+
+[React Query / @tanstack/react-query]
+└─ Category: Cache & State
+└─ Purpose: Eklentinin sunucudan (`API`) çektiği koleksiyon ve etiket (tag) gibi asenkron verilerin önbelleklenmesi ve bileşenler arası senkronizasyon araçları.
+
+[Axios]
+└─ Category: HTTP Client
+└─ Purpose: GrabSHARK ana Backend sunucusuna (Next.js) ve harici servislere ağ üzerinden ulaşmamızı sağlayan istemci aracı.
+
+== UI, Styling & Headless Components ==
+
+[Tailwind CSS]
+└─ Category: Styling Framework
+└─ Purpose: Pop-up ve sayfa üzerindeki Widget (Yüzen) elemanların görünümünü `utility-first` sınıflarla esnek bir biçimde şemalayan çatımız.
+
+[Radix UI]
+└─ Category: Headless Components
+└─ Purpose: Eklentinin Pop-up menüleri (Select, Dialog, Dropdown, Checkbox) için tamamen erişilebilir (A11y) yüksek performanslı iskeletler.
+
+[clsx / CVA / tailwind-merge]
+└─ Category: Styling Utility
+└─ Purpose: Tailwind class çakışmalarını ezen ve dinamik/parametre tabanlı class atama (Class Variance) işlemini kolaylaştıran pakettir.
+
+[Lucide React / Phosphor Icons]
+└─ Category: Asset Library
+└─ Purpose: Formlarda ve UI menülerinde gösterilen modern ve vektörel (SVG) simge paketleri.
+
+[cmdk]
+└─ Category: Interaction
+└─ Purpose: Eklenti içerisinde klavye kullanımına uygun Mac Spotlight/Komut Paleti (Command Palette) görünümü sağlayıcı.
+
+[Sonner]
+└─ Category: Notification
+└─ Purpose: Başarılı veya Hatalı kayıt işlemlerinin ardından çıkan şık "Tost (Toast)" bildirim sarmalayıcısı.
+
+== Forms, Validation & Utilities ==
+
+[React Hook Form]
+└─ Category: Form State
+└─ Purpose: Eklenti içeresindeki Link kaydetme, düzenleme ve ayar formlarını yöneten inanılmaz performanslı "Uncontrolled" form kütüphanesi.
+
+[Zod]
+└─ Category: Validation
+└─ Purpose: Form (`@hookform/resolvers`) alanları ile API verilerini eşitleyen en katı "Tür Güvenliği (Type-safety)" ve doğrulama denetleyicisi.
+
+[i18next / react-i18next]
+└─ Category: Localization
+└─ Purpose: Eklenti arayüzünün 15 farklı global dile (İngilizce, Türkçe, Japonca vs.) anlık olarak çevrilmesini sağlayan çoklu-dil motoru.
+
+[date-fns]
+└─ Category: LocalUtility
+└─ Purpose: Kayıt tarihleri ve saatler gibi verileri şekillendiren tarih manipülasyon aracı.
+
+[query-string]
+└─ Category: LocalUtility
+└─ Purpose: Eklentide URL sorgularını (search params) parse edip objelere çeviren yardımcı modül.
+
+== Extension Architecture & Build Targets ==
+
+[Architecture Context]
+└─ Background Service Worker: Eklentinin her an arka planda çalışan yöneticileri (Auth, Olay Yönlendirme, Context Menü dinleyicileri).
+└─ Content Scripts: Geçerli web sayfasının `DOM` ağacına gömülen "Highlight Motorları" ve "İzleyici Ajanlar (Agents)".
+└─ Action UI (Popup / Options): Sadece ikona basıldığında uyanan "Kayıt/Tercih" render görünümleri.
+
+[Multi-Browser Targeting]
+└─ Purpose: Derleme aşamasında hem `Chromium (Chrome, Brave, Edge)` manifest dosyasını hem de pazar payı için `Firefox` manifest (v2/v3 melez) dosyalarını üretebilecek esneklik sağlanması.

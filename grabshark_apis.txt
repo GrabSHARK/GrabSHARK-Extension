@@ -1,0 +1,351 @@
+GrabSHARK Main Application Backend API Routes (Complete List)
+
+== AI API ==
+
+[POST] /api/v1/ai/suggest-tags
+└─ File: grabshark/apps/web/pages/api/v1/ai/suggest-tags.ts
+└─ Purpose: AI-powered tag suggestion endpoint.
+
+== Archives API ==
+
+[GET, POST, DELETE] /api/v1/archives/[linkId]
+└─ File: grabshark/apps/web/pages/api/v1/archives/[linkId].ts
+└─ Purpose: Archive management for a specific link.
+
+[GET, POST] /api/v1/archives
+└─ File: grabshark/apps/web/pages/api/v1/archives/index.ts
+└─ Purpose: Archive listing and creation.
+
+== Auth API ==
+
+[GET, POST] /api/v1/auth/* (NextAuth)
+└─ File: grabshark/apps/web/pages/api/v1/auth/[...nextauth].ts
+└─ Purpose: Authentication handling (Login, Logout, Session, OAuth providers).
+
+[POST] /api/v1/auth/forgot-password
+└─ File: grabshark/apps/web/pages/api/v1/auth/forgot-password.ts
+└─ Purpose: Password reset request.
+
+[POST] /api/v1/auth/reset-password
+└─ File: grabshark/apps/web/pages/api/v1/auth/reset-password.ts
+└─ Purpose: Password reset with token.
+
+[POST] /api/v1/auth/verify-email
+└─ File: grabshark/apps/web/pages/api/v1/auth/verify-email.ts
+└─ Purpose: Email verification callback.
+
+== Avatar API ==
+
+[GET] /api/v1/avatar/[id]
+└─ File: grabshark/apps/web/pages/api/v1/avatar/[id].ts
+└─ Purpose: User avatar retrieval.
+
+== Collections API ==
+
+[GET, PUT, DELETE] /api/v1/collections/[id]
+└─ File: grabshark/apps/web/pages/api/v1/collections/[id].ts
+└─ Purpose: Get, update, or delete a specific collection.
+
+[GET, POST] /api/v1/collections
+└─ File: grabshark/apps/web/pages/api/v1/collections/index.ts
+└─ Purpose: List all collections or create new one.
+
+== Config API ==
+
+[GET] /api/v1/config
+└─ File: grabshark/apps/web/pages/api/v1/config/index.ts
+└─ Purpose: Server configuration and feature flags.
+
+== Dashboard API ==
+
+[GET] /api/v1/dashboard
+└─ File: grabshark/apps/web/pages/api/v1/dashboard/index.ts
+└─ Purpose: Aggregated statistics for the dashboard view (v1).
+
+[GET] /api/v2/dashboard
+└─ File: grabshark/apps/web/pages/api/v2/dashboard/index.ts
+└─ Purpose: Aggregated statistics for the dashboard view (v2).
+
+== Domain Preferences API ==
+
+[GET, PUT] /api/v1/domain-preferences/[domain]
+└─ File: grabshark/apps/web/pages/api/v1/domain-preferences/[domain].ts
+└─ Purpose: Get or update preferences for a specific domain.
+
+[GET, POST] /api/v1/domain-preferences
+└─ File: grabshark/apps/web/pages/api/v1/domain-preferences/index.ts
+└─ Purpose: List all domain preferences or create new one.
+
+== Files API ==
+
+[GET] /api/v1/files/[id]/content
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/content.ts
+└─ Purpose: Retrieve file content/body.
+
+[GET] /api/v1/files/[id]/file
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/file.ts
+└─ Purpose: Download file binary.
+
+[GET] /api/v1/files/[id]/highlights
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/highlights.ts
+└─ Purpose: List highlights associated with a file.
+
+[GET, PUT, DELETE] /api/v1/files/[id]
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/index.ts
+└─ Purpose: Get, update, or delete a specific file.
+
+[PUT] /api/v1/files/[id]/pin
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/pin.ts
+└─ Purpose: Pin/unpin a file.
+
+[GET] /api/v1/files/[id]/preview
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/preview.ts
+└─ Purpose: Retrieve file thumbnail preview.
+
+[POST] /api/v1/files/[id]/toggle-archive
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/toggle-archive/index.ts
+└─ Purpose: Archive/unarchive a file.
+
+[POST] /api/v1/files/bulk
+└─ File: grabshark/apps/web/pages/api/v1/files/bulk.ts
+└─ Purpose: Bulk file operations.
+
+[GET] /api/v1/files
+└─ File: grabshark/apps/web/pages/api/v1/files/index.ts
+└─ Purpose: List all files.
+
+[POST] /api/v1/files/upload
+└─ File: grabshark/apps/web/pages/api/v1/files/upload.ts
+└─ Purpose: File upload handler.
+
+== Highlights API ==
+
+[GET, PUT, DELETE] /api/v1/highlights/[id]
+└─ File: grabshark/apps/web/pages/api/v1/highlights/[id].ts
+└─ Purpose: Get, update, or delete a specific highlight.
+
+[PUT] /api/v1/highlights/[id]/pin
+└─ File: grabshark/apps/web/pages/api/v1/highlights/[id]/pin.ts
+└─ Purpose: Pin/unpin a highlight.
+
+[GET, POST] /api/v1/highlights
+└─ File: grabshark/apps/web/pages/api/v1/highlights/index.ts
+└─ Purpose: List all highlights or create new one.
+
+== LHC API (Link Health Check) ==
+
+[POST] /api/v1/lhc/actions/apply
+└─ File: grabshark/apps/web/pages/api/v1/lhc/actions/apply.ts
+└─ Purpose: Apply LHC action results.
+
+[POST] /api/v1/lhc/actions/preview
+└─ File: grabshark/apps/web/pages/api/v1/lhc/actions/preview.ts
+└─ Purpose: Preview LHC action before applying.
+
+[GET] /api/v1/lhc/results
+└─ File: grabshark/apps/web/pages/api/v1/lhc/results.ts
+└─ Purpose: Retrieve LHC analysis results.
+
+[GET] /api/v1/lhc/runs/[id]
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/[id].ts
+└─ Purpose: Get details of a specific LHC run.
+
+[POST] /api/v1/lhc/runs/[id]/stop
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/[id]/stop.ts
+└─ Purpose: Stop a running LHC analysis.
+
+[DELETE] /api/v1/lhc/runs/clear
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/clear.ts
+└─ Purpose: Clear completed LHC runs.
+
+[GET, POST] /api/v1/lhc/runs
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/index.ts
+└─ Purpose: List all LHC runs or start new one.
+
+[DELETE] /api/v1/lhc/runs/purge
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/purge.ts
+└─ Purpose: Purge old LHC run data.
+
+[GET, PUT] /api/v1/lhc/schedules/[id]
+└─ File: grabshark/apps/web/pages/api/v1/lhc/schedules/[id].ts
+└─ Purpose: Get or update a specific LHC schedule.
+
+[GET, POST] /api/v1/lhc/schedules
+└─ File: grabshark/apps/web/pages/api/v1/lhc/schedules/index.ts
+└─ Purpose: List all LHC schedules or create new one.
+
+[GET] /api/v1/lhc/stats
+└─ File: grabshark/apps/web/pages/api/v1/lhc/stats.ts
+└─ Purpose: LHC statistics and counters.
+
+[POST] /api/v1/lhc/tick
+└─ File: grabshark/apps/web/pages/api/v1/lhc/tick.ts
+└─ Purpose: LHC processing tick trigger.
+
+== Links API ==
+
+[GET] /api/v1/links/[id]/archive/[format]
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/[format].ts
+└─ Purpose: Get specific archive format for a link.
+
+[POST] /api/v1/links/[id]/archive
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/index.ts
+└─ Purpose: Trigger preservation for a link.
+
+[POST] /api/v1/links/[id]/archive/refresh
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/refresh.ts
+└─ Purpose: Re-archive/refresh a link's archived content.
+
+[GET] /api/v1/links/[id]/highlights
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/highlights/index.ts
+└─ Purpose: List highlights for a specific link.
+
+[GET, PUT, DELETE] /api/v1/links/[id]
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/index.ts
+└─ Purpose: Get, update, or delete a specific link.
+
+[POST] /api/v1/links/[id]/toggle-archive
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/toggle-archive/index.ts
+└─ Purpose: Archive/unarchive a link.
+
+[POST] /api/v1/links/archive
+└─ File: grabshark/apps/web/pages/api/v1/links/archive/index.ts
+└─ Purpose: Bulk archive operations.
+
+[GET, POST] /api/v1/links
+└─ File: grabshark/apps/web/pages/api/v1/links/index.ts
+└─ Purpose: List all links (GET) or save new link (POST).
+
+== Logins API ==
+
+[GET] /api/v1/logins
+└─ File: grabshark/apps/web/pages/api/v1/logins/index.ts
+└─ Purpose: Available login methods configuration.
+
+== Migration API ==
+
+[POST] /api/v1/migration/export
+└─ File: grabshark/apps/web/pages/api/v1/migration/export.ts
+└─ Purpose: Export user data as archive.
+
+[POST] /api/v1/migration/import-zip
+└─ File: grabshark/apps/web/pages/api/v1/migration/import-zip.ts
+└─ Purpose: Import data from ZIP file.
+
+[POST] /api/v1/migration
+└─ File: grabshark/apps/web/pages/api/v1/migration/index.ts
+└─ Purpose: Legacy migration endpoint.
+
+== Payment API ==
+
+[POST] /api/v1/payment
+└─ File: grabshark/apps/web/pages/api/v1/payment/index.ts
+└─ Purpose: Stripe payment processing endpoint.
+
+== Public API ==
+
+[GET] /api/v1/public/collections/[id]
+└─ File: grabshark/apps/web/pages/api/v1/public/collections/[id].ts
+└─ Purpose: Get a public collection by ID.
+
+[GET] /api/v1/public/collections/links
+└─ File: grabshark/apps/web/pages/api/v1/public/collections/links/index.ts
+└─ Purpose: Get links for a public collection.
+
+[GET] /api/v1/public/collections/tags
+└─ File: grabshark/apps/web/pages/api/v1/public/collections/tags/index.ts
+└─ Purpose: Get tags used within a public collection.
+
+[GET] /api/v1/public/links/[id]
+└─ File: grabshark/apps/web/pages/api/v1/public/links/[id].ts
+└─ Purpose: Get a specific public link by ID.
+
+[GET] /api/v1/public/users/[id]
+└─ File: grabshark/apps/web/pages/api/v1/public/users/[id].ts
+└─ Purpose: Get a public user profile.
+
+== RSS API ==
+
+[GET] /api/v1/rss/[id]
+└─ File: grabshark/apps/web/pages/api/v1/rss/[id].ts
+└─ Purpose: Get RSS feed for a particular ID/Collection.
+
+[GET] /api/v1/rss
+└─ File: grabshark/apps/web/pages/api/v1/rss/index.ts
+└─ Purpose: General RSS endpoint.
+
+[POST] /api/v1/rss/reorder
+└─ File: grabshark/apps/web/pages/api/v1/rss/reorder.ts
+└─ Purpose: Reorder or manage RSS feed priorities.
+
+== Search API ==
+
+[GET] /api/v1/search
+└─ File: grabshark/apps/web/pages/api/v1/search/index.ts
+└─ Purpose: Global search functionality.
+
+== Session API ==
+
+[GET] /api/v1/session
+└─ File: grabshark/apps/web/pages/api/v1/session/index.ts
+└─ Purpose: Session metadata and status.
+
+== Tags API ==
+
+[GET, PUT, DELETE] /api/v1/tags/[id]
+└─ File: grabshark/apps/web/pages/api/v1/tags/[id].ts
+└─ Purpose: Get, update, or delete a specific tag.
+
+[GET, POST] /api/v1/tags
+└─ File: grabshark/apps/web/pages/api/v1/tags/index.ts
+└─ Purpose: List all tags (GET), create new tag (POST).
+
+[POST] /api/v1/tags/merge
+└─ File: grabshark/apps/web/pages/api/v1/tags/merge.ts
+└─ Purpose: Merge multiple tags together.
+
+== Tokens API ==
+
+[GET, DELETE] /api/v1/tokens/[id]
+└─ File: grabshark/apps/web/pages/api/v1/tokens/[id].ts
+└─ Purpose: Get or delete a specific API token.
+
+[GET, POST] /api/v1/tokens
+└─ File: grabshark/apps/web/pages/api/v1/tokens/index.ts
+└─ Purpose: List tokens (GET) or generate a new one (POST).
+
+== Uploads API ==
+
+[GET] /api/v1/uploads/[id]/download
+└─ File: grabshark/apps/web/pages/api/v1/uploads/[id]/download.ts
+└─ Purpose: Download a specific upload.
+
+== Users API ==
+
+[GET, PUT] /api/v1/users/[id]
+└─ File: grabshark/apps/web/pages/api/v1/users/[id]/index.ts
+└─ Purpose: Get or update a specific user.
+
+[GET, POST] /api/v1/users
+└─ File: grabshark/apps/web/pages/api/v1/users/index.ts
+└─ Purpose: List users (GET) or create new one (POST).
+
+[GET] /api/v1/users/me
+└─ File: grabshark/apps/web/pages/api/v1/users/me.ts
+└─ Purpose: Get current user profile and preferences.
+
+== Webhook API ==
+
+[POST] /api/v1/webhook
+└─ File: grabshark/apps/web/pages/api/v1/webhook/index.ts
+└─ Purpose: Webhook trigger handler.
+
+== Other API ==
+
+[GET] /api/v1/check-embeddable
+└─ File: grabshark/apps/web/pages/api/v1/check-embeddable.ts
+└─ Purpose: Check if a URL can be embedded in an iframe.
+
+[GET] /api/v1/proxy
+└─ File: grabshark/apps/web/pages/api/v1/proxy.ts
+└─ Purpose: General request proxy for bypassing CORS or specific origin issues.

@@ -1,0 +1,225 @@
+GrabSHARK Main Application Pages (Route Reference)
+
+== App Shell & Core Rotalar ==
+
+[/_app]
+└─ File: grabshark/apps/web/pages/_app.tsx
+└─ Category: Next.js Core
+└─ Purpose: Uygulamanın kök bileşeni. Tema sağlayıcıları, Oturum (Session) Provider, Locale kontrolü gibi evrensel sarmalayıcıları içerir.
+
+[/_document]
+└─ File: grabshark/apps/web/pages/_document.tsx
+└─ Category: Next.js Core
+└─ Purpose: Temel HTML iskeleti, Google Font yüklemeleri ve `html/body` özel meta etiketleri.
+
+[/]
+└─ File: grabshark/apps/web/pages/index.tsx
+└─ Category: Root
+└─ Purpose: Uygulamanın ana kapısı. Genellikle auth durumuna göre Dashboard'a veya Login'e yönlendirme yapar.
+
+== Authentication & Onboarding ==
+
+[/login]
+└─ File: grabshark/apps/web/pages/login.tsx
+└─ Category: Auth
+└─ Purpose: Üye giriş (Login) ekranı.
+
+[/register]
+└─ File: grabshark/apps/web/pages/register.tsx
+└─ Category: Auth
+└─ Purpose: Yeni kullanıcı kayıt ekranı.
+
+[/forgot]
+└─ File: grabshark/apps/web/pages/forgot.tsx
+└─ Category: Auth
+└─ Purpose: Şifremi unuttum talep formu.
+
+[/auth/reset-password]
+└─ File: grabshark/apps/web/pages/auth/reset-password.tsx
+└─ Category: Auth
+└─ Purpose: Şifre sıfırlama talebinden sonra gelen şifre yenileme formu.
+
+[/auth/verify-email]
+└─ File: grabshark/apps/web/pages/auth/verify-email.tsx
+└─ Category: Auth
+└─ Purpose: E-posta adresini doğrulama (callback) ekranı.
+
+[/member-onboarding]
+└─ File: grabshark/apps/web/pages/member-onboarding.tsx
+└─ Category: Onboarding
+└─ Purpose: Kayıt sonrası "Hoş geldin" asistanı ve temel kurulum sihirbazı.
+
+== Dashboard & Data Views ==
+
+[/dashboard]
+└─ File: grabshark/apps/web/pages/dashboard.tsx
+└─ Category: Dashboard
+└─ Purpose: İstatistikler, son bağlantılar ve vurguların modüller halinde (sürükle-bırak destekli) sunulduğu ana yönetim panosu.
+
+[/collections]
+└─ File: grabshark/apps/web/pages/collections/index.tsx
+└─ Category: Listing View
+└─ Purpose: Kullanıcıya ait tüm koleksiyonların (klasörlerin) listelendiği genel görünüm.
+
+[/collections/[id]]
+└─ File: grabshark/apps/web/pages/collections/[id].tsx
+└─ Category: Detail View
+└─ Purpose: Belirli bir koleksiyonun içine girme; o klasör altındaki dosyalar ve linklerin gösterimi.
+
+[/links]
+└─ File: grabshark/apps/web/pages/links/index.tsx
+└─ Category: Listing View
+└─ Purpose: Sistemi üzerindeki kayıtlı tüm bağlantıların/URL'lerin global listesi.
+
+[/links/[id]]
+└─ File: grabshark/apps/web/pages/links/[id].tsx
+└─ Category: Detail View
+└─ Purpose: Arşivlenen bağlantı hakkında tekil teknik detay ve bilgi okuma ekranı.
+
+[/files (uploads)]
+└─ File: grabshark/apps/web/pages/uploads/index.tsx
+└─ Category: Listing View
+└─ Purpose: Yüklenen tüm medya, resim, pdf veya word belgelerinin yönetildiği dijital depo.
+
+[/tags]
+└─ File: grabshark/apps/web/pages/tags/index.tsx
+└─ Category: Listing View
+└─ Purpose: Tüm sistem etiketlerinin (tags) genel kart formatında görüntülenmesi.
+
+[/tags/[id]]
+└─ File: grabshark/apps/web/pages/tags/[id].tsx
+└─ Category: Detail View
+└─ Purpose: Belirli bir etiket adıyla işaretlenmiş tüm kaynakları daraltılmış halde listeleme.
+
+[/highlights]
+└─ File: grabshark/apps/web/pages/highlights/index.tsx
+└─ Category: Listing View
+└─ Purpose: Üzeri sarı/kırmızı vs. ile çizilmiş tüm makale metin notlarının sergilendiği arşiv.
+
+[/captures]
+└─ File: grabshark/apps/web/pages/captures/index.tsx
+└─ Category: Listing View
+└─ Purpose: Yakalanan ekran görüntüsü (screenshot) ve diğer capture dosyalarının havuzu.
+
+[/archived]
+└─ File: grabshark/apps/web/pages/archived.tsx
+└─ Category: Listing View
+└─ Purpose: Kaynakların gizlendiği/soft-delete edildiği çöp kutusu (Geri Getirme/Arşiv) merkezi.
+
+[/pinned]
+└─ File: grabshark/apps/web/pages/pinned.tsx
+└─ Category: Listing View
+└─ Purpose: Sürekli el altında tutulmak istenip "Pinlenmiş (iğnelenmiş)" kaynakların hızlı erişim panosu.
+
+[/search]
+└─ File: grabshark/apps/web/pages/search.tsx
+└─ Category: Discovery
+└─ Purpose: Tüm uygulamada yapılan arama komutlarının detaylı metin sonuç sayfası.
+
+== Preservation & Reader ==
+
+[/preserved/[id]]
+└─ File: grabshark/apps/web/pages/preserved/[id].tsx
+└─ Category: Reader View
+└─ Purpose: Kayıt altına alınmış bir makalenin "Okuma Modu" dahilinde reklam/çöp veriden arındırılmış temiz görünümü.
+
+[/preserved/file/[id]]
+└─ File: grabshark/apps/web/pages/preserved/file/[id].tsx
+└─ Category: Reader View
+└─ Purpose: Uzak veya indirilmiş dosyaların önizleyicisi (Örn: SVG veya PDF tarzı görüntüleyici).
+
+== Public / Shareable Pages ==
+
+[/public/collections/[id]]
+└─ File: grabshark/apps/web/pages/public/collections/[id]/index.tsx
+└─ Category: Public View
+└─ Purpose: Dış dünyaya (misafirlere) paylaşımı açılmış Koleksiyonun salt-okunur yayın sayfası.
+
+[/public/collections/[id]/rss]
+└─ File: grabshark/apps/web/pages/public/collections/[id]/rss.tsx
+└─ Category: Public Feed
+└─ Purpose: Paylaşılan klasörün yeni içerik eklendikçe otomatik yenilenen RSS XML kanalı.
+
+[/public/links/[id]]
+└─ File: grabshark/apps/web/pages/public/links/[id].tsx
+└─ Category: Public View
+└─ Purpose: Dışarı ile paylaşılan tekil bağlantı kartının detay sayfası.
+
+[/public/preserved/[id]]
+└─ File: grabshark/apps/web/pages/public/preserved/[id].tsx
+└─ Category: Public Reader
+└─ Purpose: Temiz arşivlenmiş makalenin misafirlerin erişimine açık hali.
+
+== Maintenance & Utils ==
+
+[/health-check]
+└─ File: grabshark/apps/web/pages/health-check/index.tsx
+└─ Category: System Tool
+└─ Purpose: LHC (Link Health Check). Linklerin ölü veya erişilmez (404 vs.) olup olmadığını analiz eden rapor arayüzü.
+
+[/admin]
+└─ File: grabshark/apps/web/pages/admin.tsx
+└─ Category: Admin Console
+└─ Purpose: Sistem kullanıcılarını ve davet kodlarını vs idare eden Süper Yönetici ekranı.
+
+[/confirmation]
+└─ File: grabshark/apps/web/pages/confirmation.tsx
+└─ Category: Utility
+└─ Purpose: Kritik işlemler sonrası beliren jenerik uyarı/onay geri bildirim sayfası.
+
+[/rss]
+└─ File: grabshark/apps/web/pages/rss.tsx
+└─ Category: Utility
+└─ Purpose: Projenin/Kullanıcının global RSS yayın adresi oluşturucusu.
+
+[/subscribe]
+└─ File: grabshark/apps/web/pages/subscribe.tsx
+└─ Category: Sales / Upgrade
+└─ Purpose: Ödeme yaparak üst plana (Premium) geçen kullanıcılar için upgrade sipariş ekranı.
+
+== Settings Module ==
+
+[/settings]
+└─ File: grabshark/apps/web/pages/settings/index.tsx
+└─ Category: Config
+└─ Purpose: Ayarlar ana sayfa yönlendirici kökü.
+
+[/settings/account]
+└─ File: grabshark/apps/web/pages/settings/account.tsx
+└─ Category: Config
+└─ Purpose: Kullanıcı profili, İsim, Fotoğraf ve e-posta değiştirme sayfası.
+
+[/settings/access-tokens]
+└─ File: grabshark/apps/web/pages/settings/access-tokens.tsx
+└─ Category: Config
+└─ Purpose: Geliştirici APi'si için kişisel erişim belirteçleri (Bearer Tokens) üretme/iptal etme.
+
+[/settings/billing]
+└─ File: grabshark/apps/web/pages/settings/billing.tsx
+└─ Category: Config
+└─ Purpose: Fatura geçimişi ve abonelik periyodu yönetimi (Stripe vs).
+
+[/settings/delete]
+└─ File: grabshark/apps/web/pages/settings/delete.tsx
+└─ Category: Config
+└─ Purpose: Hesap kurtarması olmadan "Kalıcı Silme (Danger Zone)" menüsü.
+
+[/settings/password]
+└─ File: grabshark/apps/web/pages/settings/password.tsx
+└─ Category: Config
+└─ Purpose: Güvenlik, login ve şifre modifikasyonları.
+
+[/settings/preference]
+└─ File: grabshark/apps/web/pages/settings/preference.tsx
+└─ Category: Config
+└─ Purpose: Açık/Koyu Tema seçimi, Çoklu Dil (i18n) ayarı ve Grid/List varsayılan görüntülenme tercihleri.
+
+[/settings/rss-subscriptions]
+└─ File: grabshark/apps/web/pages/settings/rss-subscriptions.tsx
+└─ Category: Config
+└─ Purpose: Uygulama içine kaydedilmek üzere dışarıdan alınan RSS blog servislerinin takibi.
+
+[/settings/worker]
+└─ File: grabshark/apps/web/pages/settings/worker.tsx
+└─ Category: Config
+└─ Purpose: Arkaplan işlemi, indirme gecikmeleri, otomasyon (Preservation worker) ayarları.
