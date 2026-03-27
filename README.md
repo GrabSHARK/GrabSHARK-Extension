@@ -117,9 +117,10 @@ The built extension will be in the `/dist` folder. Load it as an unpacked extens
 | **UI** | React 18, TypeScript |
 | **Build** | Vite |
 | **Styling** | Tailwind CSS, Radix UI |
-| **State** | React Query |
-| **i18n** | Custom locale system (15 languages) |
-| **Communication** | Chrome Message Passing API |
+| **State** | React Query v4 (@tanstack/react-query) |
+| **Forms** | React Hook Form + Zod |
+| **i18n** | i18next + react-i18next (15 languages) |
+| **Communication** | webextension-polyfill (cross-browser) |
 
 ---
 
