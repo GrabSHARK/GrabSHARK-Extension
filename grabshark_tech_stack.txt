@@ -135,8 +135,20 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 └─ Purpose: Veritabanı, arka plan botları ve uygulamanın kendisinin her sunucuda "aynı" çalışabilmesi için kapalı izolasyon ortamı.
 
 [Playwright]
-└─ Category: End-to-End (E2E) Testing
-└─ Purpose: Gerçek bir tarayıcı motoru ayağa kaldırarak tüm kullanıcı kullanım akışlarını otomatik test edebilme aracı.
+└─ Category: Browser Automation & E2E Testing
+└─ Purpose: Web sayfalarını arşivlemek için headless browser (screenshot, PDF, monolith HTML), ayrıca E2E test altyapısı. Worker'da primary browser olarak kullanılır.
+
+[CloakBrowser]
+└─ Category: Stealth Browser (Opsiyonel)
+└─ Purpose: 33 C++ source-level patch ile bot tespitine dayanıklı Chromium. Kullanıcı tercihiyle (useCloakBrowser) etkinleştirilir. Playwright API uyumlu, launch() ile kullanılır.
+
+[FlareSolverr (PR-1300)]
+└─ Category: Anti-Bot Cookie Extraction
+└─ Purpose: Cloudflare JS Challenge, Turnstile ve benzeri bot korumalarını DrissionPage engine ile çözer. Sadece cookie extraction servisi olarak çalışır, HTML döndürmez. Docker servisi: alexfozor/flaresolverr:pr-1300-experimental (port 8191).
+
+[ws]
+└─ Category: WebSocket Server
+└─ Purpose: Live browser screencast için WebSocket server. Worker process'te port 3001'de çalışır. CDP Page.startScreencast frame'lerini binary olarak admin client'lara iletir.
 
 == Custom (Internal) Monorepo Packages ==
 
