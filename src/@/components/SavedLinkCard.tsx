@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { LinkWithHighlights } from '../lib/types/highlight';
 import { Check, FolderSimple, X } from '@phosphor-icons/react';
 import { OutlineSparkleIcon } from './CustomIcons';
-import Icon from './Icon';
 import { format } from 'date-fns';
 import { enUS, tr } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
@@ -12,8 +11,11 @@ import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
 import { fetchImageBlobMessage, getLinkWithHighlights, openTabMessage } from '../lib/runtime/messages';
 
 interface SavedLinkCardProps {
-    link: LinkWithHighlights; onEdit?: (link: LinkWithHighlights) => void;
-    sharedImgSrc?: string; onImgSrcChange?: (src: string) => void; onClose?: () => void;
+    link: LinkWithHighlights;
+    onEdit?: (link: LinkWithHighlights) => void;
+    sharedImgSrc?: string;
+    onImgSrcChange?: (src: string) => void;
+    onClose?: () => void;
     onLinkUpdate?: (link: LinkWithHighlights) => void;
 }
 
@@ -40,7 +42,9 @@ function useSavedLinkPolling({
         try {
             const stored = sessionStorage.getItem(`link_ai_pref_${initialLink.id}`);
             if (stored) return JSON.parse(stored).expectAi === true;
-        } catch { }
+        } catch {
+            // noop
+        }
         if ((initialLink as any)?._expectAiTags === true) {
             return (Date.now() - new Date(initialLink.createdAt || Date.now()).getTime()) < 15000;
         }
@@ -57,10 +61,15 @@ function useSavedLinkPolling({
                     if (onLinkUpdate) onLinkUpdate(response.link);
                     else setLink(prev => ({ ...prev, tags: response.link.tags }));
                 }
-            } catch { }
+            } catch {
+                // noop
+            }
         }, 2000);
         const timeoutId = setTimeout(() => setIsPollingTags(false), 30000);
-        return () => { clearInterval(intervalId); clearTimeout(timeoutId); };
+        return () => {
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+        };
     }, [isPollingTags, link?.id, link?.url, onLinkUpdate, setLink]);
 
     useEffect(() => {
@@ -69,11 +78,22 @@ function useSavedLinkPolling({
         const hasSharedData = sharedImgSrc?.startsWith('data:');
 
         const fetchData = async () => {
-            if (optimisticThumbnail) { setIsLoading(false); return; }
-            if (!link.url || !baseUrl) { if (isMounted) setIsLoading(false); return; }
+            if (optimisticThumbnail) {
+                setIsLoading(false);
+                return;
+            }
+            if (!link.url || !baseUrl) {
+                if (isMounted) setIsLoading(false);
+                return;
+            }
 
             const cached = await getThumbnail(link.url);
-            if (cached && isMounted) { setImgSrc(cached); onImgSrcChange?.(cached); setIsLoading(false); return; }
+            if (cached && isMounted) {
+                setImgSrc(cached);
+                onImgSrcChange?.(cached);
+                setIsLoading(false);
+                return;
+            }
 
             if (!link.preview) {
                 if (!sharedImgSrc && isMounted) setIsLoading(true);
@@ -83,14 +103,23 @@ function useSavedLinkPolling({
                         if (response?.link?.preview && isMounted) {
                             setLink(prev => ({ ...prev, ...response.link, collection: { ...response.link?.collection, ...prev.collection } }));
                         }
-                    } catch { }
+                    } catch {
+                        // noop
+                    }
                 }, 2000);
-                setTimeout(() => { if (pollInterval) clearInterval(pollInterval); if (isMounted && !link.preview && !imgSrc) setIsLoading(false); }, 30000);
+                setTimeout(() => {
+                    if (pollInterval) clearInterval(pollInterval);
+                    if (isMounted && !link.preview && !imgSrc) setIsLoading(false);
+                }, 30000);
                 return;
             }
 
             if (link.preview && link.preview !== 'unavailable') {
-                if (hasSharedData && isMounted) { setImgSrc(sharedImgSrc!); setIsLoading(false); return; }
+                if (hasSharedData && isMounted) {
+                    setImgSrc(sharedImgSrc!);
+                    setIsLoading(false);
+                    return;
+                }
                 if (isMounted) setIsLoading(true);
                 const url = `${baseUrl.replace(/\/$/, '')}/api/v1/archives/${link.id}?format=1&preview=true`;
                 try {
@@ -113,11 +142,19 @@ function useSavedLinkPolling({
                     if (isMounted) setIsLoading(false);
                 }
             } else {
-                if (isMounted) { const fav = getFaviconUrl(link.url); setImgSrc(fav); onImgSrcChange?.(fav); setIsLoading(false); }
+                if (isMounted) {
+                    const fav = getFaviconUrl(link.url);
+                    setImgSrc(fav);
+                    onImgSrcChange?.(fav);
+                    setIsLoading(false);
+                }
             }
         };
         void fetchData();
-        return () => { isMounted = false; if (pollInterval) clearInterval(pollInterval); };
+        return () => {
+            isMounted = false;
+            if (pollInterval) clearInterval(pollInterval);
+        };
     }, [link.preview, link.url, link.id, baseUrl, sharedImgSrc, onImgSrcChange, imgSrc, initialLink, setLink]);
 
     return { imgSrc, isLoading, isPollingTags, setIsPollingTags };
@@ -128,7 +165,9 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
     const { t, i18n } = useTranslation();
 
     const [link, setLink] = useState<LinkWithHighlights>(() => ({
-        ...initialLink, url: initialLink.url || window.location.href, name: initialLink.name || document.title || t('savedLink.untitled'),
+        ...initialLink,
+        url: initialLink.url || window.location.href,
+        name: initialLink.name || document.title || t('savedLink.untitled'),
     }));
 
     const [baseUrl, setBaseUrl] = useState<string | null>(null);
@@ -145,21 +184,42 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
             setBaseUrl(null);
             setUserProfile(null);
         });
-        return () => { active = false; };
+        return () => {
+            active = false;
+        };
     }, []);
 
     const getFaviconUrl = (url?: string) => url ? `https://www.google.com/s2/favicons?sz=64&domain_url=${url}` : '';
     const faviconUrl = getFaviconUrl(link.url);
 
     const { imgSrc, isLoading, isPollingTags, setIsPollingTags } = useSavedLinkPolling({
-        initialLink: initialLink as any, link, setLink, baseUrl, sharedImgSrc, onImgSrcChange, onLinkUpdate, getFaviconUrl,
+        initialLink: initialLink as any,
+        link,
+        setLink,
+        baseUrl,
+        sharedImgSrc,
+        onImgSrcChange,
+        onLinkUpdate,
+        getFaviconUrl,
     });
 
     useEffect(() => {
         setLink(prev => {
-            const mergedCollection = initialLink?.collection ? { ...initialLink.collection, icon: prev.collection?.icon || initialLink.collection?.icon, color: prev.collection?.color || initialLink.collection?.color } : prev.collection;
+            const mergedCollection = initialLink?.collection
+                ? {
+                    ...initialLink.collection,
+                    icon: prev.collection?.icon || initialLink.collection?.icon,
+                    color: prev.collection?.color || initialLink.collection?.color,
+                }
+                : prev.collection;
             if (initialLink.tags?.length > 0 && isPollingTags) setIsPollingTags(false);
-            return { ...prev, ...initialLink, url: initialLink.url || prev.url || window.location.href, name: initialLink.name || prev.name || document.title || t('savedLink.untitled'), collection: mergedCollection };
+            return {
+                ...prev,
+                ...initialLink,
+                url: initialLink.url || prev.url || window.location.href,
+                name: initialLink.name || prev.name || document.title || t('savedLink.untitled'),
+                collection: mergedCollection,
+            };
         });
     }, [initialLink, isPollingTags, setIsPollingTags, t]);
 
@@ -168,7 +228,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
 
     const handleOpenInGrabSHARK = () => {
         if (!link.id || !baseUrl) return;
-        const formatMap: Record<string, number> = { 'ORIGINAL': 999, 'PDF': 0, 'MONOLITH': 1, 'SCREENSHOT': 2, 'READABLE': 3, 'DETAILS': 1 };
+        const formatMap: Record<string, number> = { ORIGINAL: 999, PDF: 0, MONOLITH: 1, SCREENSHOT: 2, READABLE: 3, DETAILS: 1 };
         const formatNum = formatMap[userProfile?.linksRouteTo || 'MONOLITH'] ?? 1;
         void openTabMessage(`${baseUrl.replace(/\/$/, '')}/dashboard?openPreview=${link.id}&format=${formatNum}`).catch(() => { });
     };
@@ -180,23 +240,44 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                     <div className="bg-blue-600 rounded-full p-1.5 shadow-[0_0_12px_rgba(59,130,246,0.5)]"><Check className="w-3.5 h-3.5 text-white stroke-[3px]" /></div>
                     <span>{t('savedLink.title')}</span>
                 </div>
-                {onClose && (<button onClick={onClose} className="hover:bg-zinc-200 dark:hover:bg-zinc-800 p-1.5 rounded-full transition-colors text-zinc-500"><X className="w-4 h-4" /></button>)}
+                {onClose && (
+                    <button onClick={onClose} className="hover:bg-zinc-200 dark:hover:bg-zinc-800 p-1.5 rounded-full transition-colors text-zinc-500">
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
             </div>
 
-            <div className="group bg-void-island/40 backdrop-blur-md rounded-2xl border border-void-border/10 shadow-lg dark:shadow-black/50 shadow-black/5 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-xl"
-                style={{ background: `linear-gradient(135deg, ${link.collection?.color || '#808080'}15 0%, rgba(128, 128, 128, 0.05) 100%)` }}>
+            <div
+                className="group bg-void-island/40 backdrop-blur-md rounded-2xl border border-void-border/10 shadow-lg dark:shadow-black/50 shadow-black/5 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-xl"
+                style={{ background: `linear-gradient(135deg, ${link.collection?.color || '#808080'}15 0%, rgba(128, 128, 128, 0.05) 100%)` }}
+            >
                 <div className="p-4 flex gap-3">
                     <div className="shrink-0 w-16 h-16 bg-void-bg/50 dark:bg-void-bg/20 rounded-xl overflow-hidden flex items-center justify-center border border-void-border/10 relative isolate">
-                        {isLoading ? (<>
-                            <img src={faviconUrl} alt="" className="w-full h-full object-contain p-2 z-0 rounded-xl" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                            <div className="absolute inset-0 z-10 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 pointer-events-none" />
-                            <div className="absolute inset-0 bg-zinc-400/30 dark:bg-zinc-600/30 animate-[pulse_1.5s_ease-in-out_infinite] z-20 pointer-events-none rounded-xl" />
-                        </>) : (<>
-                            <img src={imgSrc || faviconUrl} alt="Thumbnail"
-                                className={(imgSrc && imgSrc !== faviconUrl) ? "w-full h-full object-cover z-0 rounded-xl" : "w-full h-full object-contain p-2 z-0 rounded-xl"}
-                                onError={(e) => { const target = e.target as HTMLImageElement; if (faviconUrl && target.src !== faviconUrl) { target.src = faviconUrl; target.className = 'w-full h-full object-contain p-2 z-0'; } else target.style.display = 'none'; }} />
-                            <div className="absolute inset-0 z-10 rounded-xl border border-black/10 dark:border-white/10 pointer-events-none" />
-                        </>)}
+                        {isLoading ? (
+                            <>
+                                <img src={faviconUrl} alt="" className="w-full h-full object-contain p-2 z-0 rounded-xl" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                <div className="absolute inset-0 z-10 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 pointer-events-none" />
+                                <div className="absolute inset-0 bg-zinc-400/30 dark:bg-zinc-600/30 animate-[pulse_1.5s_ease-in-out_infinite] z-20 pointer-events-none rounded-xl" />
+                            </>
+                        ) : (
+                            <>
+                                <img
+                                    src={imgSrc || faviconUrl}
+                                    alt="Thumbnail"
+                                    className={(imgSrc && imgSrc !== faviconUrl) ? 'w-full h-full object-cover z-0 rounded-xl' : 'w-full h-full object-contain p-2 z-0 rounded-xl'}
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        if (faviconUrl && target.src !== faviconUrl) {
+                                            target.src = faviconUrl;
+                                            target.className = 'w-full h-full object-contain p-2 z-0';
+                                        } else {
+                                            target.style.display = 'none';
+                                        }
+                                    }}
+                                />
+                                <div className="absolute inset-0 z-10 rounded-xl border border-black/10 dark:border-white/10 pointer-events-none" />
+                            </>
+                        )}
                         {!isLoading && (!imgSrc && !faviconUrl) && <span className="text-2xl">🌍</span>}
                     </div>
 
@@ -204,9 +285,11 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate pr-2 group-hover:text-blue-600 transition-colors duration-300" title={link.name}>{link.name}</h3>
                         <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                             <span className="truncate inline-flex items-center gap-1 font-medium min-w-0">
-                                {link.collection?.icon ? <Icon icon={link.collection.icon} className="w-3.5 h-3.5 shrink-0" color={link.collection.color} />
-                                    : link.collection?.color ? <FolderSimple className="w-3.5 h-3.5 shrink-0" weight="fill" style={{ color: link.collection.color }} />
-                                        : <FolderSimple className="w-3.5 h-3.5 shrink-0 text-zinc-400" weight="fill" />}
+                                {link.collection?.color ? (
+                                    <FolderSimple className="w-3.5 h-3.5 shrink-0" weight="fill" style={{ color: link.collection.color }} />
+                                ) : (
+                                    <FolderSimple className="w-3.5 h-3.5 shrink-0 text-zinc-400" weight="fill" />
+                                )}
                                 {collectionName}
                             </span>
                             <span className="text-zinc-300 dark:text-zinc-700">•</span>
