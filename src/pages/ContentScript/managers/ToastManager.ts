@@ -1,14 +1,36 @@
 import { loadSaveNotificationToastModule } from '../utils/reactLoader';
 import componentStyles from '../components.css?inline';
-import type { ToastLinkData } from '../SaveNotificationToast';
+import type { PreparedToastLink, ToastLinkData } from '../SaveNotificationToast';
+import { getThumbnail } from '../../../@/lib/thumbnailCache';
+import { formatToastDate, getToastLabels } from '../SaveNotificationToast/toastLocale';
 
 let toastHost: HTMLDivElement | null = null;
 let toastShadow: ShadowRoot | null = null;
 let toastRoot: any = null;
 
-let linkQueue: ToastLinkData[] = [];
+let linkQueue: PreparedToastLink[] = [];
 let queueResetTimer: ReturnType<typeof setTimeout> | null = null;
 let renderKey = 0;
+
+function getFaviconUrl(url: string): string {
+    return url ? 'https://www.google.com/s2/favicons?sz=64&domain_url=' + url : '';
+}
+
+async function prepareToastLink(
+    link: ToastLinkData,
+    locale: string,
+    labels: Awaited<ReturnType<typeof getToastLabels>>['labels']
+): Promise<PreparedToastLink> {
+    const thumbnailSrc = (await getThumbnail(link.url)) || getFaviconUrl(link.url);
+
+    return {
+        ...link,
+        collectionLabel: link.collection?.name || labels.unorganized,
+        formattedDate: formatToastDate(link.createdAt, locale, labels.justNow),
+        thumbnailSrc,
+        fallbackIconColor: link.collection?.color,
+    };
+}
 
 export async function showSaveNotification(newLinks: ToastLinkData[]): Promise<void> {
     if (newLinks.length === 0) {
@@ -20,11 +42,13 @@ export async function showSaveNotification(newLinks: ToastLinkData[]): Promise<v
         queueResetTimer = null;
     }
 
-    const existingIds = new Set(linkQueue.map(l => l.id));
-    const uniqueNewLinks = newLinks.filter(l => !existingIds.has(l.id));
-    linkQueue = [...linkQueue, ...uniqueNewLinks];
+    const existingIds = new Set(linkQueue.map((l) => l.id));
+    const uniqueNewLinks = newLinks.filter((l) => !existingIds.has(l.id));
+    const { locale, labels } = await getToastLabels();
+    const preparedUniqueLinks = await Promise.all(uniqueNewLinks.map((link) => prepareToastLink(link, locale, labels)));
+    linkQueue = [...linkQueue, ...preparedUniqueLinks];
 
-    const newLinkIds = uniqueNewLinks.map(l => l.id);
+    const newLinkIds = preparedUniqueLinks.map((l) => l.id);
 
     const { React, createRoot, SaveNotificationToast } = await loadSaveNotificationToastModule();
 
@@ -88,7 +112,8 @@ export async function showSaveNotification(newLinks: ToastLinkData[]): Promise<v
             React.createElement(SaveNotificationToast, {
                 key: renderKey,
                 links: linkQueue,
-                newLinkIds: newLinkIds,
+                labels,
+                newLinkIds,
                 onClose: () => {
                     linkQueue = [];
                     renderKey++;
