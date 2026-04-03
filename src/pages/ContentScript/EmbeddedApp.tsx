@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SaveLinkCard } from '../../@/components/SaveLinkCard.tsx';
-import { getStorageItem, setStorageItem } from '../../@/lib/utils.ts';
-import { isConfigured } from '../../@/lib/config.ts';
 import Modal from '../../@/components/Modal.tsx';
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinkWithHighlights } from '../../@/lib/types/highlight.ts';
@@ -10,20 +8,17 @@ import { ThemeProvider } from '../../@/components/ThemeProvider.tsx';
 import { ThemeDetector } from './SmartCapture/ThemeDetector.ts';
 import { EditLinkView } from '../../@/components/EditLinkView.tsx';
 import { PreferencesView } from '../../@/components/PreferencesView.tsx';
-import { getCurrentUser } from '../../@/lib/actions/users.ts';
-import { getConfig } from '../../@/lib/config.ts';
+import { getExtensionBootstrapState } from '../../@/lib/actions/bootstrap.ts';
+import { getLinkWithHighlights, syncUserLocale } from '../../@/lib/runtime/messages.ts';
 
 const queryClient = new QueryClient();
 
 interface EmbeddedAppProps {
     onClose: () => void;
-    initialTheme?: "dark" | "light" | "system" | "website";
-    cachedUserTheme?: "dark" | "light";
+    initialTheme?: 'dark' | 'light' | 'system' | 'website';
+    cachedUserTheme?: 'dark' | 'light';
 }
 
-// --- Embedded Events (inlined from useEmbeddedEvents) ---
-
-/** Convert toast link data to LinkWithHighlights format */
 function toastLinkToLinkWithHighlights(toastLink: any): LinkWithHighlights {
     return {
         id: toastLink.id,
@@ -97,83 +92,114 @@ function useEmbeddedEvents({ handleClose, setIsVisible, handleSuccess }: {
             window.removeEventListener('grabshark-open-saved', onOpenSaved as EventListener);
             chrome.runtime.onMessage.removeListener(onMessage);
         };
-    }, [handleClose, setIsVisible, isUploadingRef]);
+    }, [handleClose, setIsVisible, handleSuccess]);
 
     return { overrideLink, setOverrideLink, isEditing, setIsEditing, isUploading, setIsUploading, isUploadingRef };
 }
 
-// --- EmbeddedApp Content ---
-
 const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setContainerRef, isVisible, setIsVisible, handleClose, handleThemeLoaded }: any) => {
     const currentUrl = window.location.href;
+    const currentHostname = window.location.hostname;
     const qc = useQueryClient();
     const [isAllConfigured, setIsAllConfigured] = useState<boolean>();
     const [sharedImgSrc, setSharedImgSrc] = useState<string>('');
     const [hasOpened, setHasOpened] = useState(false);
     const [isViewingPreferences, setIsViewingPreferences] = useState(false);
     const [_preferencesOrigin, setPreferencesOrigin] = useState<'save' | 'saved' | null>(null);
+    const [userProfile, setUserProfile] = useState<any | null>(null);
+    const [loadingBootstrap, setLoadingBootstrap] = useState(true);
 
-    // Optimistic cache read
     const [cachedLink] = useState<LinkWithHighlights | null>(() => {
-        try { const c = sessionStorage.getItem(`lw_cache_${currentUrl}`); return c ? JSON.parse(c).link : null; } catch { return null; }
+        try { const cached = sessionStorage.getItem(`lw_cache_${currentUrl}`); return cached ? JSON.parse(cached).link : null; } catch { return null; }
     });
-    const [loading, setLoading] = useState(!cachedLink);
 
-    const { data: savedLink } = useQuery({
+    useEffect(() => {
+        let active = true;
+
+        const loadBootstrap = async () => {
+            try {
+                const bootstrap = await getExtensionBootstrapState(currentHostname);
+                if (!active) return;
+                setIsAllConfigured(bootstrap.configured);
+                setUserProfile(bootstrap.user || null);
+            } catch {
+                if (!active) return;
+                setIsAllConfigured(false);
+                setUserProfile(null);
+            } finally {
+                if (active) setLoadingBootstrap(false);
+            }
+        };
+
+        void loadBootstrap();
+        return () => { active = false; };
+    }, [currentHostname]);
+
+    const { data: savedLink, isLoading: isLinkLoading } = useQuery({
         queryKey: ['link', currentUrl],
         queryFn: async () => {
-            if (!(await isConfigured())) return null;
+            if (!isAllConfigured) return null;
             try {
-                const r = await chrome.runtime.sendMessage({ type: 'GET_LINK_WITH_HIGHLIGHTS', data: { url: currentUrl } });
-                if (r.success && r.data?.link) { try { sessionStorage.setItem(`lw_cache_${currentUrl}`, JSON.stringify({ timestamp: Date.now(), link: r.data.link })); } catch { } return r.data.link as LinkWithHighlights; }
+                const response = await getLinkWithHighlights(currentUrl);
+                if (response?.link) {
+                    try { sessionStorage.setItem(`lw_cache_${currentUrl}`, JSON.stringify({ timestamp: Date.now(), link: response.link })); } catch { }
+                    return response.link as LinkWithHighlights;
+                }
             } catch { }
             return null;
         },
+        enabled: isAllConfigured === true,
         initialData: cachedLink || undefined,
         staleTime: 1000 * 60 * 5,
     });
 
-    useEffect(() => { (async () => { setIsAllConfigured(await isConfigured()); setLoading(false); })(); }, []);
-    useEffect(() => { if (isVisible) { setHasOpened(true); chrome.runtime.sendMessage({ type: 'SYNC_USER_LOCALE' }).catch(() => { }); } }, [isVisible]);
+    useEffect(() => {
+        if (isVisible) {
+            setHasOpened(true);
+            void syncUserLocale().catch(() => { });
+        }
+    }, [isVisible]);
 
-    const [baseUrl, setBaseUrl] = useState<string | null>(null);
-    const [apiKey, setApiKey] = useState<string | null>(null);
-    useEffect(() => { getConfig().then(c => { setBaseUrl(c.baseUrl); setApiKey(c.apiKey); }); }, []);
+    const loading = loadingBootstrap || (isAllConfigured === true && !cachedLink && isLinkLoading);
 
-    const { data: userProfile } = useQuery({
-        queryKey: ['userProfile'],
-        queryFn: () => apiKey && baseUrl ? getCurrentUser(baseUrl, apiKey) : Promise.reject('No config'),
-        enabled: !!apiKey && !!baseUrl, retry: 1, staleTime: 0,
-    });
-
-    const resolveTheme = useCallback((theme: string): "dark" | "light" | undefined => {
+    const resolveTheme = useCallback((theme: string): 'dark' | 'light' | undefined => {
         if (theme === 'website') return new ThemeDetector().isDarkMode() ? 'dark' : 'light';
-        if (theme === 'system') { const t = userProfile?.theme || cachedUserTheme; if (t === 'light' || t === 'dark') return t; }
+        if (theme === 'system') {
+            const resolvedTheme = userProfile?.theme || cachedUserTheme;
+            if (resolvedTheme === 'light' || resolvedTheme === 'dark') return resolvedTheme;
+        }
         return undefined;
     }, [userProfile, cachedUserTheme]);
 
-    useEffect(() => {
-        if (userProfile?.theme) {
-            getStorageItem('cached_user_prefs').then((existing: any) => {
-                const p = existing || {};
-                if (p.theme !== userProfile.theme) setStorageItem('cached_user_prefs', { ...p, theme: userProfile.theme });
-            });
-        }
-    }, [userProfile]);
-
-    const transitionView = (callback: () => void) => {
+    const transitionView = useCallback((callback: () => void) => {
         setIsVisible(false);
         setTimeout(() => { callback(); requestAnimationFrame(() => setIsVisible(true)); }, 300);
-    };
+    }, [setIsVisible]);
 
-    const handleSuccess = (linkData: any, openEdit = false) => {
-        qc.setQueryData(['link', currentUrl], linkData);
-        if (isUploadingRef.current || isUploading) { setIsUploading(false); setIsEditing(openEdit); setIsVisible(true); }
-        else { if (savedLink && savedLink.id === linkData.id && isEditing === openEdit) return; transitionView(() => setIsEditing(openEdit)); }
-    };
+    const successHandlerRef = useRef<(linkData: any, openEdit?: boolean) => void>(() => { });
 
     const { overrideLink, setOverrideLink, isEditing, setIsEditing, isUploading, setIsUploading, isUploadingRef } =
-        useEmbeddedEvents({ handleClose, setIsVisible, handleSuccess });
+        useEmbeddedEvents({
+            handleClose,
+            setIsVisible,
+            handleSuccess: (linkData, openEdit) => successHandlerRef.current(linkData, openEdit),
+        });
+
+    successHandlerRef.current = (linkData: any, openEdit = false) => {
+        qc.setQueryData(['link', currentUrl], linkData);
+        if (isUploadingRef.current || isUploading) {
+            setIsUploading(false);
+            setIsEditing(openEdit);
+            setIsVisible(true);
+            return;
+        }
+
+        if (savedLink && savedLink.id === linkData.id && isEditing === openEdit) {
+            return;
+        }
+
+        transitionView(() => setIsEditing(openEdit));
+    };
 
     const handleHideForCapture = useCallback((callback: () => void) => { setIsVisible(false); setTimeout(callback, 350); }, [setIsVisible]);
     const handleLinkUpdate = (updatedLink: Partial<LinkWithHighlights>) => {
@@ -214,7 +240,7 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
                                                 )}
                                             </>) : (
                                                 <div style={{ display: (effectiveLink || isUploading) ? 'none' : 'block' }}>
-                                                    <SaveLinkCard onClose={handleClose} onSuccess={handleSuccess} onHideForCapture={handleHideForCapture}
+                                                    <SaveLinkCard onClose={handleClose} onSuccess={(linkData, openEdit) => successHandlerRef.current(linkData, openEdit)} onHideForCapture={handleHideForCapture}
                                                         onPreferences={() => { setPreferencesOrigin('save'); transitionView(() => setIsViewingPreferences(true)); }} containerRef={containerRef} />
                                                 </div>
                                             );

@@ -7,21 +7,143 @@ import { BookmarksManager } from './managers/BookmarksManager';
 import { ContextManager } from './managers/ContextManager';
 import { MessageRouter } from './managers/MessageRouter';
 
-
 const browser = getBrowser();
+const SMART_CAPTURE_COMMAND = 'toggle-smart-capture';
 
+function isInjectableUrl(url?: string): boolean {
+  return !!url && /^(https?:|file:)/.test(url);
+}
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-// Initialize Managers
+async function sendMessageToTab(tabId: number, type: string) {
+  return browser.tabs.sendMessage(tabId, { type });
+}
+
+async function ensureContentScriptInjected(tabId: number): Promise<boolean> {
+  try {
+    await chrome.scripting.insertCSS({
+      target: { tabId },
+      files: ['contentScript.css'],
+    });
+  } catch {
+  }
+
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['contentScript.js'],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function toggleEmbeddedMenuOnTab(tabId: number, url?: string): Promise<void> {
+  if (!isInjectableUrl(url)) {
+    return;
+  }
+
+  try {
+    const response = await sendMessageToTab(tabId, 'TOGGLE_EMBEDDED_MENU');
+    if (response?.success !== false) {
+      return;
+    }
+  } catch {
+  }
+
+  try {
+    await sendMessageToTab(tabId, 'EXTENSION_CONFIG_UPDATED');
+  } catch {
+  }
+
+  await sleep(200);
+
+  try {
+    const response = await sendMessageToTab(tabId, 'TOGGLE_EMBEDDED_MENU');
+    if (response?.success !== false) {
+      return;
+    }
+  } catch {
+  }
+
+  const injected = await ensureContentScriptInjected(tabId);
+  if (!injected) {
+    return;
+  }
+
+  await sleep(250);
+
+  try {
+    await sendMessageToTab(tabId, 'EXTENSION_CONFIG_UPDATED');
+  } catch {
+  }
+
+  await sleep(250);
+
+  try {
+    await sendMessageToTab(tabId, 'TOGGLE_EMBEDDED_MENU');
+  } catch {
+  }
+}
+
+async function toggleSmartCaptureOnTab(tabId: number, url?: string): Promise<void> {
+  if (!isInjectableUrl(url)) {
+    return;
+  }
+
+  try {
+    const response = await sendMessageToTab(tabId, 'TOGGLE_SMART_CAPTURE');
+    if (response?.success) {
+      return;
+    }
+  } catch {
+  }
+
+  try {
+    await sendMessageToTab(tabId, 'EXTENSION_CONFIG_UPDATED');
+  } catch {
+  }
+
+  await sleep(200);
+
+  try {
+    const response = await sendMessageToTab(tabId, 'TOGGLE_SMART_CAPTURE');
+    if (response?.success) {
+      return;
+    }
+  } catch {
+  }
+
+  const injected = await ensureContentScriptInjected(tabId);
+  if (!injected) {
+    return;
+  }
+
+  await sleep(250);
+
+  try {
+    await sendMessageToTab(tabId, 'EXTENSION_CONFIG_UPDATED');
+  } catch {
+  }
+
+  await sleep(250);
+
+  try {
+    await sendMessageToTab(tabId, 'TOGGLE_SMART_CAPTURE');
+  } catch {
+  }
+}
+
 new ContextManager();
 new BadgeManager();
-
 new BookmarksManager();
 
-// Cache User Preferences on startup
 const cacheUserPrefs = async () => {
   try {
-
     const config = await getConfig();
     if (config && config.baseUrl && config.apiKey) {
       const user = await getCurrentUser(config.baseUrl, config.apiKey);
@@ -35,42 +157,47 @@ const cacheUserPrefs = async () => {
           theme: user.theme,
         };
         await chrome.storage.local.set({ 'cached_user_prefs': prefs });
-
       }
     }
   } catch {
-    // Silently fail
   }
 };
 
 browser.runtime.onStartup.addListener(cacheUserPrefs);
 browser.runtime.onInstalled.addListener(cacheUserPrefs);
 
-// Toggle Embedded Menu (Extension Icon Click)
+if (browser.commands?.onCommand) {
+  browser.commands.onCommand.addListener(async (command: string) => {
+    if (command !== SMART_CAPTURE_COMMAND) {
+      return;
+    }
+
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    const activeTab = tabs[0];
+
+    if (!activeTab?.id) {
+      return;
+    }
+
+    await toggleSmartCaptureOnTab(activeTab.id, activeTab.url);
+  });
+}
+
 if (browser.action) {
   browser.action.onClicked.addListener(async (tab) => {
     if (tab.id) {
-      try {
-        await browser.tabs.sendMessage(tab.id, { type: 'TOGGLE_EMBEDDED_MENU' });
-      } catch (error) {
-        // Silently ignore if content script is not available (e.g., chrome:// pages)
-      }
+      await toggleEmbeddedMenuOnTab(tab.id, tab.url);
     }
   });
 } else if (browser.browserAction) {
   browser.browserAction.onClicked.addListener(async (tab) => {
     if (tab.id) {
-      try {
-        await browser.tabs.sendMessage(tab.id, { type: 'TOGGLE_EMBEDDED_MENU' });
-      } catch (error) {
-        // Silently ignore if content script is not available (e.g., chrome:// pages)
-      }
+      await toggleEmbeddedMenuOnTab(tab.id, tab.url);
     }
   });
 }
 
-// Central Message Routing
 browser.runtime.onMessage.addListener((message: any, sender: any, sendResponse: any) => {
   MessageRouter.route(message, sender, sendResponse);
-  return true; // Keep message channel open for async response
+  return true;
 });

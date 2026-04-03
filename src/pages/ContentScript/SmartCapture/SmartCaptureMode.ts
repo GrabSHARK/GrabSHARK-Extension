@@ -89,6 +89,10 @@ export class SmartCaptureMode {
     }
 
     public updateShortcut(config: ShortcutConfig) { this.shortcutConfig = config; }
+    public setEnabled(enabled: boolean): void {
+        this.enableSmartCapture = enabled;
+        if (!enabled && this.isActive) this.deactivate();
+    }
     public setContainer(containerSelector: string | null): void {
         this.selectableUnits.setContainerSelector(containerSelector);
         this.containerElement = containerSelector ? document.querySelector(containerSelector) : null;
@@ -295,3 +299,5 @@ export class SmartCaptureMode {
         try { document.removeEventListener('keydown', this.globalKeydownHandler); document.removeEventListener('keyup', this.globalKeyupHandler); } catch { }
     }
 }
+
+

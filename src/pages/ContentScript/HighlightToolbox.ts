@@ -20,6 +20,18 @@ export interface ToolboxCallbacks {
     onClose: () => void;
 }
 
+const EXTENSION_MARKER_ID = 'grabshark-extension-installed';
+
+function setDebugState(state: Record<string, string | number | boolean | null | undefined>): void {
+    const marker = document.getElementById(EXTENSION_MARKER_ID);
+    if (!marker) return;
+    Object.entries(state).forEach(([key, value]) => {
+        const attr = `data-${key}`;
+        if (value === null || typeof value === 'undefined') marker.removeAttribute(attr);
+        else marker.setAttribute(attr, String(value));
+    });
+}
+
 export class HighlightToolbox {
     private container: HTMLDivElement | null = null;
     private host: HTMLDivElement | null = null;
@@ -55,6 +67,7 @@ export class HighlightToolbox {
     private ensureContainer(): void {
         if (this.container) return;
 
+        setDebugState({ toolboxStage: 'creating-host' });
         this.host = document.createElement('div');
         this.host.id = 'ext-lw-highlight-toolbox-host';
         Object.assign(this.host.style, { position: 'absolute', top: '0', left: '0', width: '0', height: '0', zIndex: '2147483647', pointerEvents: 'none' });
@@ -119,6 +132,7 @@ export class HighlightToolbox {
         highlightIdsInSelection?: number[],
         defaultColor: HighlightColor = 'yellow'
     ): void {
+        setDebugState({ toolboxStage: 'show-called', toolboxX: position.x, toolboxY: position.y, hasExistingHighlight: !!existingHighlight, linkCount: providedLinks?.length ?? 0 });
         this.ensureContainer();
         if (!this.container) return;
 
@@ -199,6 +213,7 @@ export class HighlightToolbox {
         }
 
         positionWithinViewport(this.container, this._isCommentMode, this._position, this._targetRect);
+        setDebugState({ toolboxStage: 'render-positioned', toolboxLeft: this.container.style.left, toolboxTop: this.container.style.top, toolboxTransform: this.container.style.transform, commentMode: this._isCommentMode });
 
         if (this._isCommentMode) {
             this.renderCommentMode();
@@ -259,6 +274,7 @@ export class HighlightToolbox {
             if (this.container) {
                 if (!this.hasManualPosition) {
                     positionWithinViewport(this.container, this._isCommentMode, this._position, this._targetRect);
+        setDebugState({ toolboxStage: 'render-positioned', toolboxLeft: this.container.style.left, toolboxTop: this.container.style.top, toolboxTransform: this.container.style.transform, commentMode: this._isCommentMode });
                 }
                 setTimeout(() => {
                     if (this.container) {
@@ -297,3 +313,9 @@ export function showToast(message: string, type: 'success' | 'error' = 'success'
 
     setTimeout(() => { toast.remove(); }, 3000);
 }
+
+
+
+
+
+

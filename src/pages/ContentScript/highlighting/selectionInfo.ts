@@ -5,6 +5,33 @@
 import { HighlightAnchor } from '../../../@/lib/types/highlight';
 import { captureAnchor } from '../anchorUtils';
 
+function getSelectionRect(range: Range): DOMRect {
+    const rect = range.getBoundingClientRect();
+    if (rect.width > 0 || rect.height > 0) {
+        return rect;
+    }
+
+    const clientRects = Array.from(range.getClientRects());
+    if (clientRects.length === 0) {
+        return rect;
+    }
+
+    const first = clientRects[0];
+    let left = first.left;
+    let top = first.top;
+    let right = first.right;
+    let bottom = first.bottom;
+
+    for (const current of clientRects.slice(1)) {
+        left = Math.min(left, current.left);
+        top = Math.min(top, current.top);
+        right = Math.max(right, current.right);
+        bottom = Math.max(bottom, current.bottom);
+    }
+
+    return new DOMRect(left, top, right - left, bottom - top);
+}
+
 /**
  * Get the selection info for creating a new highlight
  * Includes anchor data for Weighted Voting System
@@ -26,7 +53,7 @@ export function getSelectionInfo(): {
 
     if (!text) return null;
 
-    const rect = range.getBoundingClientRect();
+    const rect = getSelectionRect(range);
 
     let startOffset = -1;
     let endOffset = -1;
