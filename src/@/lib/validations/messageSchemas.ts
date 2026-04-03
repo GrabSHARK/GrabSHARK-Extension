@@ -121,6 +121,25 @@ export const GetDomainPreferenceSchema = z.object({
     domain: z.string().min(1),
 });
 
+export const SetDomainPreferenceSchema = z.object({
+    domain: z.string().min(1),
+    enableSmartCapture: z.boolean().optional(),
+    enableSelectionMenu: z.boolean().optional(),
+}).refine(
+    (value) => typeof value.enableSmartCapture !== 'undefined' || typeof value.enableSelectionMenu !== 'undefined',
+    { message: 'At least one domain preference field is required' },
+);
+
+export const SuggestTagsSchema = z.object({
+    url: z.string().url(),
+    title: z.string().optional(),
+    description: z.string().optional(),
+});
+
+export const BootstrapExtensionStateSchema = z.object({
+    domain: z.string().min(1).optional(),
+}).passthrough();
+
 // --- Mapping: message.type → schema for message.data ---
 export const MESSAGE_SCHEMAS: Record<string, z.ZodSchema> = {
     VERIFY_SESSION: VerifySessionSchema,
@@ -141,4 +160,8 @@ export const MESSAGE_SCHEMAS: Record<string, z.ZodSchema> = {
     UPLOAD_CLIP: UploadClipSchema,
     DOWNLOAD_DATA_URL: DownloadDataUrlSchema,
     OPEN_TAB: OpenTabSchema,
+    GET_DOMAIN_PREFERENCE: GetDomainPreferenceSchema,
+    SET_DOMAIN_PREFERENCE: SetDomainPreferenceSchema,
+    SUGGEST_TAGS: SuggestTagsSchema,
+    BOOTSTRAP_EXTENSION_STATE: BootstrapExtensionStateSchema,
 };

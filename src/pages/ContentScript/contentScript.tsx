@@ -181,12 +181,25 @@ function createExternalSmartCaptureCallbacks(ctx: SmartCaptureInitContext) {
 
 // --- Message Handlers ---
 
+function postMessageToManagedFrames(message: Record<string, unknown>): void {
+    document.querySelectorAll('iframe').forEach((iframe) => {
+        try {
+            const frameUrl = iframe.getAttribute('src');
+            if (frameUrl) {
+                const origin = new URL(frameUrl, window.location.href).origin;
+                if (origin !== window.location.origin) return;
+            }
+            iframe.contentWindow?.postMessage(message, window.location.origin);
+        } catch { }
+    });
+}
+
 function processExtensionMessage(event: MessageEvent): void {
     if (event.data?.type === 'LW_PING') {
         try {
             chrome.runtime.sendMessage({ type: 'CHECK_CONFIG' }, (response) => {
                 const configured = response?.success && response?.data?.configured;
-                window.postMessage({ type: 'LW_PONG', version: '1.3.3', configured }, '*');
+                window.postMessage({ type: 'LW_PONG', version: '1.3.3', configured }, window.location.origin);
             });
         } catch { }
         return;
@@ -198,7 +211,7 @@ function processExtensionMessage(event: MessageEvent): void {
             if (lwEl) smartCaptureMode.setContainer('[data-lw-link-id]');
             smartCaptureMode.toggle();
         } else {
-            document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'GrabSHARK_SMART_CAPTURE' }, '*'); } catch { } });
+            postMessageToManagedFrames({ type: 'GrabSHARK_SMART_CAPTURE' });
         }
     }
 
@@ -214,13 +227,13 @@ function processExtensionMessage(event: MessageEvent): void {
                 });
             }
         } else {
-            document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'GrabSHARK_CLIP', selection: event.data.selection }, '*'); } catch { } });
+            postMessageToManagedFrames({ type: 'GrabSHARK_CLIP', selection: event.data.selection });
         }
     }
 
     if (event.data?.type === 'GrabSHARK_DEACTIVATE_SMART_CAPTURE') {
         smartCaptureMode?.deactivate();
-        document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'GrabSHARK_DEACTIVATE_SMART_CAPTURE' }, '*'); } catch { } });
+        postMessageToManagedFrames({ type: 'GrabSHARK_DEACTIVATE_SMART_CAPTURE' });
     }
 }
 

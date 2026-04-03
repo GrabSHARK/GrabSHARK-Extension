@@ -6,20 +6,19 @@ import { MediaManager } from './MediaManager';
 import { getCollections } from '../../../@/lib/actions/collections';
 import { getTags } from '../../../@/lib/actions/tags';
 import { MESSAGE_SCHEMAS } from '../../../@/lib/validations/messageSchemas';
+import { BootstrapManager } from './BootstrapManager';
 
 export class MessageRouter {
 
     static async route(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
         try {
-            // Security: Reject messages from other extensions or external sources
             if (sender.id && sender.id !== chrome.runtime.id) {
                 sendResponse({ success: false, error: 'Unauthorized sender' });
                 return;
             }
 
-            // Security: Validate message.data payload against Zod schema (if schema exists for this type)
             const schema = MESSAGE_SCHEMAS[message.type];
-            if (schema && message.data) {
+            if (schema && typeof message.data !== 'undefined') {
                 const result = schema.safeParse(message.data);
                 if (!result.success) {
                     sendResponse({ success: false, error: `Invalid payload: ${result.error.issues.map(i => i.message).join(', ')}` });
@@ -30,10 +29,17 @@ export class MessageRouter {
             const configured = await isConfigured();
             const config = await getConfig();
 
-
             switch (message.type) {
                 case 'CHECK_CONFIG':
                     sendResponse({ success: true, data: { configured, baseUrl: config.baseUrl } });
+                    break;
+
+                case 'BOOTSTRAP_EXTENSION_STATE':
+                    if (!configured) {
+                        sendResponse({ success: true, data: { configured: false, baseUrl: config.baseUrl } });
+                        break;
+                    }
+                    sendResponse(await BootstrapManager.getBootstrapState(config, message.data?.domain));
                     break;
 
                 case 'VERIFY_SESSION':
@@ -54,7 +60,6 @@ export class MessageRouter {
                     sendResponse(await UserManager.syncLocale(configured, config));
                     break;
 
-                // --- LINKS ---
                 case 'GET_LINK_WITH_HIGHLIGHTS':
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.getHighlights(config, message.data.url));
@@ -101,7 +106,6 @@ export class MessageRouter {
                     sendResponse(await LinksManager.createLink(config, payload, sender));
                     break;
 
-                // --- HIGHLIGHTS ---
                 case 'CREATE_HIGHLIGHT':
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.createHighlight(config, message.data));
@@ -117,7 +121,6 @@ export class MessageRouter {
                     sendResponse(await LinksManager.createFileHighlight(config, message.data));
                     break;
 
-                // --- MEDIA ---
                 case 'FETCH_IMAGE_BLOB':
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     const blobRes = await MediaManager.fetchImageBlob(config, message.data.url);
@@ -157,13 +160,14 @@ export class MessageRouter {
                     }
                     break;
 
-                // --- COLLECTIONS / TAGS ---
                 case 'GET_COLLECTIONS':
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     try {
                         const result = await getCollections(config.baseUrl, config.apiKey);
                         sendResponse({ success: true, data: result.data });
-                    } catch (e) { sendResponse({ success: false, error: 'Failed' }); }
+                    } catch {
+                        sendResponse({ success: false, error: 'Failed' });
+                    }
                     break;
 
                 case 'GET_TAGS':
@@ -171,11 +175,27 @@ export class MessageRouter {
                     try {
                         const result = await getTags(config.baseUrl, config.apiKey);
                         sendResponse({ success: true, data: result.data });
-                    } catch (e) { sendResponse({ success: false, error: 'Failed' }); }
+                    } catch {
+                        sendResponse({ success: false, error: 'Failed' });
+                    }
+                    break;
+
+                case 'GET_DOMAIN_PREFERENCE':
+                    if (!configured) { sendResponse({ success: true, data: { configured: false, baseUrl: config.baseUrl } }); break; }
+                    sendResponse(await BootstrapManager.getDomainPreference(config, message.data.domain));
+                    break;
+
+                case 'SET_DOMAIN_PREFERENCE':
+                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
+                    sendResponse(await BootstrapManager.setDomainPreference(config, message.data));
+                    break;
+
+                case 'SUGGEST_TAGS':
+                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
+                    sendResponse(await BootstrapManager.suggestTags(config, message.data));
                     break;
 
                 case 'OPEN_TAB':
-                    // Security: Only allow http/https URLs to prevent javascript: or data: injection
                     try {
                         const tabUrl = new URL(message.data.url);
                         if (tabUrl.protocol !== 'http:' && tabUrl.protocol !== 'https:') {
@@ -194,11 +214,8 @@ export class MessageRouter {
                     sendResponse({ success: true });
                     break;
 
-                // For now, keep un-refactored simple cases here or move them later
-
                 default:
                     if (message.type === 'BROADCAST_PREFERENCES_UPDATED') {
-                        // Logic for broadcast
                         const tabs = await chrome.tabs.query({});
                         for (const tab of tabs) {
                             if (tab.id) chrome.tabs.sendMessage(tab.id, { type: 'PREFERENCES_UPDATED', data: message.data }).catch(() => { });
@@ -210,7 +227,6 @@ export class MessageRouter {
             }
 
         } catch (e) {
-
             sendResponse({ success: false, error: String(e) });
         }
     }
