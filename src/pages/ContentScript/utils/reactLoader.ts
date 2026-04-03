@@ -1,53 +1,77 @@
 /**
- * Shared React Loader — Central utility for lazy-loading the React ecosystem
- * 
- * All modules that need React (EmbeddedMenuManager, CaptureActionBar, ToastManager)
- * use this loader instead of statically importing React. The actual React code
- * is in embeddedUI.js which is loaded on-demand.
- * 
- * Pattern: First call loads the script, subsequent calls return cached reference.
+ * Shared React Loader — lazily loads only the heavy UI component entrypoints.
  */
 
-export interface GrabSHARKReactModule {
-    createRoot: typeof import('react-dom/client').createRoot;
-    React: typeof import('react');
-    EmbeddedApp: any;
-    CaptureDock: any;
-    SaveNotificationToast: any;
-}
+import {
+    getRegisteredLazyComponent,
+    type EmbeddedAppModule,
+    type CaptureDockModule,
+    type SaveNotificationToastModule,
+    type LazyComponentName,
+} from './lazyComponentRegistry';
 
-let loaded = false;
-let cachedModule: GrabSHARKReactModule | null = null;
-let loadPromise: Promise<GrabSHARKReactModule> | null = null;
+export type EmbeddedAppReactModule = EmbeddedAppModule;
+export type CaptureDockReactModule = CaptureDockModule;
+export type SaveNotificationToastReactModule = SaveNotificationToastModule;
 
-/**
- * Load the React UI module. First call dynamically imports the ES module,
- * subsequent calls return the cached module immediately.
- */
-export function loadReactModule(): Promise<GrabSHARKReactModule> {
-    // Already loaded — return immediately
-    if (loaded && cachedModule) {
-        return Promise.resolve(cachedModule);
+const moduleCache = new Map<string, unknown>();
+const loadPromises = new Map<string, Promise<unknown>>();
+
+function normalizeComponentModule<T extends Record<string, any>, K extends LazyComponentName>(
+    module: any,
+    exportName: K,
+): T {
+    const candidate = getRegisteredLazyComponent(exportName)
+        ?? module?.[exportName]
+        ?? module?.default?.[exportName]
+        ?? module?.default;
+
+    if (!candidate) {
+        throw new Error(`[GrabSHARK] Missing export "${exportName}" in lazy entry module`);
     }
 
-    // Loading in progress — return existing promise
-    if (loadPromise) return loadPromise;
+    return candidate as T;
+}
 
-    // First load — dynamic import in the content script's isolated world.
-    // Unlike <script> tags (main world) or eval (blocked by CSP), import()
-    // runs in the isolated world with full chrome.* API access.
-    loadPromise = (async () => {
+async function loadExtensionModule<K extends LazyComponentName, T extends Record<string, any>>(
+    entryFile: string,
+    exportName: K,
+): Promise<T> {
+    const cacheKey = `${entryFile}:${exportName}`;
+    const cached = moduleCache.get(cacheKey) as T | undefined;
+    if (cached) {
+        return cached;
+    }
+
+    const existingPromise = loadPromises.get(cacheKey) as Promise<T> | undefined;
+    if (existingPromise) {
+        return existingPromise;
+    }
+
+    const loadPromise = (async () => {
         try {
-            const url = chrome.runtime.getURL('embeddedUI.js');
-            const module = await import(/* @vite-ignore */ url);
-            loaded = true;
-            cachedModule = module as GrabSHARKReactModule;
-            return cachedModule;
+            const module = await import(/* @vite-ignore */ chrome.runtime.getURL(entryFile));
+            const normalized = normalizeComponentModule<T, K>(module, exportName);
+            moduleCache.set(cacheKey, normalized);
+            return normalized;
         } catch (err) {
-            loadPromise = null;
-            throw err instanceof Error ? err : new Error('[GrabSHARK] Failed to load embeddedUI.js');
+            loadPromises.delete(cacheKey);
+            throw err instanceof Error ? err : new Error(`[GrabSHARK] Failed to load ${entryFile}`);
         }
     })();
 
+    loadPromises.set(cacheKey, loadPromise);
     return loadPromise;
+}
+
+export function loadEmbeddedAppModule(): Promise<EmbeddedAppReactModule> {
+    return loadExtensionModule<'EmbeddedApp', EmbeddedAppReactModule>('embeddedUI.js', 'EmbeddedApp');
+}
+
+export function loadCaptureDockModule(): Promise<CaptureDockReactModule> {
+    return loadExtensionModule<'CaptureDock', CaptureDockReactModule>('captureDock.js', 'CaptureDock');
+}
+
+export function loadSaveNotificationToastModule(): Promise<SaveNotificationToastReactModule> {
+    return loadExtensionModule<'SaveNotificationToast', SaveNotificationToastReactModule>('saveNotificationToast.js', 'SaveNotificationToast');
 }

@@ -18,18 +18,13 @@ export default defineConfig({
         minify: process.env.NODE_ENV === 'development' ? false : 'esbuild',
         rollupOptions: {
             input: {
-                embeddedUI: path.resolve(__dirname, 'src/pages/ContentScript/embeddedEntries/embeddedApp.ts'),
-                captureDock: path.resolve(__dirname, 'src/pages/ContentScript/embeddedEntries/captureDock.ts'),
-                saveNotificationToast: path.resolve(__dirname, 'src/pages/ContentScript/embeddedEntries/saveNotificationToast.ts'),
+                contentMain: path.resolve(__dirname, 'src/pages/ContentScript/contentMain.tsx'),
             },
             output: {
                 format: 'es',
                 entryFileNames: '[name].js',
                 chunkFileNames: 'assets/[name]-[hash].js',
-                assetFileNames: (assetInfo) => {
-                    if (assetInfo.name === 'style.css') return 'embeddedUI.css';
-                    return 'assets/[name]-[hash][extname]';
-                },
+                assetFileNames: 'assets/[name]-[hash][extname]',
             },
         },
     },
