@@ -1,12 +1,12 @@
 import Container from '../../@/components/Container.tsx';
 import WholeContainer from '../../@/components/WholeContainer.tsx';
 import BookmarkForm from '../../@/components/BookmarkForm.tsx';
-import { useEffect, useState } from 'react';
-import { getConfig, isConfigured } from '../../@/lib/config.ts';
+import { useCallback, useEffect, useState } from 'react';
 import Modal from '../../@/components/Modal.tsx';
 import { ModeToggle } from '../../@/components/ModeToggle.tsx';
 import { useQueryClient } from '@tanstack/react-query';
 import { Settings2 } from 'lucide-react';
+import { getExtensionBootstrapState } from '../../@/lib/actions/bootstrap.ts';
 
 function App() {
   const [isAllConfigured, setIsAllConfigured] = useState<boolean>();
@@ -14,36 +14,31 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const queryClient = useQueryClient();
 
+  const loadBootstrap = useCallback(async () => {
+    try {
+      const bootstrap = await getExtensionBootstrapState();
+      setBaseUrl(bootstrap.baseUrl || bootstrap.config?.baseUrl || '');
+      setIsAllConfigured(bootstrap.configured);
+
+      queryClient.setQueryData(['extensionBootstrap'], bootstrap);
+      queryClient.setQueryData(['tags'], bootstrap.tags || []);
+      queryClient.setQueryData(['collections'], bootstrap.collections || []);
+      queryClient.setQueryData(['userProfile'], bootstrap.user || null);
+    } catch {
+      setIsAllConfigured(false);
+      setBaseUrl('');
+    }
+  }, [queryClient]);
+
   useEffect(() => {
-    (async () => {
-      const cachedOptions = await isConfigured();
-      const cachedConfig = await getConfig();
-      setBaseUrl(cachedConfig.baseUrl);
-      setIsAllConfigured(cachedOptions);
+    loadBootstrap();
+  }, [loadBootstrap]);
 
-      // Prefetch tags
-      if (cachedOptions) {
-        queryClient.prefetchQuery({
-          queryKey: ['tags'],
-          queryFn: async () => {
-            const response = await chrome.runtime.sendMessage({ type: 'GET_TAGS' });
-            return response.data || [];
-          },
-          staleTime: 5 * 60 * 1000,
-        });
-      }
-    })();
-  }, [isAllConfigured]); // Re-run when configured status changes
-
-  // Triggered when Modal (Preferences) closes or resets
   const handleModalClose = async () => {
     setShowSettings(false);
-    // Re-check config in case of reset
-    const configured = await isConfigured();
-    setIsAllConfigured(configured);
-  }
+    await loadBootstrap();
+  };
 
-  // Ensure Modal is open if not configured (Step 1) OR if requested (Step 3)
   const isModalOpen = !isAllConfigured || showSettings;
   const initialStep = !isAllConfigured ? 1 : 3;
 
@@ -81,11 +76,10 @@ function App() {
         </div>
         <BookmarkForm />
 
-        {/* Unified Wizard Modal */}
         <Modal
           open={!!isModalOpen}
           initialStep={initialStep}
-          onClose={isAllConfigured ? handleModalClose : undefined} // Only allow close if configured
+          onClose={isAllConfigured ? handleModalClose : undefined}
         />
       </Container>
     </WholeContainer>

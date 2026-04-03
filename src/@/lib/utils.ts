@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getLinksFetch } from './actions/links.ts';
+import { checkLinkExists } from './actions/links.ts';
 import { getConfig } from './config.ts';
 
 export function cn(...inputs: ClassValue[]) {
@@ -51,11 +51,13 @@ export const checkDuplicatedItem = async () => {
   try {
     const config = await getConfig();
     const currentTab = await getCurrentTabInfo();
-    const { response } = await getLinksFetch(config.baseUrl, config.apiKey);
-    const formatLinks = response.map((link) => link.url);
-    return formatLinks.includes(currentTab.url ?? '');
+
+    if (!currentTab.url) {
+      return false;
+    }
+
+    return await checkLinkExists(config.baseUrl, config.apiKey, currentTab.url);
   } catch {
-    // Silently fail if not configured or network error
     return false;
   }
 };
@@ -74,7 +76,6 @@ export function openOptions() {
   if (browser.runtime.openOptionsPage) {
     browser.runtime.openOptionsPage();
   } else {
-    // Fallback: send message to background script
     return (browser.runtime.sendMessage as any)({ type: 'OPEN_OPTIONS_PAGE' });
   }
 }

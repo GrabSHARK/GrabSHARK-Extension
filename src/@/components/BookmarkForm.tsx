@@ -9,7 +9,6 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { getConfig, isConfigured } from '../lib/config.ts';
 import { postLink } from '../lib/actions/links.ts';
-import { AxiosError } from 'axios';
 import { toast } from '../../hooks/use-toast.ts';
 import { getCollections, ResponseCollections } from '../lib/actions/collections.ts';
 import { getTags, ResponseTags } from '../lib/actions/tags.ts';
@@ -28,7 +27,12 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
   const [uploadImage, setUploadImage] = useState<boolean>(false);
   const [state, setState] = useState<'capturing' | 'uploading' | null>(null);
 
-  const handleCheckedChange = (s: boolean | 'indeterminate') => { if (s !== 'indeterminate') { setUploadImage(s); form.setValue('image', s ? 'png' : undefined); } };
+  const handleCheckedChange = (s: boolean | 'indeterminate') => {
+    if (s !== 'indeterminate') {
+      setUploadImage(s);
+      form.setValue('image', s ? 'png' : undefined);
+    }
+  };
 
   const form = useForm<bookmarkFormValues>({
     resolver: zodResolver(bookmarkFormSchema),
@@ -42,15 +46,26 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
       return result?.data?.response;
     },
     onError: (error) => {
-      if (error instanceof AxiosError) {
-        if (error.response?.status === 409) { toast({ title: t('bookmark.alreadySavedTitle'), description: t('bookmark.alreadySavedDesc') }); setIsDuplicate(true); return; }
-        toast({ title: t('bookmark.errorTitle'), description: error.response?.data.response || t('bookmark.errorGeneric'), variant: 'destructive' });
-      } else { toast({ title: t('bookmark.errorTitle'), description: (error as Error).message || t('bookmark.errorGeneric'), variant: 'destructive' }); }
+      const message = error instanceof Error ? error.message : t('bookmark.errorGeneric');
+      if (message.includes('409')) {
+        toast({ title: t('bookmark.alreadySavedTitle'), description: t('bookmark.alreadySavedDesc') });
+        setIsDuplicate(true);
+        return;
+      }
+
+      toast({
+        title: t('bookmark.errorTitle'),
+        description: message || t('bookmark.errorGeneric'),
+        variant: 'destructive',
+      });
     },
     onSuccess: (data) => {
       toast({ title: t('bookmark.successTitle'), description: t('bookmark.successDesc') });
       if (onSuccess && data) onSuccess(data);
-      else { setIsDuplicate(true); setTimeout(() => { if (onClose) onClose(); else window.close(); }, 1500); }
+      else {
+        setIsDuplicate(true);
+        setTimeout(() => { if (onClose) onClose(); else window.close(); }, 1500);
+      }
     },
   });
 
@@ -58,12 +73,13 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
 
   useEffect(() => {
     (async () => {
-      const [tabInfo, config, isConf, isDup] = await Promise.all([getCurrentTabInfo(), getConfig(), isConfigured(), checkDuplicatedItem()]);
+      const [tabInfo, config, isConf] = await Promise.all([getCurrentTabInfo(), getConfig(), isConfigured()]);
+      const duplicate = await checkDuplicatedItem();
       form.setValue('url', tabInfo.url || '');
       form.setValue('name', tabInfo.title || '');
       form.setValue('collection', { name: config.defaultCollection });
       configured = isConf;
-      setIsDuplicate(isDup);
+      setIsDuplicate(duplicate);
     })();
   }, [form]);
 
@@ -79,13 +95,21 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
 
   const { isLoading: loadingCollections, data: collections, error: collectionError } = useQuery({
     queryKey: ['collections'],
-    queryFn: async () => { const c = await getConfig(); const r = await getCollections(c.baseUrl, c.apiKey); return r.data.response.sort((a: ResponseCollections, b: ResponseCollections) => (a.pathname || '').localeCompare(b.pathname || '')); },
+    queryFn: async () => {
+      const c = await getConfig();
+      const r = await getCollections(c.baseUrl, c.apiKey);
+      return r.data.response.sort((a: ResponseCollections, b: ResponseCollections) => (a.pathname || '').localeCompare(b.pathname || ''));
+    },
     enabled: configured,
   });
 
   const { isLoading: loadingTags, data: tags, error: tagsError } = useQuery({
     queryKey: ['tags'],
-    queryFn: async () => { const c = await getConfig(); const r = await getTags(c.baseUrl, c.apiKey); return r.data.response.sort((a: ResponseTags, b: ResponseTags) => a.name.localeCompare(b.name)); },
+    queryFn: async () => {
+      const c = await getConfig();
+      const r = await getTags(c.baseUrl, c.apiKey);
+      return r.data.response.sort((a: ResponseTags, b: ResponseTags) => a.name.localeCompare(b.name));
+    },
     enabled: configured,
   });
 
@@ -103,9 +127,9 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
               {openOptions ? t('bookmark.hide') : t('bookmark.more')} {t('bookmark.options')}
             </div>
             <Button disabled={isLoading || isDuplicate} type="submit"
-              className={cn("w-full h-9 rounded-lg font-medium text-sm mt-1 transition-all duration-300",
-                isDuplicate ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 shadow-none pointer-events-none"
-                  : "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_rgba(37,99,235,0.45)]")}>
+              className={cn('w-full h-9 rounded-lg font-medium text-sm mt-1 transition-all duration-300',
+                isDuplicate ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 shadow-none pointer-events-none'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_rgba(37,99,235,0.45)]')}>
               {isDuplicate ? t('bookmark.saved') : t('bookmark.save')}
             </Button>
           </div>
