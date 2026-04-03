@@ -8,7 +8,7 @@
   "description": "GrabSHARK browser extension",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && vite build -c vite.config.content.ts && vite build -c vite.config.embedded.ts",
+    "build": "tsc && vite build && vite build -c vite.config.content.ts && vite build -c vite.config.embedded.ts && node ./scripts/report-bundles.mjs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
