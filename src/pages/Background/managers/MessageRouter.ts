@@ -1,15 +1,15 @@
-import { getConfig, isConfigured } from '../../../@/lib/config';
+import { getConfig } from '../../../@/lib/config';
 import { AuthManager } from './AuthManager';
 import { UserManager } from './UserManager';
 import { LinksManager } from './LinksManager';
 import { MediaManager } from './MediaManager';
-import { getCollections } from '../../../@/lib/actions/collections';
-import { getTags } from '../../../@/lib/actions/tags';
 import { MESSAGE_SCHEMAS } from '../../../@/lib/validations/messageSchemas';
 import { BootstrapManager } from './BootstrapManager';
+import { ConfigManager } from './ConfigManager';
+import { CollectionsManager } from './CollectionsManager';
+import { PreferencesManager } from './PreferencesManager';
 
 export class MessageRouter {
-
     static async route(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
         try {
             if (sender.id && sender.id !== chrome.runtime.id) {
@@ -26,12 +26,24 @@ export class MessageRouter {
                 }
             }
 
-            const configured = await isConfigured();
             const config = await getConfig();
+            const configured = !!config.baseUrl && !!config.apiKey;
 
             switch (message.type) {
                 case 'CHECK_CONFIG':
-                    sendResponse({ success: true, data: { configured, baseUrl: config.baseUrl } });
+                    sendResponse(await ConfigManager.checkConfigured());
+                    break;
+
+                case 'GET_EXTENSION_CONFIG':
+                    sendResponse(await ConfigManager.getConfig());
+                    break;
+
+                case 'SAVE_EXTENSION_CONFIG':
+                    sendResponse(await ConfigManager.saveConfig(message.data));
+                    break;
+
+                case 'CLEAR_EXTENSION_CONFIG':
+                    sendResponse(await ConfigManager.clearConfig());
                     break;
 
                 case 'BOOTSTRAP_EXTENSION_STATE':
@@ -60,14 +72,66 @@ export class MessageRouter {
                     sendResponse(await UserManager.syncLocale(configured, config));
                     break;
 
-                case 'GET_LINK_WITH_HIGHLIGHTS':
+                case 'GET_EXTENSION_PREFERENCES':
+                    sendResponse(await PreferencesManager.getPreferences());
+                    break;
+
+                case 'SAVE_EXTENSION_PREFERENCES':
+                    sendResponse(await PreferencesManager.savePreferences(message.data));
+                    break;
+
+                case 'GET_SITE_OVERRIDES':
+                    sendResponse(await PreferencesManager.getSiteOverrides());
+                    break;
+
+                case 'SAVE_SITE_OVERRIDE':
+                    sendResponse(await PreferencesManager.saveSiteOverride(message.data));
+                    break;
+
+                case 'CLEAR_SITE_OVERRIDE':
+                    sendResponse(await PreferencesManager.clearSiteOverride(message.data));
+                    break;
+
+                case 'GET_EFFECTIVE_PREFERENCES':
+                    sendResponse(await PreferencesManager.getEffectivePreferences(message.data?.hostname));
+                    break;
+
+                case 'GET_LOCALE_SETTINGS':
+                    sendResponse(await PreferencesManager.getLocaleSettings());
+                    break;
+
+                case 'SAVE_LOCALE_SETTINGS':
+                    sendResponse(await PreferencesManager.saveLocaleSettings(message.data));
+                    break;
+
+                case 'GET_COLLECTIONS':
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
-                    sendResponse(await LinksManager.getHighlights(config, message.data.url));
+                    sendResponse(await CollectionsManager.getCollections(config));
+                    break;
+
+                case 'GET_TAGS':
+                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
+                    sendResponse(await CollectionsManager.getTags(config));
                     break;
 
                 case 'CREATE_LINK':
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
-                    sendResponse(await LinksManager.createLink(config, message.data, sender));
+                    sendResponse(await LinksManager.createLegacyLink(config, message.data, sender));
+                    break;
+
+                case 'GET_HIGHLIGHTS_BY_LINK_ID':
+                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
+                    sendResponse(await LinksManager.getHighlightsByLinkId(config, message.data.linkId));
+                    break;
+
+                case 'GET_FILE_HIGHLIGHTS':
+                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
+                    sendResponse(await LinksManager.getFileHighlights(config, message.data.fileId));
+                    break;
+
+                case 'GET_LINK_WITH_HIGHLIGHTS':
+                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
+                    sendResponse(await LinksManager.getHighlights(config, message.data.url));
                     break;
 
                 case 'UPDATE_LINK':
@@ -102,8 +166,7 @@ export class MessageRouter {
 
                 case 'SAVE_LINK_FROM_EXTENSION':
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
-                    const payload = { ...message.data.values, aiTagged: message.data.aiTagged };
-                    sendResponse(await LinksManager.createLink(config, payload, sender));
+                    sendResponse(await LinksManager.createLink(config, { ...message.data.values, aiTagged: message.data.aiTagged }, sender));
                     break;
 
                 case 'CREATE_HIGHLIGHT':
@@ -123,8 +186,7 @@ export class MessageRouter {
 
                 case 'FETCH_IMAGE_BLOB':
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
-                    const blobRes = await MediaManager.fetchImageBlob(config, message.data.url);
-                    sendResponse(blobRes);
+                    sendResponse(await MediaManager.fetchImageBlob(config, message.data.url));
                     break;
 
                 case 'SAVE_IMAGE':
@@ -157,26 +219,6 @@ export class MessageRouter {
                         sendResponse({ success: true });
                     } catch (error) {
                         sendResponse({ success: false, error: String(error) });
-                    }
-                    break;
-
-                case 'GET_COLLECTIONS':
-                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
-                    try {
-                        const result = await getCollections(config.baseUrl, config.apiKey);
-                        sendResponse({ success: true, data: result.data });
-                    } catch {
-                        sendResponse({ success: false, error: 'Failed' });
-                    }
-                    break;
-
-                case 'GET_TAGS':
-                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
-                    try {
-                        const result = await getTags(config.baseUrl, config.apiKey);
-                        sendResponse({ success: true, data: result.data });
-                    } catch {
-                        sendResponse({ success: false, error: 'Failed' });
                     }
                     break;
 
@@ -214,20 +256,21 @@ export class MessageRouter {
                     sendResponse({ success: true });
                     break;
 
-                default:
-                    if (message.type === 'BROADCAST_PREFERENCES_UPDATED') {
-                        const tabs = await chrome.tabs.query({});
-                        for (const tab of tabs) {
-                            if (tab.id) chrome.tabs.sendMessage(tab.id, { type: 'PREFERENCES_UPDATED', data: message.data }).catch(() => { });
-                        }
-                        sendResponse({ success: true });
-                    } else {
-                        sendResponse({ success: false, error: 'Unknown message type' });
+                case 'BROADCAST_PREFERENCES_UPDATED': {
+                    const tabs = await chrome.tabs.query({});
+                    for (const tab of tabs) {
+                        if (tab.id) chrome.tabs.sendMessage(tab.id, { type: 'PREFERENCES_UPDATED', data: message.data }).catch(() => { });
                     }
-            }
+                    sendResponse({ success: true });
+                    break;
+                }
 
+                default:
+                    sendResponse({ success: false, error: 'Unknown message type' });
+            }
         } catch (e) {
             sendResponse({ success: false, error: String(e) });
         }
     }
 }
+

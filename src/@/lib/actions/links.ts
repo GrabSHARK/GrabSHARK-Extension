@@ -1,9 +1,7 @@
-// captureScreenshot is dynamically imported to prevent webextension-polyfill
-// from being bundled into embeddedUI.js (which runs in page context)
 import { bookmarkFormValues } from '../validators/bookmarkForm.ts';
-
 import { bookmarkMetadata } from '../cache.ts';
 import { getCurrentTabInfo } from '../utils.ts';
+import { checkLinkExistsMessage, saveLinkFromExtension } from '../runtime/messages.ts';
 
 export async function postLink(
   baseUrl: string,
@@ -13,33 +11,19 @@ export async function postLink(
   apiKey: string,
   aiTagged: boolean = false
 ) {
-  if (
-    typeof window !== 'undefined' &&
-    window.location.protocol.startsWith('http')
-  ) {
-    setState('capturing');
-    const response = await chrome.runtime.sendMessage({
-      type: 'SAVE_LINK_FROM_EXTENSION',
-      data: { uploadImage, values: data, aiTagged },
-    });
-
-    if (response.success) {
-      setState(null);
-      return { data: response.data };
-    }
-
+  if (typeof window !== 'undefined' && typeof chrome !== 'undefined' && !!chrome.runtime?.id) {
+    setState(uploadImage ? 'capturing' : null);
+    const response = await saveLinkFromExtension({ ...data, uploadImage }, aiTagged);
     setState(null);
-    throw new Error(response.error);
+    return { data: { response } };
   }
 
   const url = `${baseUrl}/api/v1/links`;
 
   if (uploadImage) {
     setState('capturing');
-
     const { default: captureScreenshot } = await import('../screenshot.ts');
     const screenshot = await captureScreenshot();
-
     setState('uploading');
 
     const linkResponse = await fetch(url, {
@@ -98,14 +82,8 @@ export async function postLink(
   return { data: responseData };
 }
 
-export async function postLinkFetch(
-  baseUrl: string,
-  data: bookmarkFormValues,
-  apiKey: string
-) {
-  const url = `${baseUrl}/api/v1/links`;
-
-  return await fetch(url, {
+export async function postLinkFetch(baseUrl: string, data: bookmarkFormValues, apiKey: string) {
+  return await fetch(`${baseUrl}/api/v1/links`, {
     method: 'POST',
     body: JSON.stringify(data),
     headers: {
@@ -115,15 +93,8 @@ export async function postLinkFetch(
   });
 }
 
-export async function updateLinkFetch(
-  baseUrl: string,
-  id: number,
-  data: bookmarkFormValues,
-  apiKey: string
-) {
-  const url = `${baseUrl}/api/v1/links/${id}`;
-
-  return await fetch(url, {
+export async function updateLinkFetch(baseUrl: string, id: number, data: bookmarkFormValues, apiKey: string) {
+  return await fetch(`${baseUrl}/api/v1/links/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
     headers: {
@@ -133,76 +104,37 @@ export async function updateLinkFetch(
   });
 }
 
-export async function deleteLinkFetch(
-  baseUrl: string,
-  id: number,
-  apiKey: string
-) {
-  const url = `${baseUrl}/api/v1/links/${id}`;
-
-  return await fetch(url, {
+export async function deleteLinkFetch(baseUrl: string, id: number, apiKey: string) {
+  return await fetch(`${baseUrl}/api/v1/links/${id}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
+    headers: { Authorization: `Bearer ${apiKey}` },
   });
 }
 
-export async function getLinksFetch(
-  baseUrl: string,
-  apiKey: string
-): Promise<{ response: bookmarkMetadata[] }> {
-  const url = `${baseUrl}/api/v1/links`;
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
+export async function getLinksFetch(baseUrl: string, apiKey: string): Promise<{ response: bookmarkMetadata[] }> {
+  const response = await fetch(`${baseUrl}/api/v1/links`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
   });
   return await response.json();
 }
 
-export async function checkLinkExists(
-  baseUrl: string,
-  apiKey: string,
-  targetUrl?: string
-): Promise<boolean> {
+export async function checkLinkExists(baseUrl: string, apiKey: string, targetUrl?: string): Promise<boolean> {
   try {
-    if (
-      typeof window !== 'undefined' &&
-      window.location.protocol.startsWith('http')
-    ) {
+    if (typeof window !== 'undefined' && typeof chrome !== 'undefined' && !!chrome.runtime?.id) {
       const url = targetUrl || window.location.href;
-
-      const response = await chrome.runtime.sendMessage({
-        type: 'CHECK_LINK_EXISTS',
-        data: { url },
-      });
-
-      if (response.success) {
-        return response.data;
-      }
-
-      return false;
+      return await checkLinkExistsMessage(url);
     }
 
     let urlToCheck = targetUrl;
-
     if (!urlToCheck) {
       const tabInfo = await getCurrentTabInfo();
-      if (!tabInfo.url) {
-        return false;
-      }
+      if (!tabInfo.url) return false;
       urlToCheck = tabInfo.url;
     }
 
-    const url =
-      `${baseUrl}/api/v1/links?cursor=0&sort=0&searchQueryString=` +
-      encodeURIComponent(`${urlToCheck}`) + '&archived=all';
-
+    const url = `${baseUrl}/api/v1/links?cursor=0&sort=0&searchQueryString=` + encodeURIComponent(`${urlToCheck}`) + '&archived=all';
     const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: { Authorization: `Bearer ${apiKey}` },
     });
 
     const data = await response.json();
