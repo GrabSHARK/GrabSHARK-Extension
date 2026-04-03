@@ -1,24 +1,19 @@
-// Options page - redirect to grabshark.app and trigger extension
-// This runs when user clicks "Extension options" from Chrome menu
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import '../../@/lib/i18n.ts';
+import '../Popup/index.css';
+import App from './App.tsx';
+import { ThemeProvider } from '../../@/components/ThemeProvider.tsx';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-(async () => {
-  // Open grabshark.app in a new tab
-  const tab = await chrome.tabs.create({ url: 'https://grabshark.app/' });
+const queryClient = new QueryClient();
 
-  // Wait for the tab to load, then trigger the extension
-  chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-    if (tabId === tab.id && info.status === 'complete') {
-      // Remove this listener
-      chrome.tabs.onUpdated.removeListener(listener);
-
-      // Small delay to ensure content script is ready
-      setTimeout(() => {
-        // Send message to content script to show the extension overlay
-        chrome.tabs.sendMessage(tab.id!, { type: 'TOGGLE_EMBEDDED_MENU' });
-      }, 500);
-    }
-  });
-
-  // Close this options popup/tab
-  window.close();
-})();
+ReactDOM.createRoot(document.getElementById('options')!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <App />
+      </ThemeProvider>
+    </QueryClientProvider>
+  </React.StrictMode>,
+);

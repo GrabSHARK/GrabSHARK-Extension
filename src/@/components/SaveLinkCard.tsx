@@ -6,7 +6,6 @@ import { useMutation } from '@tanstack/react-query';
 
 import { openOptions, getCurrentTabInfo } from '../lib/utils';
 import { bookmarkFormSchema, bookmarkFormValues } from '../lib/validators/bookmarkForm';
-import { getConfig } from '../lib/config';
 import { processOgImage } from '../lib/imageProcessor';
 import { saveThumbnail } from '../lib/thumbnailCache';
 import { Toaster } from './ui/Toaster';
@@ -18,6 +17,13 @@ import {
     SiteOverride,
 } from '../lib/settings';
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
+import {
+    getRecentLinksData,
+    openTabMessage,
+    saveDomainPreference,
+    saveLinkFromExtension,
+    suggestTags,
+} from '../lib/runtime/messages';
 
 import { SaveLinkHeader } from './SaveLink/SaveLinkHeader';
 import { SaveLinkPreview } from './SaveLink/SaveLinkPreview';
@@ -38,11 +44,11 @@ function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
     const [tags, setTags] = useState<any[]>([]);
     const [archiveDefaults, setArchiveDefaults] = useState<any | null>(null);
     const [loadingBootstrap, setLoadingBootstrap] = useState(true);
+    const [baseUrl, setBaseUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const init = async () => {
             const tabInfo = await getCurrentTabInfo();
-            const loadedConfig = await getConfig();
 
             if (tabInfo.url) {
                 setCurrentUrl(tabInfo.url);
@@ -63,14 +69,19 @@ function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
                 document.querySelector('p')?.textContent?.slice(0, 200) || '';
 
             const hostname = getHostname(tabInfo.url);
-            let defaultCollection: any = { name: loadedConfig.defaultCollection };
+            let defaultCollection: any = { name: 'Unorganized' };
 
             try {
-                const bootstrap = await getExtensionBootstrapState(hostname);
+                const bootstrap = await getExtensionBootstrapState(hostname || undefined);
+                setBaseUrl(bootstrap.baseUrl || bootstrap.config?.baseUrl || null);
                 setUserProfile(bootstrap.user || null);
                 setCollections(bootstrap.collections || []);
                 setTags(bootstrap.tags || []);
                 setArchiveDefaults(bootstrap.prefs || null);
+
+                if (bootstrap.config?.defaultCollection) {
+                    defaultCollection = { name: bootstrap.config.defaultCollection };
+                }
 
                 const user = bootstrap.user;
                 const availableCollections = bootstrap.collections || [];
@@ -88,15 +99,16 @@ function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
                             defaultCollection = { name: selectedCol.name, id: selectedCol.id, ownerId: selectedCol.ownerId };
                         }
                     } else if (extensionPref === 'LAST_USED') {
-                        const linksResponse = await chrome.runtime.sendMessage({ type: 'GET_RECENT_LINKS' });
-                        if (linksResponse?.success && linksResponse.data?.length > 0) {
-                            const lastLink = linksResponse.data[0];
+                        const recentLinks = await getRecentLinksData();
+                        if (recentLinks.length > 0) {
+                            const lastLink = recentLinks[0];
                             if (lastLink.collection) {
                                 defaultCollection = { name: lastLink.collection.name, id: lastLink.collection.id, ownerId: lastLink.collection.ownerId };
                             }
                         }
                     } else {
-                        const defaultCol = availableCollections.find((c: any) => c.isDefault === true) || availableCollections.find((c: any) => c.name === loadedConfig.defaultCollection);
+                        const defaultCol = availableCollections.find((c: any) => c.isDefault === true)
+                            || availableCollections.find((c: any) => c.name === bootstrap.config?.defaultCollection);
                         if (defaultCol) {
                             defaultCollection = { name: defaultCol.name, id: defaultCol.id, ownerId: defaultCol.ownerId };
                         }
@@ -125,7 +137,7 @@ function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
                 }
             }
         };
-        init();
+        void init();
     }, [form]);
 
     return {
@@ -141,17 +153,18 @@ function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
         tags,
         archiveDefaults,
         loadingBootstrap,
+        baseUrl,
     };
 }
 
 function useSaveLinkMutation({
     form, currentUrl, prefs, archiveOptions, uploadScreenshot,
-    ogImageUrl, preProcessedThumbnail, collections, onClose, onSuccess: onSuccessCallback, t,
+    ogImageUrl, preProcessedThumbnail, collections, baseUrl, onClose, onSuccess: onSuccessCallback, t,
 }: {
     form: UseFormReturn<bookmarkFormValues>; currentUrl: string; prefs: ExtensionPreferences;
     archiveOptions: { archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; aiTag: boolean } | null;
     uploadScreenshot: boolean; ogImageUrl: string | null; preProcessedThumbnail: Blob | null;
-    collections: any[] | undefined; onClose?: () => void; onSuccess?: (link: any, openEdit?: boolean) => void; t: (key: string) => string;
+    collections: any[] | undefined; baseUrl: string | null; onClose?: () => void; onSuccess?: (link: any, openEdit?: boolean) => void; t: (key: string) => string;
 }) {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [aiAuthored, setAiAuthored] = useState(false);
@@ -170,12 +183,8 @@ function useSaveLinkMutation({
                 uploadImage: uploadScreenshot,
             };
 
-            const response = await chrome.runtime.sendMessage({
-                type: 'SAVE_LINK_FROM_EXTENSION',
-                data: { uploadImage: uploadScreenshot, values: payload, aiTagged: aiAuthored },
-            });
-            if (!response.success) throw new Error(response.error);
-            return { link: response.data?.response || response.data, action };
+            const data = await saveLinkFromExtension(payload, aiAuthored);
+            return { link: data?.response || data, action };
         },
         onSuccess: (data) => {
             const { link, action } = data;
@@ -183,10 +192,10 @@ function useSaveLinkMutation({
             let optimisticThumbnailUrl: string | undefined;
 
             if (preProcessedThumbnail && currentUrl) {
-                saveThumbnail(currentUrl, preProcessedThumbnail).catch(() => { });
+                void saveThumbnail(currentUrl, preProcessedThumbnail).catch(() => { });
                 optimisticThumbnailUrl = URL.createObjectURL(preProcessedThumbnail);
             } else if (ogImageUrl && currentUrl) {
-                processOgImage(ogImageUrl).then(async (blob) => { if (blob) await saveThumbnail(currentUrl, blob); }).catch(() => { });
+                void processOgImage(ogImageUrl).then(async (blob) => { if (blob) await saveThumbnail(currentUrl, blob); }).catch(() => { });
             }
 
             const fullCollection = collections?.find((c: any) => c.id === values.collection?.id) || values.collection;
@@ -201,30 +210,25 @@ function useSaveLinkMutation({
 
             const hostname = getHostname(currentUrl);
             if (hostname) {
-                getSiteOverrides().then(async (overrides) => {
+                void getSiteOverrides().then(async (overrides) => {
                     const clientOverride = overrides[hostname];
-                    chrome.runtime.sendMessage({
-                        type: 'SET_DOMAIN_PREFERENCE',
-                        data: {
-                            domain: hostname,
-                            enableSmartCapture: clientOverride?.enableSmartCapture ?? prefs.enableSmartCapture,
-                            enableSelectionMenu: clientOverride?.enableSelectionMenu ?? prefs.enableSelectionMenu,
-                        },
-                    }, (response) => {
-                        if (response?.success && clientOverride) {
-                            clearSiteOverride(hostname, 'enableSmartCapture');
-                            clearSiteOverride(hostname, 'enableSelectionMenu');
-                        }
+                    await saveDomainPreference({
+                        domain: hostname,
+                        enableSmartCapture: clientOverride?.enableSmartCapture ?? prefs.enableSmartCapture,
+                        enableSelectionMenu: clientOverride?.enableSelectionMenu ?? prefs.enableSelectionMenu,
                     });
+
+                    if (clientOverride) {
+                        await clearSiteOverride(hostname, 'enableSmartCapture');
+                        await clearSiteOverride(hostname, 'enableSelectionMenu');
+                    }
                 }).catch(() => { });
             }
 
             if (action === 'open') {
-                if (link?.id) {
-                    getConfig().then(config => {
-                        chrome.tabs.create({ url: `${config.baseUrl}/links/${link.id}` });
-                        if (onClose) onClose();
-                    });
+                if (link?.id && baseUrl) {
+                    void openTabMessage(`${baseUrl.replace(/\/$/, '')}/links/${link.id}`).catch(() => { });
+                    if (onClose) onClose();
                 } else if (onSuccessCallback) {
                     onSuccessCallback(enrichedLink, false);
                 }
@@ -247,10 +251,10 @@ function useSaveLinkMutation({
         try {
             const title = form.getValues('name') || document.title || '';
             const description = form.getValues('description') || '';
-            const response = await chrome.runtime.sendMessage({ type: 'SUGGEST_TAGS', data: { url: currentUrl, title, description } });
-            if (response.success && response.data?.tags?.length > 0) {
+            const response = await suggestTags({ url: currentUrl, title, description });
+            if (response?.tags?.length > 0) {
                 const currentTags = form.getValues('tags') || [];
-                const newTags = response.data.tags.filter((name: string) => !currentTags.some(tag => tag.name === name)).map((name: string) => ({ name }));
+                const newTags = response.tags.filter((name: string) => !currentTags.some(tag => tag.name === name)).map((name: string) => ({ name }));
                 if (newTags.length > 0) {
                     form.setValue('tags', [...currentTags, ...newTags]);
                     setAiAuthored(true);
@@ -259,11 +263,11 @@ function useSaveLinkMutation({
                     setAiAuthored(true);
                     toast({ title: 'No New Tags', description: 'All suggested tags are already selected' });
                 }
-            } else if (!response.success) {
-                toast({ title: 'AI Suggestion Failed', description: response.error || 'Could not get tag suggestions', variant: 'destructive' });
+            } else {
+                toast({ title: 'No New Tags', description: 'No tag suggestions were returned' });
             }
-        } catch {
-            toast({ title: 'Error', description: 'Failed to get AI suggestions', variant: 'destructive' });
+        } catch (error: any) {
+            toast({ title: 'AI Suggestion Failed', description: error?.message || 'Could not get tag suggestions', variant: 'destructive' });
         } finally {
             setIsSuggestingTags(false);
         }
@@ -313,6 +317,7 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
         tags,
         archiveDefaults,
         loadingBootstrap,
+        baseUrl,
     } = useSaveLinkInit(form);
 
     useEffect(() => {
@@ -320,7 +325,7 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
     }, [archiveDefaults]);
 
     const { handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, successTimeoutRef } =
-        useSaveLinkMutation({ form, currentUrl, prefs, archiveOptions, uploadScreenshot, ogImageUrl, preProcessedThumbnail, collections, onClose, onSuccess, t });
+        useSaveLinkMutation({ form, currentUrl, prefs, archiveOptions, uploadScreenshot, ogImageUrl, preProcessedThumbnail, collections, baseUrl, onClose, onSuccess, t });
 
     const watchedTags = form.watch('tags');
     useEffect(() => {
@@ -348,7 +353,7 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
 
     useEffect(() => () => {
         if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-    }, []);
+    }, [successTimeoutRef]);
 
     useEffect(() => {
         if (showCaptureConfirmation) {

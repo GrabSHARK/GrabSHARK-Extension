@@ -9,6 +9,14 @@ import { getThumbnail } from '../lib/thumbnailCache';
 import { LinkWithHighlights } from '../lib/types/highlight';
 import { toast } from '../../hooks/use-toast';
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
+import {
+    archiveLinkMessage,
+    deleteLinkMessage,
+    fetchImageBlobMessage,
+    openTabMessage,
+    suggestTags,
+    updateLinkMessage,
+} from '../lib/runtime/messages';
 
 import { LinkHeader } from './EditLink/LinkHeader';
 import { LinkPreviewCard } from './EditLink/LinkPreviewCard';
@@ -30,8 +38,23 @@ interface EditLinkViewProps {
     onUpdate?: (updatedLink: Partial<LinkWithHighlights>) => void; sharedImgSrc?: string; onImgSrcChange?: (src: string) => void; onDelete?: () => void;
 }
 
-function useEditLinkMutations({ link, form, onUpdate, onClose, onDelete, t }: {
-    link: LinkWithHighlights; form: any; onUpdate?: (updatedLink: Partial<LinkWithHighlights>) => void;
+function buildUpdatePayload(link: LinkWithHighlights, values: EditLinkFormValues, pinnedBy?: any[]) {
+    return {
+        id: link.id,
+        url: link.url,
+        name: values.name,
+        description: values.description,
+        collection: values.collection?.id
+            ? { id: values.collection.id, ownerId: values.collection.ownerId! }
+            : { name: values.collection?.name || 'Unorganized' },
+        tags: (values.tags || []).map((tag: any) => ({ name: tag.name })),
+        updatedAt: new Date().toISOString(),
+        ...(pinnedBy ? { pinnedBy } : {}),
+    };
+}
+
+function useEditLinkMutations({ link, form, currentUserId, onUpdate, onClose, onDelete, t }: {
+    link: LinkWithHighlights; form: any; currentUserId?: number | null; onUpdate?: (updatedLink: Partial<LinkWithHighlights>) => void;
     onClose: () => void; onDelete?: () => void; t: (key: string) => string;
 }) {
     const [isPinned, setIsPinned] = useState(() => Array.isArray((link as any).pinnedBy) ? (link as any).pinnedBy.length > 0 : false);
@@ -40,16 +63,10 @@ function useEditLinkMutations({ link, form, onUpdate, onClose, onDelete, t }: {
     const [isSuggestingTags, setIsSuggestingTags] = useState(false);
 
     const { mutate: handleSave, isLoading: isSaving } = useMutation({
-        mutationFn: async (values: any) => {
-            const body = {
-                id: link.id, url: link.url, name: values.name, description: values.description,
-                collection: values.collection?.id ? { id: values.collection.id, ownerId: values.collection.ownerId! } : { name: values.collection?.name || t('editLink.unorganized') },
-                tags: (values.tags || []).map((tag: any) => ({ name: tag.name })),
-                updatedAt: new Date().toISOString(),
-            };
-            const response = await chrome.runtime.sendMessage({ type: 'UPDATE_LINK', data: { id: link.id, payload: body } });
-            if (!response.success) throw new Error(response.error);
-            return response.data?.response || body;
+        mutationFn: async (values: EditLinkFormValues) => {
+            const body = buildUpdatePayload(link, values);
+            const response = await updateLinkMessage(link.id, body);
+            return response?.response || response || body;
         },
         onSuccess: (data) => {
             setSaveSuccess(true);
@@ -64,19 +81,28 @@ function useEditLinkMutations({ link, form, onUpdate, onClose, onDelete, t }: {
 
     const { mutate: handlePin, isLoading: isPinning } = useMutation({
         mutationFn: async () => {
-            const response = await chrome.runtime.sendMessage({ type: isPinned ? 'UNPIN_LINK' : 'PIN_LINK', data: { id: Number(link.id), linkId: Number(link.id) } });
-            if (!response.success) throw new Error(response.error || 'Failed to update pin status');
-            return !isPinned;
+            if (!currentUserId) {
+                throw new Error('Missing current user');
+            }
+
+            const values = form.getValues();
+            const nextPinned = !isPinned;
+            const body = buildUpdatePayload(link, values, nextPinned ? [{ id: currentUserId }] : [{ id: undefined }] as any);
+            const response = await updateLinkMessage(link.id, body);
+            return { nowPinned: nextPinned, response };
         },
-        onSuccess: (nowPinned) => setIsPinned(nowPinned),
+        onSuccess: ({ nowPinned }) => {
+            setIsPinned(nowPinned);
+            if (onUpdate) {
+                onUpdate({ pinnedBy: (nowPinned ? [{ id: currentUserId }] : []) as any } as any);
+            }
+        },
         onError: (err: any) => { toast({ title: t('common.error'), description: err.message, variant: 'destructive' }); },
     });
 
     const { mutate: handleDelete, isLoading: isDeleting } = useMutation({
         mutationFn: async () => {
-            const response = await chrome.runtime.sendMessage({ type: 'DELETE_LINK', data: { id: link.id } });
-            if (!response.success) throw new Error(response.error);
-            return response.data;
+            await deleteLinkMessage(link.id);
         },
         onSuccess: () => { if (onDelete) onDelete(); onClose(); },
         onError: (err: any) => { toast({ title: t('common.error'), description: err.message, variant: 'destructive' }); },
@@ -84,8 +110,7 @@ function useEditLinkMutations({ link, form, onUpdate, onClose, onDelete, t }: {
 
     const { mutate: handleArchive, isLoading: isArchiving } = useMutation({
         mutationFn: async () => {
-            const response = await chrome.runtime.sendMessage({ type: 'ARCHIVE_LINK', data: { id: link.id, action: isArchived ? 'unarchive' : 'archive' } });
-            if (!response.success) throw new Error(response.error);
+            await archiveLinkMessage(link.id, isArchived ? 'unarchive' : 'archive');
             return !isArchived;
         },
         onSuccess: (nowArchived) => { setIsArchived(nowArchived); if (onUpdate) onUpdate({ isArchived: nowArchived }); },
@@ -98,21 +123,21 @@ function useEditLinkMutations({ link, form, onUpdate, onClose, onDelete, t }: {
         try {
             const title = form.getValues('name') || link.name || '';
             const description = form.getValues('description') || (link as any).description || '';
-            const response = await chrome.runtime.sendMessage({ type: 'SUGGEST_TAGS', data: { url: link.url, title, description } });
-            if (response.success && response.data?.tags?.length > 0) {
+            const response = await suggestTags({ url: link.url, title, description });
+            if (response.tags?.length > 0) {
                 const currentTags = form.getValues('tags') || [];
-                const newTags = response.data.tags.filter((name: string) => !currentTags.some((tag: any) => tag.name === name)).map((name: string) => ({ name }));
+                const newTags = response.tags.filter((name: string) => !currentTags.some((tag: any) => tag.name === name)).map((name: string) => ({ name }));
                 if (newTags.length > 0) {
                     form.setValue('tags', [...currentTags, ...newTags]);
                     toast({ title: 'AI Tags Added', description: `Added ${newTags.length} suggested tag${newTags.length > 1 ? 's' : ''}` });
                 } else {
                     toast({ title: 'No New Tags', description: 'All suggested tags are already selected' });
                 }
-            } else if (!response.success) {
-                toast({ title: 'AI Suggestion Failed', description: response.error || 'Could not get tag suggestions', variant: 'destructive' });
+            } else {
+                toast({ title: 'No New Tags', description: 'No tag suggestions were returned' });
             }
-        } catch {
-            toast({ title: 'Error', description: 'Failed to get AI suggestions', variant: 'destructive' });
+        } catch (error: any) {
+            toast({ title: 'AI Suggestion Failed', description: error?.message || 'Could not get tag suggestions', variant: 'destructive' });
         } finally {
             setIsSuggestingTags(false);
         }
@@ -160,18 +185,49 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
     }, []);
 
     useEffect(() => {
-        if (sharedImgSrc) { setImgSrc(sharedImgSrc); setIsLoading(false); return; }
-        getThumbnail(link.url).then(cached => {
-            if (cached) { setImgSrc(cached); onImgSrcChange?.(cached); setIsLoading(false); return; }
+        let active = true;
+
+        if (sharedImgSrc) {
+            setImgSrc(sharedImgSrc);
+            setIsLoading(false);
+            return () => { active = false; };
+        }
+
+        const loadImage = async () => {
+            const cached = await getThumbnail(link.url);
+            if (!active) return;
+
+            if (cached) {
+                setImgSrc(cached);
+                onImgSrcChange?.(cached);
+                setIsLoading(false);
+                return;
+            }
+
             if (link.preview && baseUrl) {
                 setIsLoading(true);
-                chrome.runtime.sendMessage({ type: 'FETCH_IMAGE_BLOB', data: { url: `${baseUrl.replace(/\/$/, '')}/api/v1/archives/${link.id}?format=1&preview=true` } }, (response) => {
-                    if (response?.success && response.data?.base64Data) { setImgSrc(response.data.base64Data); onImgSrcChange?.(response.data.base64Data); }
-                    else setImgSrc(faviconUrl);
-                    setIsLoading(false);
-                });
-            } else { setImgSrc(faviconUrl); setIsLoading(false); }
-        });
+                try {
+                    const response = await fetchImageBlobMessage(`${baseUrl.replace(/\/$/, '')}/api/v1/archives/${link.id}?format=1&preview=true`);
+                    if (!active) return;
+                    if (response?.base64Data) {
+                        setImgSrc(response.base64Data);
+                        onImgSrcChange?.(response.base64Data);
+                    } else {
+                        setImgSrc(faviconUrl);
+                    }
+                } catch {
+                    if (active) setImgSrc(faviconUrl);
+                } finally {
+                    if (active) setIsLoading(false);
+                }
+            } else {
+                setImgSrc(faviconUrl);
+                setIsLoading(false);
+            }
+        };
+
+        void loadImage();
+        return () => { active = false; };
     }, [link.preview, baseUrl, link.url, faviconUrl, sharedImgSrc, onImgSrcChange, link.id]);
 
     const form = useForm<EditLinkFormValues>({
@@ -182,7 +238,7 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
     const {
         handleSave, isSaving, saveSuccess, setSaveSuccess, handlePin, isPinned, isPinning,
         handleDelete, isDeleting, handleArchive, isArchived, isArchiving, isSuggestingTags, handleSuggestTags,
-    } = useEditLinkMutations({ link, form, onUpdate, onClose, onDelete, t });
+    } = useEditLinkMutations({ link, form, currentUserId: userProfile?.id, onUpdate, onClose, onDelete, t });
 
     useEffect(() => {
         if (form.formState.isDirty && saveSuccess) setSaveSuccess(false);
@@ -201,7 +257,7 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
         if (!link.id || !baseUrl) return;
         const formatMap: Record<string, number> = { ORIGINAL: 999, PDF: 0, MONOLITH: 1, SCREENSHOT: 2, READABLE: 3, DETAILS: 1 };
         const formatNum = formatMap[userProfile?.linksRouteTo || 'MONOLITH'] ?? 1;
-        chrome.runtime.sendMessage({ type: 'OPEN_TAB', data: { url: `${baseUrl.replace(/\/$/, '')}/dashboard?openPreview=${link.id}&format=${formatNum}` } });
+        void openTabMessage(`${baseUrl.replace(/\/$/, '')}/dashboard?openPreview=${link.id}&format=${formatNum}`).catch(() => { });
     };
 
     return (
@@ -222,3 +278,4 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
         </div>
     );
 };
+

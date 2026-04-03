@@ -14,8 +14,9 @@
     "default_title": "GrabSHARK"
   },
   "options_ui": {
-    "page": "./src/pages/Options/options.html",
-    "browser_style": false
+    "page": "src/pages/Options/options.html",
+    "browser_style": false,
+    "open_in_tab": true
   },
   "icons": {
     "16": "16.png",
@@ -64,6 +65,13 @@
         "default": "Ctrl+Shift+F",
         "mac": "Command+Shift+Y"
       }
+    },
+    "toggle-smart-capture": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+C",
+        "mac": "Command+Shift+C"
+      },
+      "description": "Toggle Smart Capture on the current page"
     }
   },
   "web_accessible_resources": [
@@ -75,7 +83,11 @@
         "128.png",
         "style.css",
         "contentScript.css",
-        "embeddedUI.js"
+        "embeddedUI.js",
+        "contentMain.js",
+        "captureDock.js",
+        "saveNotificationToast.js",
+        "assets/*"
       ],
       "matches": [
         "<all_urls>"

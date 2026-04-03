@@ -8,7 +8,6 @@ import { Command, CommandGroup, CommandItem } from '../ui/Command';
 import { Textarea } from '../ui/Textarea';
 import { TagInput } from '../TagInput';
 import { OutlineSparkleIcon } from '../CustomIcons';
-import Icon from '../Icon';
 import { cn } from '../../lib/utils';
 
 // Chevron icons locally if not imported
@@ -102,10 +101,7 @@ export const SaveLinkForm: FC<SaveLinkFormProps> = ({
                                                     >
                                                         <div className="flex items-center gap-2 truncate text-zinc-800 dark:text-zinc-200">
                                                             {/* @ts-ignore */}
-                                                            {selectedCollection?.icon ? (
-                                                                /* @ts-ignore */
-                                                                <Icon icon={selectedCollection.icon} className="w-4 h-4 shrink-0" color={selectedCollection.color ?? undefined} />
-                                                            ) : (selectedCollection as any)?.color ? (
+                                                            {(selectedCollection as any)?.color ? (
                                                                 /* @ts-ignore */
                                                                 <FolderSimple className="w-4 h-4 shrink-0" weight="fill" style={{ color: selectedCollection.color }} />
                                                             ) : (
@@ -131,9 +127,7 @@ export const SaveLinkForm: FC<SaveLinkFormProps> = ({
                                                                 className="data-[selected=true]:bg-zinc-100 data-[selected=true]:text-zinc-900 dark:data-[selected=true]:bg-zinc-800 dark:data-[selected=true]:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 my-0.5 rounded-xl mx-0.5 cursor-pointer px-2 py-1.5 transition-colors"
                                                             >
                                                                 <div className="flex items-center gap-2 w-full">
-                                                                    {c.icon ? (
-                                                                        <Icon icon={c.icon} className="w-4 h-4 shrink-0" color={c.color} />
-                                                                    ) : c.color ? (
+                                                                    {c.color ? (
                                                                         <FolderSimple className="w-4 h-4 shrink-0" weight="fill" style={{ color: c.color }} />
                                                                     ) : (
                                                                         <FolderSimple className="w-4 h-4 shrink-0 text-zinc-400" weight="fill" />
@@ -255,3 +249,4 @@ export const SaveLinkForm: FC<SaveLinkFormProps> = ({
         </>
     );
 };
+

@@ -5,27 +5,30 @@ import { Form } from './ui/Form.tsx';
 import { Button } from './ui/Button.tsx';
 import { Toaster } from './ui/Toaster.tsx';
 import { cn, checkDuplicatedItem, getCurrentTabInfo } from '../lib/utils.ts';
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { getConfig, isConfigured } from '../lib/config.ts';
-import { postLink } from '../lib/actions/links.ts';
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '../../hooks/use-toast.ts';
-import { getCollections, ResponseCollections } from '../lib/actions/collections.ts';
-import { getTags, ResponseTags } from '../lib/actions/tags.ts';
-import { saveLinksInCache } from '../lib/cache.ts';
 import { useTranslation } from 'react-i18next';
-import { BookmarkCollectionPicker } from './Bookmark/BookmarkCollectionPicker.tsx';
-import { BookmarkOptions } from './Bookmark/BookmarkOptions.tsx';
+import { getExtensionBootstrapState } from '../lib/actions/bootstrap.ts';
 
-let configured = false;
+const BookmarkCollectionPicker = lazy(() =>
+  import('./Bookmark/BookmarkCollectionPicker.tsx').then((module) => ({ default: module.BookmarkCollectionPicker }))
+);
+
+const BookmarkOptions = lazy(() =>
+  import('./Bookmark/BookmarkOptions.tsx').then((module) => ({ default: module.BookmarkOptions }))
+);
 
 const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?: (link: any) => void }) => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [isDuplicate, setIsDuplicate] = useState<boolean>(false);
   const [openOptions, setOpenOptions] = useState<boolean>(false);
   const [openCollections, setOpenCollections] = useState<boolean>(false);
   const [uploadImage, setUploadImage] = useState<boolean>(false);
   const [state, setState] = useState<'capturing' | 'uploading' | null>(null);
+  const [configured, setConfigured] = useState(false);
+  const [bootstrapState, setBootstrapState] = useState<any>(() => queryClient.getQueryData(['extensionBootstrap']) ?? null);
 
   const handleCheckedChange = (s: boolean | 'indeterminate') => {
     if (s !== 'indeterminate') {
@@ -39,8 +42,24 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
     defaultValues: { url: '', name: '', collection: { name: t('bookmark.unorganized') }, tags: [], description: '', image: undefined },
   });
 
+  const loadBootstrap = useCallback(async () => {
+    const cached = queryClient.getQueryData(['extensionBootstrap']) as any;
+    if (cached) return cached;
+
+    const bootstrap = await getExtensionBootstrapState();
+    queryClient.setQueryData(['extensionBootstrap'], bootstrap);
+    queryClient.setQueryData(['collections'], bootstrap.collections || []);
+    queryClient.setQueryData(['tags'], bootstrap.tags || []);
+    queryClient.setQueryData(['userProfile'], bootstrap.user || null);
+    return bootstrap;
+  }, [queryClient]);
+
   const { mutate: onSubmit, isLoading } = useMutation({
     mutationFn: async (values: bookmarkFormValues) => {
+      const [{ getConfig }, { postLink }] = await Promise.all([
+        import('../lib/config.ts'),
+        import('../lib/actions/links.ts'),
+      ]);
       const config = await getConfig();
       const result = await postLink(config.baseUrl, uploadImage, values, setState, config.apiKey);
       return result?.data?.response;
@@ -72,45 +91,77 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
   const { handleSubmit, control } = form;
 
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
-      const [tabInfo, config, isConf] = await Promise.all([getCurrentTabInfo(), getConfig(), isConfigured()]);
-      const duplicate = await checkDuplicatedItem();
+      const [tabInfo, duplicate, bootstrap] = await Promise.all([
+        getCurrentTabInfo(),
+        checkDuplicatedItem(),
+        loadBootstrap().catch(() => null),
+      ]);
+
+      if (cancelled) return;
+
       form.setValue('url', tabInfo.url || '');
       form.setValue('name', tabInfo.title || '');
-      form.setValue('collection', { name: config.defaultCollection });
-      configured = isConf;
+
+      if (bootstrap) {
+        setBootstrapState(bootstrap);
+        setConfigured(!!bootstrap.configured);
+        form.setValue('collection', { name: bootstrap.config?.defaultCollection || t('bookmark.unorganized') });
+      } else {
+        form.setValue('collection', { name: t('bookmark.unorganized') });
+        setConfigured(false);
+      }
+
       setIsDuplicate(duplicate);
     })();
-  }, [form]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form, loadBootstrap, t]);
 
   useEffect(() => {
+    if (!bootstrapState?.config?.syncBookmarks || !bootstrapState?.baseUrl) return;
+
     (async () => {
       try {
-        const { syncBookmarks, baseUrl, defaultCollection } = await getConfig();
-        form.setValue('collection', { name: defaultCollection });
-        if (syncBookmarks && await isConfigured()) await saveLinksInCache(baseUrl);
-      } catch { }
+        const { saveLinksInCache } = await import('../lib/cache.ts');
+        await saveLinksInCache(bootstrapState.baseUrl);
+      } catch {
+      }
     })();
-  }, [form]);
+  }, [bootstrapState]);
 
   const { isLoading: loadingCollections, data: collections, error: collectionError } = useQuery({
     queryKey: ['collections'],
+    initialData: bootstrapState?.collections || queryClient.getQueryData(['collections']) || undefined,
+    staleTime: 300000,
     queryFn: async () => {
-      const c = await getConfig();
-      const r = await getCollections(c.baseUrl, c.apiKey);
-      return r.data.response.sort((a: ResponseCollections, b: ResponseCollections) => (a.pathname || '').localeCompare(b.pathname || ''));
+      await loadBootstrap();
+      const { getCollections } = await import('../lib/actions/collections.ts');
+      const { getConfig } = await import('../lib/config.ts');
+      const config = await getConfig();
+      const response = await getCollections(config.baseUrl, config.apiKey);
+      return response.data.response.sort((a: any, b: any) => (a.pathname || '').localeCompare(b.pathname || ''));
     },
-    enabled: configured,
+    enabled: configured && openCollections && !bootstrapState?.collections?.length,
   });
 
   const { isLoading: loadingTags, data: tags, error: tagsError } = useQuery({
     queryKey: ['tags'],
+    initialData: bootstrapState?.tags || queryClient.getQueryData(['tags']) || undefined,
+    staleTime: 300000,
     queryFn: async () => {
-      const c = await getConfig();
-      const r = await getTags(c.baseUrl, c.apiKey);
-      return r.data.response.sort((a: ResponseTags, b: ResponseTags) => a.name.localeCompare(b.name));
+      await loadBootstrap();
+      const { getTags } = await import('../lib/actions/tags.ts');
+      const { getConfig } = await import('../lib/config.ts');
+      const config = await getConfig();
+      const response = await getTags(config.baseUrl, config.apiKey);
+      return response.data.response.sort((a: any, b: any) => a.name.localeCompare(b.name));
     },
-    enabled: configured,
+    enabled: configured && openOptions && !bootstrapState?.tags?.length,
   });
 
   return (
@@ -118,8 +169,29 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
       <Form {...form}>
         <form onSubmit={handleSubmit((e) => onSubmit(e))} className="py-1">
           {collectionError ? <p className="text-red-600">{t('bookmark.errorGeneric')}</p> : null}
-          <BookmarkCollectionPicker control={control} form={form} collections={collections} loadingCollections={loadingCollections} isLoading={isLoading} openCollections={openCollections} setOpenCollections={setOpenCollections} />
-          {openOptions && <BookmarkOptions control={control} tags={tags} loadingTags={loadingTags} tagsError={tagsError} uploadImage={uploadImage} onCheckedChange={handleCheckedChange} />}
+          <Suspense fallback={<div className="my-2 h-16 rounded-lg bg-neutral-100 dark:bg-neutral-900 animate-pulse" />}>
+            <BookmarkCollectionPicker
+              control={control}
+              form={form}
+              collections={collections}
+              loadingCollections={loadingCollections}
+              isLoading={isLoading}
+              openCollections={openCollections}
+              setOpenCollections={setOpenCollections}
+            />
+          </Suspense>
+          {openOptions && (
+            <Suspense fallback={<div className="space-y-4 pt-2"><div className="h-10 rounded bg-neutral-100 dark:bg-neutral-900 animate-pulse" /><div className="h-10 rounded bg-neutral-100 dark:bg-neutral-900 animate-pulse" /><div className="h-24 rounded bg-neutral-100 dark:bg-neutral-900 animate-pulse" /></div>}>
+              <BookmarkOptions
+                control={control}
+                tags={tags}
+                loadingTags={loadingTags}
+                tagsError={tagsError}
+                uploadImage={uploadImage}
+                onCheckedChange={handleCheckedChange}
+              />
+            </Suspense>
+          )}
           {isDuplicate && <p className="text-muted text-zinc-600 dark:text-zinc-400 mt-2">{t('bookmark.alreadySavedDesc')}</p>}
           <div className="flex justify-between items-center mt-4">
             <div className="inline-flex select-none items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground hover:cursor-pointer p-2"
@@ -153,3 +225,7 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
 };
 
 export default BookmarkForm;
+
+
+
+

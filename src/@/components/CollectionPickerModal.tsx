@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { X, MagnifyingGlass, Folder, Check } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/utils';
+import { getCollectionsData } from '../lib/runtime/messages';
 
 interface Collection {
     id: number;
@@ -31,22 +32,29 @@ export const CollectionPickerModal: FC<CollectionPickerModalProps> = ({
     const [isClosing, setIsClosing] = useState(false);
 
     useEffect(() => {
-        if (isOpen) {
+        let active = true;
+
+        const loadCollections = async () => {
+            if (!isOpen) return;
+
             setIsVisible(true);
             setIsClosing(false);
             setLoading(true);
-            chrome.runtime.sendMessage({ type: 'GET_COLLECTIONS' }, (response) => {
 
-                if (response?.success && response.data) {
-                    // Handle both array format and { response: [...] } format
-                    const collections = Array.isArray(response.data)
-                        ? response.data
-                        : (response.data.response || []);
-                    setCollections(collections);
-                }
-                setLoading(false);
-            });
-        }
+            try {
+                const response = await getCollectionsData();
+                if (!active) return;
+                setCollections(Array.isArray(response) ? response as any : (response.response || []));
+            } catch {
+                if (!active) return;
+                setCollections([]);
+            } finally {
+                if (active) setLoading(false);
+            }
+        };
+
+        void loadCollections();
+        return () => { active = false; };
     }, [isOpen]);
 
     const handleClose = () => {
@@ -68,18 +76,15 @@ export const CollectionPickerModal: FC<CollectionPickerModalProps> = ({
             "absolute inset-0 z-50 flex items-center justify-center transition-opacity duration-150",
             isClosing ? "opacity-0" : "opacity-100"
         )}>
-            {/* Blur backdrop */}
             <div
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                 onClick={handleClose}
             />
 
-            {/* Modal */}
             <div className={cn(
                 "relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[70vh] flex flex-col overflow-hidden border border-zinc-200 dark:border-zinc-800 transition-all duration-150",
                 isClosing ? "scale-95 opacity-0" : "scale-100 opacity-100"
             )}>
-                {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
                     <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         {t('preferences.selectCollection')}
@@ -92,7 +97,6 @@ export const CollectionPickerModal: FC<CollectionPickerModalProps> = ({
                     </button>
                 </div>
 
-                {/* Search */}
                 <div className="p-3 border-b border-zinc-200 dark:border-zinc-800">
                     <div className="relative">
                         <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -106,7 +110,6 @@ export const CollectionPickerModal: FC<CollectionPickerModalProps> = ({
                     </div>
                 </div>
 
-                {/* Collection List */}
                 <div className="flex-1 overflow-y-auto p-2">
                     {loading ? (
                         <div className="flex items-center justify-center py-8">

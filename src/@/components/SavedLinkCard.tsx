@@ -5,20 +5,17 @@ import { OutlineSparkleIcon } from './CustomIcons';
 import Icon from './Icon';
 import { format } from 'date-fns';
 import { enUS, tr } from 'date-fns/locale';
-import { getConfig } from '../lib/config';
 import { useTranslation } from 'react-i18next';
 import '../lib/i18n';
-import { useQuery } from '@tanstack/react-query';
-import { getCurrentUser } from '../lib/actions/users';
 import { getThumbnail } from '../lib/thumbnailCache';
+import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
+import { fetchImageBlobMessage, getLinkWithHighlights, openTabMessage } from '../lib/runtime/messages';
 
 interface SavedLinkCardProps {
     link: LinkWithHighlights; onEdit?: (link: LinkWithHighlights) => void;
     sharedImgSrc?: string; onImgSrcChange?: (src: string) => void; onClose?: () => void;
     onLinkUpdate?: (link: LinkWithHighlights) => void;
 }
-
-// --- Saved Link Polling (inlined from useSavedLinkPolling) ---
 
 function useSavedLinkPolling({
     initialLink, link, setLink, baseUrl, sharedImgSrc, onImgSrcChange, onLinkUpdate, getFaviconUrl,
@@ -36,7 +33,6 @@ function useSavedLinkPolling({
     const [imgSrc, setImgSrc] = useState<string>(optimisticThumbnail || sharedImgSrc || '');
     const [isLoading, setIsLoading] = useState<boolean>(!optimisticThumbnail && !sharedImgSrc);
 
-    // Tag polling state
     const [isPollingTags, setIsPollingTags] = useState(() => {
         if ((initialLink as any)?._skipAiPolling) return false;
         const hasNoTags = !initialLink.tags || initialLink.tags.length === 0;
@@ -51,24 +47,22 @@ function useSavedLinkPolling({
         return false;
     });
 
-    // Tag polling effect
     useEffect(() => {
         if (!isPollingTags || !link?.id) return;
         const intervalId = setInterval(async () => {
             try {
-                const response = await chrome.runtime.sendMessage({ type: 'GET_LINK_WITH_HIGHLIGHTS', data: { url: link.url } });
-                if (response.success && response.data?.link?.tags?.length > 0) {
+                const response = await getLinkWithHighlights(link.url);
+                if (response?.link?.tags?.length > 0) {
                     setIsPollingTags(false);
-                    if (onLinkUpdate) onLinkUpdate(response.data.link);
-                    else setLink(prev => ({ ...prev, tags: response.data.link.tags }));
+                    if (onLinkUpdate) onLinkUpdate(response.link);
+                    else setLink(prev => ({ ...prev, tags: response.link.tags }));
                 }
             } catch { }
         }, 2000);
         const timeoutId = setTimeout(() => setIsPollingTags(false), 30000);
         return () => { clearInterval(intervalId); clearTimeout(timeoutId); };
-    }, [isPollingTags, link?.id, link?.url, onLinkUpdate]);
+    }, [isPollingTags, link?.id, link?.url, onLinkUpdate, setLink]);
 
-    // Preview polling & image fetching
     useEffect(() => {
         let isMounted = true;
         let pollInterval: NodeJS.Timeout | null = null;
@@ -85,9 +79,9 @@ function useSavedLinkPolling({
                 if (!sharedImgSrc && isMounted) setIsLoading(true);
                 pollInterval = setInterval(async () => {
                     try {
-                        const r = await chrome.runtime.sendMessage({ type: 'GET_LINK_WITH_HIGHLIGHTS', data: { url: link.url } });
-                        if (r.success && r.data?.link?.preview && isMounted) {
-                            setLink(prev => ({ ...prev, ...r.data.link, collection: { ...r.data.link?.collection, ...prev.collection } }));
+                        const response = await getLinkWithHighlights(link.url);
+                        if (response?.link?.preview && isMounted) {
+                            setLink(prev => ({ ...prev, ...response.link, collection: { ...response.link?.collection, ...prev.collection } }));
                         }
                     } catch { }
                 }, 2000);
@@ -99,24 +93,35 @@ function useSavedLinkPolling({
                 if (hasSharedData && isMounted) { setImgSrc(sharedImgSrc!); setIsLoading(false); return; }
                 if (isMounted) setIsLoading(true);
                 const url = `${baseUrl.replace(/\/$/, '')}/api/v1/archives/${link.id}?format=1&preview=true`;
-                chrome.runtime.sendMessage({ type: 'FETCH_IMAGE_BLOB', data: { url } }, (response) => {
+                try {
+                    const response = await fetchImageBlobMessage(url);
                     if (!isMounted) return;
-                    if (response?.success && response.data?.base64Data) { setImgSrc(response.data.base64Data); onImgSrcChange?.(response.data.base64Data); }
-                    else { const fav = getFaviconUrl(link.url); setImgSrc(fav); onImgSrcChange?.(fav); }
-                    setIsLoading(false);
-                });
+                    if (response?.base64Data) {
+                        setImgSrc(response.base64Data);
+                        onImgSrcChange?.(response.base64Data);
+                    } else {
+                        const fav = getFaviconUrl(link.url);
+                        setImgSrc(fav);
+                        onImgSrcChange?.(fav);
+                    }
+                } catch {
+                    if (!isMounted) return;
+                    const fav = getFaviconUrl(link.url);
+                    setImgSrc(fav);
+                    onImgSrcChange?.(fav);
+                } finally {
+                    if (isMounted) setIsLoading(false);
+                }
             } else {
                 if (isMounted) { const fav = getFaviconUrl(link.url); setImgSrc(fav); onImgSrcChange?.(fav); setIsLoading(false); }
             }
         };
-        fetchData();
+        void fetchData();
         return () => { isMounted = false; if (pollInterval) clearInterval(pollInterval); };
-    }, [link.preview, link.url, link.id, baseUrl, sharedImgSrc, onImgSrcChange]);
+    }, [link.preview, link.url, link.id, baseUrl, sharedImgSrc, onImgSrcChange, imgSrc, initialLink, setLink]);
 
     return { imgSrc, isLoading, isPollingTags, setIsPollingTags };
 }
-
-// --- SavedLinkCard Component ---
 
 export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onImgSrcChange, onClose, onLinkUpdate }: SavedLinkCardProps) => {
     const initialLink = (rawInitialLink as any)?.response || rawInitialLink;
@@ -127,8 +132,21 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
     }));
 
     const [baseUrl, setBaseUrl] = useState<string | null>(null);
-    const [apiKey, setApiKey] = useState<string | null>(null);
-    useEffect(() => { getConfig().then(c => { setBaseUrl(c.baseUrl); setApiKey(c.apiKey); }); }, []);
+    const [userProfile, setUserProfile] = useState<any | null>(null);
+
+    useEffect(() => {
+        let active = true;
+        getExtensionBootstrapState().then((bootstrap) => {
+            if (!active) return;
+            setBaseUrl(bootstrap.baseUrl || bootstrap.config?.baseUrl || null);
+            setUserProfile(bootstrap.user || null);
+        }).catch(() => {
+            if (!active) return;
+            setBaseUrl(null);
+            setUserProfile(null);
+        });
+        return () => { active = false; };
+    }, []);
 
     const getFaviconUrl = (url?: string) => url ? `https://www.google.com/s2/favicons?sz=64&domain_url=${url}` : '';
     const faviconUrl = getFaviconUrl(link.url);
@@ -137,20 +155,13 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         initialLink: initialLink as any, link, setLink, baseUrl, sharedImgSrc, onImgSrcChange, onLinkUpdate, getFaviconUrl,
     });
 
-    const { data: userProfile } = useQuery({
-        queryKey: ['userProfile'],
-        queryFn: () => apiKey && baseUrl ? getCurrentUser(baseUrl, apiKey) : Promise.reject('No config'),
-        enabled: !!apiKey && !!baseUrl, staleTime: 1000 * 60 * 5,
-    });
-
-    // Sync link on prop change
     useEffect(() => {
         setLink(prev => {
             const mergedCollection = initialLink?.collection ? { ...initialLink.collection, icon: prev.collection?.icon || initialLink.collection?.icon, color: prev.collection?.color || initialLink.collection?.color } : prev.collection;
             if (initialLink.tags?.length > 0 && isPollingTags) setIsPollingTags(false);
             return { ...prev, ...initialLink, url: initialLink.url || prev.url || window.location.href, name: initialLink.name || prev.name || document.title || t('savedLink.untitled'), collection: mergedCollection };
         });
-    }, [initialLink]);
+    }, [initialLink, isPollingTags, setIsPollingTags, t]);
 
     const formattedDate = link.createdAt ? format(new Date(link.createdAt), 'MMM d', { locale: i18n.language === 'tr' ? tr : enUS }) : t('savedLink.justNow');
     const collectionName = link.collection?.name || t('bookmark.unorganized');
@@ -159,7 +170,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         if (!link.id || !baseUrl) return;
         const formatMap: Record<string, number> = { 'ORIGINAL': 999, 'PDF': 0, 'MONOLITH': 1, 'SCREENSHOT': 2, 'READABLE': 3, 'DETAILS': 1 };
         const formatNum = formatMap[userProfile?.linksRouteTo || 'MONOLITH'] ?? 1;
-        chrome.runtime.sendMessage({ type: 'OPEN_TAB', data: { url: `${baseUrl.replace(/\/$/, '')}/dashboard?openPreview=${link.id}&format=${formatNum}` } });
+        void openTabMessage(`${baseUrl.replace(/\/$/, '')}/dashboard?openPreview=${link.id}&format=${formatNum}`).catch(() => { });
     };
 
     return (
@@ -183,7 +194,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                         </>) : (<>
                             <img src={imgSrc || faviconUrl} alt="Thumbnail"
                                 className={(imgSrc && imgSrc !== faviconUrl) ? "w-full h-full object-cover z-0 rounded-xl" : "w-full h-full object-contain p-2 z-0 rounded-xl"}
-                                onError={(e) => { const t = e.target as HTMLImageElement; if (faviconUrl && t.src !== faviconUrl) { t.src = faviconUrl; t.className = "w-full h-full object-contain p-2 z-0"; } else t.style.display = 'none'; }} />
+                                onError={(e) => { const target = e.target as HTMLImageElement; if (faviconUrl && target.src !== faviconUrl) { target.src = faviconUrl; target.className = 'w-full h-full object-contain p-2 z-0'; } else target.style.display = 'none'; }} />
                             <div className="absolute inset-0 z-10 rounded-xl border border-black/10 dark:border-white/10 pointer-events-none" />
                         </>)}
                         {!isLoading && (!imgSrc && !faviconUrl) && <span className="text-2xl">🌍</span>}
@@ -204,7 +215,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                         {isPollingTags ? (
                             <div className="flex items-center gap-2 mt-2 h-[16px]">
                                 <OutlineSparkleIcon className="w-3.5 h-3.5 text-blue-500" loading={true} />
-                                <span className="text-[10px] text-zinc-400 font-medium italic animate-pulse">{t('editLink.generatingTags') || "Generating tags..."}</span>
+                                <span className="text-[10px] text-zinc-400 font-medium italic animate-pulse">{t('editLink.generatingTags') || 'Generating tags...'}</span>
                             </div>
                         ) : (link.tags && link.tags.length > 0) && (
                             <div className="flex flex-wrap gap-0.5 mt-2 h-[16px] overflow-hidden w-full items-center">
