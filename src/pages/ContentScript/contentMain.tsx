@@ -3,6 +3,7 @@
 import { HighlightToolbox, showToast } from './HighlightToolbox';
 import { SmartCaptureMode } from './SmartCapture';
 import { NotePanel } from './NotePanel';
+import { ThemeManager } from './shared/ThemeManager';
 
 // Managers
 import { toggleEmbeddedMenu } from './managers/EmbeddedMenuManager';
@@ -344,7 +345,6 @@ async function init(): Promise<boolean> {
     signalExtensionPresence();
     setDebugState({ mainStage: 'init-started', href: window.location.href.slice(0, 200), contentmaininitialized: false });
     debugLog('init started', { href: window.location.href });
-    const { ThemeManager } = await import('./shared/ThemeManager');
     await ThemeManager.initExtensionTheme();
     cleanupRegistry.push(() => ThemeManager.cleanup());
 
@@ -474,3 +474,4 @@ export async function initContentMain(): Promise<void> {
 }
 
 void initContentMain();
+
