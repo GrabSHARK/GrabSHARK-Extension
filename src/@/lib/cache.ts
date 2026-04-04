@@ -7,11 +7,7 @@ import { getConfig } from './config.ts';
 const browser = getBrowser();
 
 const BOOKMARKS_METADATA_KEY = 'lw_bookmarks_metadata_cache';
-// TODO: Implement caching for tabs metadata maybe?
-// I want to cache the all current favorited links in the browser, and cache the ones coming from the server
-// so that I can compare them and only update the ones that are different from the server to the browser and vice versa (if needed)
-// I think I can do this by using the bookmark id as the key, and the value will be the link object itself (or maybe just the url?)
-// I think I can also use the url as the key, and the value will be the bookmark id (or maybe just the bookmark object itself?)
+const CACHE_VERSION = 2;
 
 export interface bookmarkMetadata extends bookmarkFormValues {
   id: number;
@@ -19,102 +15,216 @@ export interface bookmarkMetadata extends bookmarkFormValues {
   bookmarkId?: string;
 }
 
-const DEFAULTS: bookmarkMetadata[] = [];
+interface BookmarkMetadataCacheStore {
+  version: number;
+  byId: Record<string, bookmarkMetadata>;
+  idsByUrl: Record<string, number>;
+  idsByBookmarkId: Record<string, number>;
+}
+
+function cloneDefaultStore(): BookmarkMetadataCacheStore {
+  return {
+    version: CACHE_VERSION,
+    byId: {},
+    idsByUrl: {},
+    idsByBookmarkId: {},
+  };
+}
+
+function normalizeBookmarkMetadata(entry: bookmarkMetadata): bookmarkMetadata {
+  return {
+    ...entry,
+    bookmarkId: entry.bookmarkId ?? undefined,
+  };
+}
+
+function buildStore(entries: bookmarkMetadata[]): BookmarkMetadataCacheStore {
+  const store = cloneDefaultStore();
+
+  for (const entry of entries) {
+    const normalized = normalizeBookmarkMetadata(entry);
+    const key = String(normalized.id);
+    store.byId[key] = normalized;
+    if (normalized.url) {
+      store.idsByUrl[normalized.url] = normalized.id;
+    }
+    if (normalized.bookmarkId) {
+      store.idsByBookmarkId[normalized.bookmarkId] = normalized.id;
+    }
+  }
+
+  return store;
+}
+
+function migrateParsedCache(parsed: unknown): BookmarkMetadataCacheStore {
+  if (Array.isArray(parsed)) {
+    return buildStore(parsed as bookmarkMetadata[]);
+  }
+
+  if (parsed && typeof parsed === 'object') {
+    const candidate = parsed as Partial<BookmarkMetadataCacheStore>;
+    if (candidate.byId && typeof candidate.byId === 'object') {
+      const entries = Object.values(candidate.byId).filter(Boolean) as bookmarkMetadata[];
+      return buildStore(entries);
+    }
+  }
+
+  return cloneDefaultStore();
+}
+
+async function readBookmarksMetadataStore(): Promise<BookmarkMetadataCacheStore> {
+  const raw = await getStorageItem(BOOKMARKS_METADATA_KEY);
+  if (!raw) {
+    return cloneDefaultStore();
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    const migratedStore = migrateParsedCache(parsed);
+
+    if (raw !== JSON.stringify(migratedStore)) {
+      await writeBookmarksMetadataStore(migratedStore);
+    }
+
+    return migratedStore;
+  } catch {
+    return cloneDefaultStore();
+  }
+}
+
+async function writeBookmarksMetadataStore(store: BookmarkMetadataCacheStore): Promise<void> {
+  await setStorageItem(BOOKMARKS_METADATA_KEY, JSON.stringify(store));
+}
+
+function getEntries(store: BookmarkMetadataCacheStore): bookmarkMetadata[] {
+  return Object.values(store.byId);
+}
+
+function upsertEntry(store: BookmarkMetadataCacheStore, entry: bookmarkMetadata): void {
+  const normalized = normalizeBookmarkMetadata(entry);
+  const key = String(normalized.id);
+  const previous = store.byId[key];
+
+  if (previous?.url && previous.url !== normalized.url) {
+    delete store.idsByUrl[previous.url];
+  }
+  if (previous?.bookmarkId && previous.bookmarkId !== normalized.bookmarkId) {
+    delete store.idsByBookmarkId[previous.bookmarkId];
+  }
+
+  store.byId[key] = normalized;
+
+  if (normalized.url) {
+    store.idsByUrl[normalized.url] = normalized.id;
+  }
+  if (normalized.bookmarkId) {
+    store.idsByBookmarkId[normalized.bookmarkId] = normalized.id;
+  }
+}
+
+function removeEntryById(store: BookmarkMetadataCacheStore, id: number): void {
+  const key = String(id);
+  const existing = store.byId[key];
+  if (!existing) return;
+
+  if (existing.url) {
+    delete store.idsByUrl[existing.url];
+  }
+  if (existing.bookmarkId) {
+    delete store.idsByBookmarkId[existing.bookmarkId];
+  }
+
+  delete store.byId[key];
+}
 
 export async function getBookmarksMetadata(): Promise<bookmarkMetadata[]> {
-  const bookmarksMetadata = await getStorageItem(BOOKMARKS_METADATA_KEY);
-  return bookmarksMetadata ? JSON.parse(bookmarksMetadata) : DEFAULTS;
+  const store = await readBookmarksMetadataStore();
+  return getEntries(store);
 }
 
 export async function saveBookmarksMetadata(bookmarksMetadata: bookmarkMetadata[]) {
-  return await setStorageItem(BOOKMARKS_METADATA_KEY, JSON.stringify(bookmarksMetadata));
+  const store = buildStore(bookmarksMetadata);
+  return await writeBookmarksMetadataStore(store);
 }
 
 export async function clearBookmarksMetadata() {
-  return await setStorageItem(BOOKMARKS_METADATA_KEY, JSON.stringify([]));
+  return await writeBookmarksMetadataStore(cloneDefaultStore());
 }
 
 export async function getBookmarkMetadataById(id: number): Promise<bookmarkMetadata | undefined> {
-  const bookmarksMetadata = await getBookmarksMetadata();
-  return bookmarksMetadata.find((bookmarkMetadata) => bookmarkMetadata.id === id);
+  const store = await readBookmarksMetadataStore();
+  return store.byId[String(id)];
 }
 
 export async function getBookmarkMetadataByBookmarkId(bookmarkId: string): Promise<bookmarkMetadata | undefined> {
-  const bookmarksMetadata = await getBookmarksMetadata();
-  return bookmarksMetadata.find((bookmarkMetadata) => bookmarkMetadata.bookmarkId === bookmarkId);
+  const store = await readBookmarksMetadataStore();
+  const id = store.idsByBookmarkId[bookmarkId];
+  return typeof id === 'number' ? store.byId[String(id)] : undefined;
 }
 
 export async function getBookmarkMetadataByUrl(url: string): Promise<bookmarkMetadata | undefined> {
-  const bookmarksMetadata = await getBookmarksMetadata();
-  return bookmarksMetadata.find((bookmarkMetadata) => bookmarkMetadata.url === url);
+  const store = await readBookmarksMetadataStore();
+  const id = store.idsByUrl[url];
+  return typeof id === 'number' ? store.byId[String(id)] : undefined;
 }
 
 export async function saveBookmarkMetadata(bookmarkMetadata: bookmarkMetadata) {
-  const bookmarksMetadata = await getBookmarksMetadata();
-  const index = bookmarksMetadata.findIndex((bookmarkMetadataObject) => bookmarkMetadataObject.id === bookmarkMetadata.id);
-  if (index !== -1) {
-    bookmarksMetadata[index] = bookmarkMetadata;
-  } else {
-    bookmarksMetadata.push(bookmarkMetadata);
-  }
-  return await saveBookmarksMetadata(bookmarksMetadata);
+  const store = await readBookmarksMetadataStore();
+  upsertEntry(store, bookmarkMetadata);
+  return await writeBookmarksMetadataStore(store);
 }
 
 export async function deleteBookmarkMetadata(id: string | undefined) {
-  const bookmarksMetadata = await getBookmarksMetadata();
-  const index = bookmarksMetadata.findIndex((bookmarkMetadata) => bookmarkMetadata.bookmarkId === id);
-  if (index !== -1) {
-    bookmarksMetadata.splice(index, 1);
+  if (!id) {
+    return;
   }
-  return await saveBookmarksMetadata(bookmarksMetadata);
+
+  const store = await readBookmarksMetadataStore();
+  const metadataId = store.idsByBookmarkId[id];
+  if (typeof metadataId === 'number') {
+    removeEntryById(store, metadataId);
+    await writeBookmarksMetadataStore(store);
+  }
 }
 
-// It just works, don't MOVE
 export async function saveLinksInCache(baseUrl: string) {
   try {
     const { apiKey } = await getConfig();
     const links = await getLinksFetch(baseUrl, apiKey);
     const linksResponse = links.response;
 
-    // Create a map to track which bookmarks are still present on the server
     const serverBookmarkMap = new Map<number, bookmarkMetadata>();
     linksResponse.forEach(link => serverBookmarkMap.set(link.id, link));
 
-    // Get the current bookmarks metadata from the cache
-    const bookmarksMetadata = await getBookmarksMetadata();
+    const store = await readBookmarksMetadataStore();
 
-    // Update or add bookmarks based on server response
     for (let link of linksResponse) {
-      const existingLinkIndex = bookmarksMetadata.findIndex((bookmarkMetadata) => bookmarkMetadata.id === link.id);
-      if (existingLinkIndex !== -1) {
-        // Update existing bookmark if there are changes
-        link = { ...bookmarksMetadata[existingLinkIndex], ...link };
-        bookmarksMetadata[existingLinkIndex] = link;
+      const existing = store.byId[String(link.id)];
+      if (existing) {
+        link = { ...existing, ...link };
+        upsertEntry(store, link);
       } else {
-        // Add new bookmark from the server
         const newLocalBookmark = await createBookmarkInBrowser(link);
         link.bookmarkId = newLocalBookmark.id;
-        bookmarksMetadata.push(link);
+        upsertEntry(store, link);
       }
     }
 
-    // Remove cached bookmarks that are no longer present on the server
-    const bookmarksToRemove = bookmarksMetadata.filter((bookmarkMetadata) => !serverBookmarkMap.has(bookmarkMetadata.id));
-    for (const bookmarkToRemove of bookmarksToRemove) {
-      const indexToRemove = bookmarksMetadata.indexOf(bookmarkToRemove);
-      if (indexToRemove !== -1) {
-        bookmarksMetadata.splice(indexToRemove, 1);
-        if (bookmarkToRemove.bookmarkId != null) {
-          await browser.bookmarks.remove(bookmarkToRemove.bookmarkId);
-        }
+    const cachedEntries = getEntries(store);
+    for (const bookmarkToRemove of cachedEntries) {
+      if (serverBookmarkMap.has(bookmarkToRemove.id)) {
+        continue;
+      }
+
+      removeEntryById(store, bookmarkToRemove.id);
+      if (bookmarkToRemove.bookmarkId != null) {
+        await browser.bookmarks.remove(bookmarkToRemove.bookmarkId);
       }
     }
 
-    // Save the updated bookmarks metadata back to the cache
-    await saveBookmarksMetadata(bookmarksMetadata);
+    await writeBookmarksMetadataStore(store);
 
   } catch {
-    // Silently fail if not configured or network error
   }
 }
 
@@ -127,68 +237,52 @@ const getCurrentBookmarks = async () => {
   return await browser.bookmarks.getTree();
 };
 
-// Testing will remove later, idk if this would be ok to do, since they are being duplicated in the browser.
 export async function syncLocalBookmarks(baseUrl: string) {
   try {
     const { apiKey } = await getConfig();
-    // Retrieve all local bookmarks
     const [root] = await getCurrentBookmarks();
     const localBookmarks: bookmarkMetadata[] = [];
     if (!root.children) return;
     logBookmarks(root.children, localBookmarks);
 
-    // Load cached bookmarks metadata
-    const bookmarksMetadata = await getBookmarksMetadata();
+    const store = await readBookmarksMetadataStore();
+    const cachedBookmarksMap = new Map(Object.entries(store.idsByUrl).map(([url, id]) => [url, store.byId[String(id)]]).filter((entry): entry is [string, bookmarkMetadata] => Boolean(entry[1])));
 
-    // Create a map of cached bookmarks by URL for easy lookup
-    const cachedBookmarksMap = new Map(bookmarksMetadata.map(bm => [bm.url, bm]));
-
-    // Prepare arrays to hold promises for new, updated, and deleted bookmarks
     const createPromises = [];
     const updatePromises = [];
     const deletePromises = [];
 
-    // Sync new and updated local bookmarks to the server
     for (const localBookmark of localBookmarks) {
       const cachedBookmark = cachedBookmarksMap.get(localBookmark.url);
       if (!cachedBookmark) {
-        // New bookmark
         createPromises.push(postLinkFetch(baseUrl, localBookmark, apiKey));
       } else if (cachedBookmark.name !== localBookmark.name) {
-        // Updated bookmark
         updatePromises.push(updateLinkFetch(baseUrl, cachedBookmark.id, localBookmark, apiKey));
       }
-      // Remove from the map to track deleted bookmarks
       cachedBookmarksMap.delete(localBookmark.url);
     }
 
-    // Prepare delete promises for bookmarks that are no longer in the local bookmarks
     for (const [, cachedBookmark] of cachedBookmarksMap) {
       deletePromises.push(deleteLinkFetch(baseUrl, cachedBookmark.id, apiKey));
     }
 
-    // Run all create, update, and delete operations in parallel
     await Promise.all([...createPromises, ...updatePromises, ...deletePromises]);
-
-    // Update the cached bookmarks metadata
     await saveBookmarksMetadata(localBookmarks);
   } catch {
-    // Silently fail if not configured or network error
   }
 }
 
-// Helper function to collect all bookmarks recursively
 function logBookmarks(bookmarks: BookmarkTreeNode[], accumulator: bookmarkMetadata[]) {
   for (const bookmark of bookmarks) {
     if (bookmark.url) {
       accumulator.push({
-        id: parseInt(bookmark.id), // Convert string id to number
-        collectionId: 0, // Define how to determine collectionId
+        id: parseInt(bookmark.id),
+        collectionId: 0,
         name: bookmark.title,
         url: bookmark.url,
-        description: '', // Define how to get description
-        collection: { id: 0, name: '', ownerId: 0 }, // Define collection details
-        tags: [], // Define how to get tags
+        description: '',
+        collection: { id: 0, name: '', ownerId: 0 },
+        tags: [],
         bookmarkId: bookmark.id,
       });
     } else if (bookmark.children) {
@@ -196,10 +290,6 @@ function logBookmarks(bookmarks: BookmarkTreeNode[], accumulator: bookmarkMetada
     }
   }
 }
-
-
-
-
 
 
 

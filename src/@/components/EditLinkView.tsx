@@ -6,13 +6,13 @@ import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from './ui/Toaster';
 import { getThumbnail } from '../lib/thumbnailCache';
+import { fetchAuthorizedImageUrl } from '../lib/authorizedImageUrl';
 import { LinkWithHighlights } from '../lib/types/highlight';
 import { toast } from '../../hooks/use-toast';
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
 import {
     archiveLinkMessage,
     deleteLinkMessage,
-    fetchImageBlobMessage,
     openTabMessage,
     suggestTags,
     updateLinkMessage,
@@ -207,11 +207,11 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
             if (link.preview && baseUrl) {
                 setIsLoading(true);
                 try {
-                    const response = await fetchImageBlobMessage(`${baseUrl.replace(/\/$/, '')}/api/v1/archives/${link.id}?format=1&preview=true`);
+                    const objectUrl = await fetchAuthorizedImageUrl(`${baseUrl.replace(/\/$/, '')}/api/v1/archives/${link.id}?format=1&preview=true`);
                     if (!active) return;
-                    if (response?.base64Data) {
-                        setImgSrc(response.base64Data);
-                        onImgSrcChange?.(response.base64Data);
+                    if (objectUrl) {
+                        setImgSrc(objectUrl);
+                        onImgSrcChange?.(objectUrl);
                     } else {
                         setImgSrc(faviconUrl);
                     }
@@ -278,4 +278,7 @@ export const EditLinkView = ({ link: rawLink, onClose, onBack, containerRef, onU
         </div>
     );
 };
+
+
+
 

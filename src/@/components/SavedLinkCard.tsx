@@ -7,8 +7,10 @@ import { enUS, tr } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import '../lib/i18n';
 import { getThumbnail } from '../lib/thumbnailCache';
+import { fetchAuthorizedImageUrl } from '../lib/authorizedImageUrl';
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
-import { fetchImageBlobMessage, getLinkWithHighlights, openTabMessage } from '../lib/runtime/messages';
+import { subscribeToLinkPreview, subscribeToLinkTags } from '../lib/linkPollers';
+import { openTabMessage } from '../lib/runtime/messages';
 
 interface SavedLinkCardProps {
     link: LinkWithHighlights;
@@ -52,30 +54,24 @@ function useSavedLinkPolling({
     });
 
     useEffect(() => {
-        if (!isPollingTags || !link?.id) return;
-        const intervalId = setInterval(async () => {
-            try {
-                const response = await getLinkWithHighlights(link.url);
-                if (response?.link?.tags?.length > 0) {
-                    setIsPollingTags(false);
-                    if (onLinkUpdate) onLinkUpdate(response.link);
-                    else setLink(prev => ({ ...prev, tags: response.link.tags }));
-                }
-            } catch {
-                // noop
-            }
-        }, 2000);
-        const timeoutId = setTimeout(() => setIsPollingTags(false), 30000);
-        return () => {
-            clearInterval(intervalId);
-            clearTimeout(timeoutId);
-        };
-    }, [isPollingTags, link?.id, link?.url, onLinkUpdate, setLink]);
+        if (!isPollingTags || !link?.url) return;
+
+        return subscribeToLinkTags(link.url, {
+            onValue: (resolvedLink) => {
+                setIsPollingTags(false);
+                if (onLinkUpdate) onLinkUpdate(resolvedLink);
+                else setLink(prev => ({ ...prev, tags: resolvedLink.tags }));
+            },
+            onTimeout: () => {
+                setIsPollingTags(false);
+            },
+        });
+    }, [isPollingTags, link?.url, onLinkUpdate, setLink]);
 
     useEffect(() => {
         let isMounted = true;
-        let pollInterval: NodeJS.Timeout | null = null;
-        const hasSharedData = sharedImgSrc?.startsWith('data:');
+        let stopPreviewPolling: (() => void) | null = null;
+        const hasSharedData = !!sharedImgSrc;
 
         const fetchData = async () => {
             if (optimisticThumbnail) {
@@ -97,37 +93,33 @@ function useSavedLinkPolling({
 
             if (!link.preview) {
                 if (!sharedImgSrc && isMounted) setIsLoading(true);
-                pollInterval = setInterval(async () => {
-                    try {
-                        const response = await getLinkWithHighlights(link.url);
-                        if (response?.link?.preview && isMounted) {
-                            setLink(prev => ({ ...prev, ...response.link, collection: { ...response.link?.collection, ...prev.collection } }));
-                        }
-                    } catch {
-                        // noop
-                    }
-                }, 2000);
-                setTimeout(() => {
-                    if (pollInterval) clearInterval(pollInterval);
-                    if (isMounted && !link.preview && !imgSrc) setIsLoading(false);
-                }, 30000);
+                stopPreviewPolling = subscribeToLinkPreview(link.url, {
+                    onValue: (resolvedLink) => {
+                        if (!isMounted) return;
+                        setLink(prev => ({ ...prev, ...resolvedLink, collection: resolvedLink.collection ? ({ ...resolvedLink.collection, ...prev.collection } as any) : prev.collection }));
+                    },
+                    onTimeout: () => {
+                        if (isMounted) setIsLoading(false);
+                    },
+                });
                 return;
             }
 
-            if (link.preview && link.preview !== 'unavailable') {
+            if (link.preview !== 'unavailable') {
                 if (hasSharedData && isMounted) {
                     setImgSrc(sharedImgSrc!);
                     setIsLoading(false);
                     return;
                 }
+
                 if (isMounted) setIsLoading(true);
                 const url = `${baseUrl.replace(/\/$/, '')}/api/v1/archives/${link.id}?format=1&preview=true`;
                 try {
-                    const response = await fetchImageBlobMessage(url);
+                    const objectUrl = await fetchAuthorizedImageUrl(url);
                     if (!isMounted) return;
-                    if (response?.base64Data) {
-                        setImgSrc(response.base64Data);
-                        onImgSrcChange?.(response.base64Data);
+                    if (objectUrl) {
+                        setImgSrc(objectUrl);
+                        onImgSrcChange?.(objectUrl);
                     } else {
                         const fav = getFaviconUrl(link.url);
                         setImgSrc(fav);
@@ -141,21 +133,21 @@ function useSavedLinkPolling({
                 } finally {
                     if (isMounted) setIsLoading(false);
                 }
-            } else {
-                if (isMounted) {
-                    const fav = getFaviconUrl(link.url);
-                    setImgSrc(fav);
-                    onImgSrcChange?.(fav);
-                    setIsLoading(false);
-                }
+            } else if (isMounted) {
+                const fav = getFaviconUrl(link.url);
+                setImgSrc(fav);
+                onImgSrcChange?.(fav);
+                setIsLoading(false);
             }
         };
+
         void fetchData();
+
         return () => {
             isMounted = false;
-            if (pollInterval) clearInterval(pollInterval);
+            stopPreviewPolling?.();
         };
-    }, [link.preview, link.url, link.id, baseUrl, sharedImgSrc, onImgSrcChange, imgSrc, initialLink, setLink]);
+    }, [link.preview, link.url, link.id, baseUrl, sharedImgSrc, onImgSrcChange, initialLink, setLink]);
 
     return { imgSrc, isLoading, isPollingTags, setIsPollingTags };
 }
@@ -318,3 +310,4 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         </div>
     );
 };
+
