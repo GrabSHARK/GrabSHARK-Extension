@@ -1,61 +1,117 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from '../locales/en.json';
-import tr from '../locales/tr.json';
-import de from '../locales/de.json';
-import es from '../locales/es.json';
-import fr from '../locales/fr.json';
-import it from '../locales/it.json';
-import ja from '../locales/ja.json';
-import nl from '../locales/nl.json';
-import pl from '../locales/pl.json';
-import ptBR from '../locales/pt-BR.json';
-import ro from '../locales/ro.json';
-import ru from '../locales/ru.json';
-import uk from '../locales/uk.json';
-import zh from '../locales/zh.json';
-import zhTW from '../locales/zh-TW.json';
 
-// Initialize i18next
+type TranslationResource = Record<string, unknown>;
+
+type SupportedLocale =
+    | 'en'
+    | 'tr'
+    | 'de'
+    | 'es'
+    | 'fr'
+    | 'it'
+    | 'ja'
+    | 'nl'
+    | 'pl'
+    | 'pt-BR'
+    | 'ro'
+    | 'ru'
+    | 'uk'
+    | 'zh'
+    | 'zh-TW';
+
+const localeLoaders: Partial<Record<SupportedLocale, () => Promise<TranslationResource>>> = {
+    tr: async () => (await import('../locales/tr.json')).default,
+    de: async () => (await import('../locales/de.json')).default,
+    es: async () => (await import('../locales/es.json')).default,
+    fr: async () => (await import('../locales/fr.json')).default,
+    it: async () => (await import('../locales/it.json')).default,
+    ja: async () => (await import('../locales/ja.json')).default,
+    nl: async () => (await import('../locales/nl.json')).default,
+    pl: async () => (await import('../locales/pl.json')).default,
+    'pt-BR': async () => (await import('../locales/pt-BR.json')).default,
+    ro: async () => (await import('../locales/ro.json')).default,
+    ru: async () => (await import('../locales/ru.json')).default,
+    uk: async () => (await import('../locales/uk.json')).default,
+    zh: async () => (await import('../locales/zh.json')).default,
+    'zh-TW': async () => (await import('../locales/zh-TW.json')).default,
+};
+
+const localeLoadPromises = new Map<SupportedLocale, Promise<void>>();
+
+function normalizeLocale(locale?: string | null): SupportedLocale {
+    if (!locale) return 'en';
+
+    if (locale === 'pt-BR') return 'pt-BR';
+    if (locale === 'zh-TW') return 'zh-TW';
+
+    const lower = locale.toLowerCase();
+    if (lower === 'pt-br' || lower.startsWith('pt-br-')) return 'pt-BR';
+    if (lower === 'zh-tw' || lower.startsWith('zh-tw-')) return 'zh-TW';
+
+    const base = lower.split('-')[0] as SupportedLocale;
+    if (base in localeLoaders || base === 'en') return base;
+
+    return 'en';
+}
+
+async function ensureLocaleLoaded(locale?: string | null): Promise<SupportedLocale> {
+    const normalized = normalizeLocale(locale);
+
+    if (normalized === 'en' || i18n.hasResourceBundle(normalized, 'translation')) {
+        return normalized;
+    }
+
+    let promise = localeLoadPromises.get(normalized);
+    if (!promise) {
+        const loader = localeLoaders[normalized];
+        if (!loader) {
+            return 'en';
+        }
+
+        promise = loader().then((translation) => {
+            i18n.addResourceBundle(normalized, 'translation', translation, true, true);
+        }).finally(() => {
+            localeLoadPromises.delete(normalized);
+        });
+
+        localeLoadPromises.set(normalized, promise);
+    }
+
+    await promise;
+    return normalized;
+}
+
+export async function setExtensionLanguage(locale?: string | null): Promise<SupportedLocale> {
+    const normalized = await ensureLocaleLoaded(locale);
+    if (i18n.language !== normalized) {
+        await i18n.changeLanguage(normalized);
+    }
+    return normalized;
+}
+
 i18n
     .use(initReactI18next)
     .init({
         resources: {
             en: { translation: en },
-            tr: { translation: tr },
-            de: { translation: de },
-            es: { translation: es },
-            fr: { translation: fr },
-            it: { translation: it },
-            ja: { translation: ja },
-            nl: { translation: nl },
-            pl: { translation: pl },
-            'pt-BR': { translation: ptBR },
-            ro: { translation: ro },
-            ru: { translation: ru },
-            uk: { translation: uk },
-            zh: { translation: zh },
-            'zh-TW': { translation: zhTW },
         },
-        lng: 'en', // Default language, will be updated from storage
+        lng: 'en',
         fallbackLng: 'en',
         interpolation: {
-            escapeValue: false, // React already safes from xss
+            escapeValue: false,
         },
     });
 
-// Load language from storage (guarded for page context where chrome.storage is unavailable)
 if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     chrome.storage.local.get(['grabshark_locale'], (result) => {
-        if (result.grabshark_locale) {
-            i18n.changeLanguage(result.grabshark_locale);
-        }
+        void setExtensionLanguage(result.grabshark_locale).catch(() => { });
     });
 
-    // Listen for changes
     chrome.storage.onChanged.addListener((changes, area) => {
         if (area === 'local' && changes.grabshark_locale) {
-            i18n.changeLanguage(changes.grabshark_locale.newValue);
+            void setExtensionLanguage(changes.grabshark_locale.newValue).catch(() => { });
         }
     });
 }

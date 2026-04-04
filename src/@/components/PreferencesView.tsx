@@ -3,7 +3,7 @@ import { X, CaretLeft, GearSix } from '@phosphor-icons/react';
 import { Button } from './ui/Button';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from './ThemeProvider';
-import i18n from '../lib/i18n';
+import i18n, { setExtensionLanguage } from '../lib/i18n';
 import { clearConfig } from '../lib/config';
 import { CollectionPickerModal } from './CollectionPickerModal';
 import { getPreferences, savePreferences } from '../lib/settings';
@@ -116,10 +116,10 @@ function usePreferencesSave(args: {
                 if (needsLanguageRevert) {
                     if (originalLanguage.current === 'system') {
                         void syncUserLocale().then((result) => {
-                            if (result?.locale) i18n.changeLanguage(result.locale);
+                            if (result?.locale) void setExtensionLanguage(result.locale);
                         }).catch(() => { });
                     } else {
-                        i18n.changeLanguage(originalLanguage.current);
+                        void setExtensionLanguage(originalLanguage.current);
                     }
                 }
             }, 300);
@@ -231,10 +231,10 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
         setSelectedLanguage(lang);
         if (lang === 'system') {
             void syncUserLocale().then((result) => {
-                if (result?.locale) i18n.changeLanguage(result.locale);
+                if (result?.locale) void setExtensionLanguage(result.locale);
             }).catch(() => { });
         } else {
-            i18n.changeLanguage(lang);
+            void setExtensionLanguage(lang);
         }
     };
 
@@ -283,4 +283,5 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
         </div>
     );
 };
+
 
