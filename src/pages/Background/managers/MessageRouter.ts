@@ -26,8 +26,20 @@ export class MessageRouter {
                 }
             }
 
-            const config = await getConfig();
-            const configured = !!config.baseUrl && !!config.apiKey;
+            let configPromise: Promise<Awaited<ReturnType<typeof getConfig>>> | null = null;
+
+            const loadConfig = async () => {
+                if (!configPromise) {
+                    configPromise = getConfig();
+                }
+                return await configPromise;
+            };
+
+            const getConfiguredConfig = async () => {
+                const config = await loadConfig();
+                const configured = !!config.baseUrl && !!config.apiKey;
+                return { config, configured };
+            };
 
             switch (message.type) {
                 case 'CHECK_CONFIG':
@@ -46,31 +58,39 @@ export class MessageRouter {
                     sendResponse(await ConfigManager.clearConfig());
                     break;
 
-                case 'BOOTSTRAP_EXTENSION_STATE':
+                case 'BOOTSTRAP_EXTENSION_STATE': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) {
                         sendResponse({ success: true, data: { configured: false, baseUrl: config.baseUrl } });
                         break;
                     }
                     sendResponse(await BootstrapManager.getBootstrapState(config, message.data?.domain));
                     break;
+                }
 
                 case 'VERIFY_SESSION':
                     sendResponse(await AuthManager.verifySession(message.data));
                     break;
 
-                case 'GET_USER':
+                case 'GET_USER': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await UserManager.getUser(config));
                     break;
+                }
 
-                case 'UPDATE_USER':
+                case 'UPDATE_USER': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await UserManager.updateUser(config, message.data.userId, message.data.data));
                     break;
+                }
 
-                case 'SYNC_USER_LOCALE':
+                case 'SYNC_USER_LOCALE': {
+                    const { config, configured } = await getConfiguredConfig();
                     sendResponse(await UserManager.syncLocale(configured, config));
                     break;
+                }
 
                 case 'GET_EXTENSION_PREFERENCES':
                     sendResponse(await PreferencesManager.getPreferences());
@@ -104,100 +124,138 @@ export class MessageRouter {
                     sendResponse(await PreferencesManager.saveLocaleSettings(message.data));
                     break;
 
-                case 'GET_COLLECTIONS':
+                case 'GET_COLLECTIONS': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await CollectionsManager.getCollections(config));
                     break;
+                }
 
-                case 'GET_TAGS':
+                case 'GET_TAGS': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await CollectionsManager.getTags(config));
                     break;
+                }
 
-                case 'CREATE_LINK':
+                case 'CREATE_LINK': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.createLegacyLink(config, message.data, sender));
                     break;
+                }
 
-                case 'GET_HIGHLIGHTS_BY_LINK_ID':
+                case 'GET_HIGHLIGHTS_BY_LINK_ID': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.getHighlightsByLinkId(config, message.data.linkId));
                     break;
+                }
 
-                case 'GET_FILE_HIGHLIGHTS':
+                case 'GET_FILE_HIGHLIGHTS': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.getFileHighlights(config, message.data.fileId));
                     break;
+                }
 
-                case 'GET_LINK_WITH_HIGHLIGHTS':
+                case 'GET_LINK_WITH_HIGHLIGHTS': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.getHighlights(config, message.data.url));
                     break;
+                }
 
-                case 'UPDATE_LINK':
+                case 'UPDATE_LINK': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.updateLink(config, message.data.id, message.data.payload));
                     break;
+                }
 
-                case 'DELETE_LINK':
+                case 'DELETE_LINK': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.deleteLink(config, message.data.id, sender));
                     break;
+                }
 
-                case 'ARCHIVE_LINK':
+                case 'ARCHIVE_LINK': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.archiveLink(config, message.data.id, message.data.action));
                     break;
+                }
 
-                case 'CHECK_LINK_EXISTS':
+                case 'CHECK_LINK_EXISTS': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.checkLinkExists(config, message.data.url));
                     break;
+                }
 
-                case 'SAVE_LINK_QUICK':
+                case 'SAVE_LINK_QUICK': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.createLinkQuick(config, message.data.url, message.data.title));
                     break;
+                }
 
-                case 'GET_RECENT_LINKS':
+                case 'GET_RECENT_LINKS': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.getRecentLinks(config));
                     break;
+                }
 
-                case 'SAVE_LINK_FROM_EXTENSION':
+                case 'SAVE_LINK_FROM_EXTENSION': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.createLink(config, { ...message.data.values, aiTagged: message.data.aiTagged }, sender));
                     break;
+                }
 
-                case 'CREATE_HIGHLIGHT':
+                case 'CREATE_HIGHLIGHT': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.createHighlight(config, message.data));
                     break;
+                }
 
-                case 'DELETE_HIGHLIGHT':
+                case 'DELETE_HIGHLIGHT': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.deleteHighlight(config, message.data.highlightId, message.data.linkId));
                     break;
+                }
 
-                case 'CREATE_FILE_HIGHLIGHT':
+                case 'CREATE_FILE_HIGHLIGHT': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.createFileHighlight(config, message.data));
                     break;
+                }
 
-                case 'FETCH_IMAGE_BLOB':
+                case 'FETCH_IMAGE_BLOB': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await MediaManager.fetchImageBlob(config, message.data.url));
                     break;
+                }
 
-                case 'SAVE_IMAGE':
+                case 'SAVE_IMAGE': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await MediaManager.saveImage(config, message.data));
                     break;
+                }
 
-                case 'UPLOAD_CLIP':
+                case 'UPLOAD_CLIP': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await MediaManager.uploadClip(config, message.data));
                     break;
+                }
 
                 case 'CAPTURE_VISIBLE_TAB':
                     try {
@@ -222,20 +280,26 @@ export class MessageRouter {
                     }
                     break;
 
-                case 'GET_DOMAIN_PREFERENCE':
+                case 'GET_DOMAIN_PREFERENCE': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: true, data: { configured: false, baseUrl: config.baseUrl } }); break; }
                     sendResponse(await BootstrapManager.getDomainPreference(config, message.data.domain));
                     break;
+                }
 
-                case 'SET_DOMAIN_PREFERENCE':
+                case 'SET_DOMAIN_PREFERENCE': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await BootstrapManager.setDomainPreference(config, message.data));
                     break;
+                }
 
-                case 'SUGGEST_TAGS':
+                case 'SUGGEST_TAGS': {
+                    const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await BootstrapManager.suggestTags(config, message.data));
                     break;
+                }
 
                 case 'OPEN_TAB':
                     try {
@@ -273,4 +337,3 @@ export class MessageRouter {
         }
     }
 }
-
