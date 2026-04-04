@@ -9,6 +9,7 @@ import {
 import { showToast } from '../HighlightToolbox';
 import { sendMessage } from '../utils/messaging';
 import { getPreferences } from '../../../@/lib/settings';
+import { readLinkSessionCache, writeLinkSessionCache } from '../../../@/lib/runtime/sessionCache';
 
 interface LinkData {
     id: number;
@@ -42,15 +43,7 @@ export const HighlightManager = {
 
         if (response.success && response.data) {
             // Cache the result for Optimistic UI in EmbeddedApp
-            try {
-                const cacheKey = `lw_cache_${pageUrl}`;
-                sessionStorage.setItem(cacheKey, JSON.stringify({
-                    timestamp: Date.now(),
-                    link: response.data.link
-                }));
-            } catch (e) {
-                // Ignore storage errors
-            }
+            writeLinkSessionCache(pageUrl, response.data.link);
 
             if (response.data.link) {
                 currentPageLinkId = response.data.link.id;
@@ -151,17 +144,10 @@ export const HighlightManager = {
         }
 
         if (!currentPageLinkId) {
-            try {
-                const cached = sessionStorage.getItem('lw_cache_' + window.location.href);
-                if (cached) {
-                    const parsed = JSON.parse(cached);
-                    const cachedLinkId = parsed?.link?.id;
-                    if (typeof cachedLinkId === 'number' && cachedLinkId > 0) {
-                        currentPageLinkId = cachedLinkId;
-                    }
-                }
-            } catch {
-                // Ignore cache parsing issues and fall back to runtime lookup/create.
+            const cachedLink = readLinkSessionCache<LinkData>(window.location.href);
+            const cachedLinkId = cachedLink?.id;
+            if (typeof cachedLinkId === 'number' && cachedLinkId > 0) {
+                currentPageLinkId = cachedLinkId;
             }
         }
 
@@ -209,24 +195,10 @@ export const HighlightManager = {
 
                 currentPageLinkId = existingLinkResponse.data.link.id;
                 currentHighlights = existingLinkResponse.data.highlights || currentHighlights;
-                try {
-                    sessionStorage.setItem('lw_cache_' + window.location.href, JSON.stringify({
-                        timestamp: Date.now(),
-                        link: existingLinkResponse.data.link,
-                    }));
-                } catch {
-                    // noop
-                }
+                writeLinkSessionCache(window.location.href, existingLinkResponse.data.link);
             } else {
                 currentPageLinkId = linkResponse.data.link.id;
-                try {
-                    sessionStorage.setItem('lw_cache_' + window.location.href, JSON.stringify({
-                        timestamp: Date.now(),
-                        link: linkResponse.data.link,
-                    }));
-                } catch {
-                    // noop
-                }
+                writeLinkSessionCache(window.location.href, linkResponse.data.link);
             }
         }
 
@@ -336,4 +308,6 @@ export const HighlightManager = {
         }
     }
 };
+
+
 

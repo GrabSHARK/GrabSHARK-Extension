@@ -5,6 +5,7 @@ import { ThemeProvider } from '../../@/components/ThemeProvider.tsx';
 import { ThemeDetector } from './SmartCapture/ThemeDetector.ts';
 import { getExtensionBootstrapState } from '../../@/lib/actions/bootstrap.ts';
 import { getLinkWithHighlights, syncUserLocale } from '../../@/lib/runtime/messages.ts';
+import { readLinkSessionCache, writeLinkSessionCache } from '../../@/lib/runtime/sessionCache';
 
 const LazySaveLinkCard = lazy(async () => ({
     default: (await import('../../@/components/SaveLinkCard.tsx')).SaveLinkCard,
@@ -21,6 +22,7 @@ const LazyPreferencesView = lazy(async () => ({
 const LazyModal = lazy(() => import('../../@/components/Modal.tsx'));
 
 const queryClient = new QueryClient();
+const embeddedThemeDetector = new ThemeDetector();
 
 interface EmbeddedAppProps {
     onClose: () => void;
@@ -134,14 +136,7 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
     const [userProfile, setUserProfile] = useState<any | null>(null);
     const [loadingBootstrap, setLoadingBootstrap] = useState(true);
 
-    const [cachedLink] = useState<LinkWithHighlights | null>(() => {
-        try {
-            const cached = sessionStorage.getItem(`lw_cache_${currentUrl}`);
-            return cached ? JSON.parse(cached).link : null;
-        } catch {
-            return null;
-        }
-    });
+    const [cachedLink] = useState<LinkWithHighlights | null>(() => readLinkSessionCache<LinkWithHighlights>(currentUrl));
 
     useEffect(() => {
         let active = true;
@@ -174,11 +169,7 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
             try {
                 const response = await getLinkWithHighlights(currentUrl);
                 if (response?.link) {
-                    try {
-                        sessionStorage.setItem(`lw_cache_${currentUrl}`, JSON.stringify({ timestamp: Date.now(), link: response.link }));
-                    } catch {
-                        // noop
-                    }
+                    writeLinkSessionCache(currentUrl, response.link);
                     return response.link as LinkWithHighlights;
                 }
             } catch {
@@ -201,7 +192,7 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
     const loading = loadingBootstrap || (isAllConfigured === true && !cachedLink && isLinkLoading);
 
     const resolveTheme = useCallback((theme: string): 'dark' | 'light' | undefined => {
-        if (theme === 'website') return new ThemeDetector().isDarkMode() ? 'dark' : 'light';
+        if (theme === 'website') return embeddedThemeDetector.isDarkMode() ? 'dark' : 'light';
         if (theme === 'system') {
             const resolvedTheme = userProfile?.theme || cachedUserTheme;
             if (resolvedTheme === 'light' || resolvedTheme === 'dark') return resolvedTheme;
@@ -228,14 +219,7 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
 
     successHandlerRef.current = (linkData: any, openEdit = false) => {
         qc.setQueryData(['link', currentUrl], linkData);
-        try {
-            sessionStorage.setItem('lw_cache_' + currentUrl, JSON.stringify({
-                timestamp: Date.now(),
-                link: linkData,
-            }));
-        } catch {
-            // noop
-        }
+        writeLinkSessionCache(currentUrl, linkData);
         window.dispatchEvent(new CustomEvent('grabshark-link-saved', {
             detail: { link: linkData, url: currentUrl }
         }));
@@ -386,10 +370,21 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
 export const EmbeddedApp = ({ onClose, initialTheme, cachedUserTheme }: EmbeddedAppProps) => {
     const [isVisible, setIsVisible] = useState(false);
     const [containerRef, setContainerRef] = useState<HTMLElement | null>(null);
+    const closeTimeoutRef = useRef<number | null>(null);
+
+    useEffect(() => () => {
+        if (closeTimeoutRef.current !== null) {
+            window.clearTimeout(closeTimeoutRef.current);
+        }
+    }, []);
+
     const handleClose = useCallback(() => {
         if (!isVisible) return;
+        if (closeTimeoutRef.current !== null) {
+            window.clearTimeout(closeTimeoutRef.current);
+        }
         setIsVisible(false);
-        setTimeout(onClose, 300);
+        closeTimeoutRef.current = window.setTimeout(onClose, 300);
     }, [onClose, isVisible]);
     const handleThemeLoaded = useCallback(() => {
         requestAnimationFrame(() => {
@@ -417,5 +412,10 @@ export const EmbeddedApp = ({ onClose, initialTheme, cachedUserTheme }: Embedded
         </QueryClientProvider>
     );
 };
+
+
+
+
+
 
 

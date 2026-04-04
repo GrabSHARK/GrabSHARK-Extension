@@ -11,6 +11,7 @@ import { fetchAuthorizedImageUrl } from '../lib/authorizedImageUrl';
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
 import { subscribeToLinkPreview, subscribeToLinkTags } from '../lib/linkPollers';
 import { openTabMessage } from '../lib/runtime/messages';
+import { readAiTagExpectation } from '../lib/runtime/sessionCache';
 
 interface SavedLinkCardProps {
     link: LinkWithHighlights;
@@ -21,8 +22,12 @@ interface SavedLinkCardProps {
     onLinkUpdate?: (link: LinkWithHighlights) => void;
 }
 
+function getFaviconUrl(url?: string): string {
+    return url ? `https://www.google.com/s2/favicons?sz=64&domain_url=${url}` : '';
+}
+
 function useSavedLinkPolling({
-    initialLink, link, setLink, baseUrl, sharedImgSrc, onImgSrcChange, onLinkUpdate, getFaviconUrl,
+    initialLink, link, setLink, baseUrl, sharedImgSrc, onImgSrcChange, onLinkUpdate,
 }: {
     initialLink: LinkWithHighlights & { _optimisticThumbnail?: string; _skipAiPolling?: boolean; _expectAiTags?: boolean };
     link: LinkWithHighlights;
@@ -31,7 +36,6 @@ function useSavedLinkPolling({
     sharedImgSrc?: string;
     onImgSrcChange?: (src: string) => void;
     onLinkUpdate?: (link: LinkWithHighlights) => void;
-    getFaviconUrl: (url?: string) => string;
 }) {
     const optimisticThumbnail = (initialLink as any)?._optimisticThumbnail;
     const [imgSrc, setImgSrc] = useState<string>(optimisticThumbnail || sharedImgSrc || '');
@@ -41,12 +45,8 @@ function useSavedLinkPolling({
         if ((initialLink as any)?._skipAiPolling) return false;
         const hasNoTags = !initialLink.tags || initialLink.tags.length === 0;
         if (!hasNoTags) return false;
-        try {
-            const stored = sessionStorage.getItem(`link_ai_pref_${initialLink.id}`);
-            if (stored) return JSON.parse(stored).expectAi === true;
-        } catch {
-            // noop
-        }
+        const storedExpectation = readAiTagExpectation(initialLink.id);
+        if (storedExpectation !== null) return storedExpectation;
         if ((initialLink as any)?._expectAiTags === true) {
             return (Date.now() - new Date(initialLink.createdAt || Date.now()).getTime()) < 15000;
         }
@@ -147,7 +147,7 @@ function useSavedLinkPolling({
             isMounted = false;
             stopPreviewPolling?.();
         };
-    }, [link.preview, link.url, link.id, baseUrl, sharedImgSrc, onImgSrcChange, initialLink, setLink]);
+    }, [baseUrl, link.id, link.preview, link.url, onImgSrcChange, onLinkUpdate, optimisticThumbnail, setLink, sharedImgSrc]);
 
     return { imgSrc, isLoading, isPollingTags, setIsPollingTags };
 }
@@ -181,7 +181,6 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         };
     }, []);
 
-    const getFaviconUrl = (url?: string) => url ? `https://www.google.com/s2/favicons?sz=64&domain_url=${url}` : '';
     const faviconUrl = getFaviconUrl(link.url);
 
     const { imgSrc, isLoading, isPollingTags, setIsPollingTags } = useSavedLinkPolling({
@@ -192,7 +191,6 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         sharedImgSrc,
         onImgSrcChange,
         onLinkUpdate,
-        getFaviconUrl,
     });
 
     useEffect(() => {
@@ -310,4 +308,6 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         </div>
     );
 };
+
+
 

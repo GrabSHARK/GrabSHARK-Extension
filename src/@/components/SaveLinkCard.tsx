@@ -17,6 +17,7 @@ import {
     SiteOverride,
 } from '../lib/settings';
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
+import { writeAiTagExpectation } from '../lib/runtime/sessionCache';
 import {
     getRecentLinksData,
     openTabMessage,
@@ -205,8 +206,7 @@ function useSaveLinkMutation({
                 _optimisticThumbnail: optimisticThumbnailUrl,
                 _expectAiTags: archiveOptions?.aiTag ?? false,
             };
-
-            try { sessionStorage.setItem(`link_ai_pref_${link.id}`, JSON.stringify({ expectAi: archiveOptions?.aiTag ?? false, timestamp: Date.now() })); } catch { }
+            writeAiTagExpectation(link.id, archiveOptions?.aiTag ?? false);
 
             const hostname = getHostname(currentUrl);
             if (hostname) {
@@ -407,3 +407,5 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
         </div>
     );
 };
+
+
