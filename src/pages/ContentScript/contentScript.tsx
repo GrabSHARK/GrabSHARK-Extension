@@ -7,6 +7,7 @@ import { sendMessage } from './utils/messaging';
 const EXTENSION_MARKER_ID = 'grabshark-extension-installed';
 const EXTENSION_VERSION = '1.3.3';
 const CONTENT_MAIN_READY_EVENT = 'grabshark-content-main-ready';
+const IS_TOP_FRAME = window.self === window.top;
 
 let bootstrapInFlight: Promise<void> | null = null;
 let contentMainInitialized = false;
@@ -71,19 +72,56 @@ function waitForContentMainReady(timeoutMs = 4000): Promise<boolean> {
     });
 }
 
+function shouldBootstrapContentMain(configured: boolean, baseUrl?: string): boolean {
+    if (IS_TOP_FRAME) {
+        return true;
+    }
+
+    const hasManagedFrameMarkers = Boolean(
+        document.querySelector('[data-lw-link-id], [data-ext-lw-file-id]'),
+    );
+
+    if (hasManagedFrameMarkers) {
+        return true;
+    }
+
+    if (!configured || !baseUrl) {
+        return false;
+    }
+
+    try {
+        return new URL(window.location.href).origin === new URL(baseUrl).origin;
+    } catch {
+        return false;
+    }
+}
+
 async function runBootstrap(): Promise<void> {
-    setDebugState({ stage: 'bootstrap-started' });
-    const configCheck = await sendMessage<{ configured: boolean }>('CHECK_CONFIG');
+    setDebugState({ stage: 'bootstrap-started', frameScope: IS_TOP_FRAME ? 'top' : 'subframe' });
+    const configCheck = await sendMessage<{ configured: boolean; baseUrl?: string }>('CHECK_CONFIG');
     const configured = !!(configCheck.success && configCheck.data?.configured);
+    const baseUrl = configCheck.success ? configCheck.data?.baseUrl : undefined;
+    const shouldLoadContentMain = shouldBootstrapContentMain(configured, baseUrl);
 
     setDebugState({
         checkConfigSuccess: configCheck.success,
         configured,
         stage: configured ? 'config-ok' : 'config-missing',
         contentMainInitialized,
+        frameBootstrap: shouldLoadContentMain,
+        baseUrl: baseUrl ?? null,
     });
 
     signalExtensionPresence(configured);
+
+    if (!shouldLoadContentMain) {
+        setDebugState({
+            stage: configured ? 'iframe-bootstrap-skipped' : 'config-missing-subframe',
+            contentMainInitialized: false,
+            lastError: null,
+        });
+        return;
+    }
 
     if (contentMainInitialized || isContentMainReady()) {
         contentMainInitialized = true;
@@ -137,6 +175,11 @@ function startBootstrap(): void {
 }
 
 function setupConfigRefreshListeners(): void {
+    if (!IS_TOP_FRAME) {
+        setDebugState({ listenerScope: 'top-frame-only' });
+        return;
+    }
+
     try {
         chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             setDebugState({ lastRuntimeMessage: message?.type ?? 'unknown' });

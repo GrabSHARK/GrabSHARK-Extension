@@ -13,48 +13,97 @@ function isInjectableUrl(url?: string): boolean {
     return !!url && /^(https?:|file:)/.test(url);
 }
 
+function uniqueTabsById(tabs: chrome.tabs.Tab[]): chrome.tabs.Tab[] {
+    const seen = new Set<number>();
+    return tabs.filter((tab) => {
+        if (!tab.id || seen.has(tab.id)) return false;
+        seen.add(tab.id);
+        return true;
+    });
+}
+
+async function getFallbackBootstrapTabs(): Promise<chrome.tabs.Tab[]> {
+    const [activeTabs, highlightedTabs] = await Promise.all([
+        chrome.tabs.query({ active: true }),
+        chrome.tabs.query({ highlighted: true }),
+    ]);
+
+    return uniqueTabsById([...activeTabs, ...highlightedTabs]).filter((tab) => isInjectableUrl(tab.url));
+}
+
+async function tryNotifyConfiguredTab(tabId: number): Promise<boolean> {
+    try {
+        await chrome.tabs.sendMessage(tabId, { type: 'EXTENSION_CONFIG_UPDATED' });
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+async function tryBootstrapFocusedTab(tab: chrome.tabs.Tab): Promise<boolean> {
+    if (!tab.id || !isInjectableUrl(tab.url)) {
+        return false;
+    }
+
+    const tabId = tab.id;
+
+    try {
+        const markerResults = await chrome.scripting.executeScript({
+            target: { tabId },
+            func: (markerId: string) => Boolean(document.getElementById(markerId)),
+            args: [EXTENSION_MARKER_ID],
+        });
+
+        if (markerResults.some((result) => result.result)) {
+            return await tryNotifyConfiguredTab(tabId);
+        }
+
+        await chrome.scripting.insertCSS({
+            target: { tabId },
+            files: ['contentScript.css'],
+        });
+
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            files: ['contentScript.js'],
+        });
+
+        return await tryNotifyConfiguredTab(tabId);
+    } catch {
+        return false;
+    }
+}
+
 async function ensureConfiguredTabsReady(): Promise<void> {
-    const tabs = await chrome.tabs.query({});
+    const tabs = (await chrome.tabs.query({})).filter((tab) => tab.id && isInjectableUrl(tab.url));
     debugLog('ensureConfiguredTabsReady start', { tabCount: tabs.length });
 
-    await Promise.all(tabs.map(async (tab) => {
-        if (!tab.id || !isInjectableUrl(tab.url)) {
-            return;
-        }
+    const notificationResults = await Promise.all(
+        tabs.map(async (tab) => ({
+            tabId: tab.id!,
+            notified: await tryNotifyConfiguredTab(tab.id!),
+        })),
+    );
 
-        try {
-            await chrome.tabs.sendMessage(tab.id, { type: 'EXTENSION_CONFIG_UPDATED' });
-            return;
-        } catch {
-        }
+    const notifiedTabIds = new Set(notificationResults.filter((result) => result.notified).map((result) => result.tabId));
+    const fallbackTabs = (await getFallbackBootstrapTabs()).filter((tab) => !notifiedTabIds.has(tab.id!));
 
-        try {
-            const markerResults = await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: (markerId: string) => Boolean(document.getElementById(markerId)),
-                args: [EXTENSION_MARKER_ID],
-            });
+    debugLog('ensureConfiguredTabsReady notification summary', {
+        notifiedCount: notifiedTabIds.size,
+        fallbackTabCount: fallbackTabs.length,
+    });
 
-            if (markerResults.some((result) => result.result)) {
-                try {
-                    await chrome.tabs.sendMessage(tab.id, { type: 'EXTENSION_CONFIG_UPDATED' });
-                } catch {
-                }
-                return;
-            }
+    const fallbackResults = await Promise.all(
+        fallbackTabs.map(async (tab) => ({
+            tabId: tab.id!,
+            bootstrapped: await tryBootstrapFocusedTab(tab),
+        })),
+    );
 
-            await chrome.scripting.insertCSS({
-                target: { tabId: tab.id },
-                files: ['contentScript.css'],
-            });
-
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                files: ['contentScript.js'],
-            });
-        } catch {
-        }
-    }));
+    debugLog('ensureConfiguredTabsReady completed', {
+        notifiedCount: notifiedTabIds.size,
+        bootstrappedCount: fallbackResults.filter((result) => result.bootstrapped).length,
+    });
 }
 
 export class ConfigManager {
@@ -96,4 +145,3 @@ export class ConfigManager {
         }
     }
 }
-
