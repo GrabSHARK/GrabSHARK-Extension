@@ -26,8 +26,10 @@ export class SmartCaptureMode {
     private dragStartPoint: { x: number; y: number } | null = null;
     private lastMousemoveTime = 0;
     private animationFrameId: number | null = null;
+    private scrollAnimationFrameId: number | null = null;
     private globalKeydownHandler: (e: KeyboardEvent) => void;
     private globalKeyupHandler: (e: KeyboardEvent) => void;
+    private storageChangeHandler: ((changes: { [key: string]: chrome.storage.StorageChange }, area: string) => void) | null = null;
     private hintToast: HTMLDivElement | null = null;
 
     private shortcutConfig: ShortcutConfig = DEFAULT_PREFERENCES.smartCaptureShortcut;
@@ -74,11 +76,12 @@ export class SmartCaptureMode {
         document.addEventListener('keyup', this.globalKeyupHandler);
         const hostname = getHostname(window.location.href);
         getEffectivePreferences(hostname).then(prefs => { if (prefs) this.updateSettings(prefs); });
-        chrome.storage.onChanged.addListener((changes, area) => {
+        this.storageChangeHandler = (changes, area) => {
             if (area === 'local' && (changes.grabshark_preferences || changes.grabshark_site_overrides)) {
                 getEffectivePreferences(getHostname(window.location.href)).then(prefs => this.updateSettings(prefs));
             }
-        });
+        };
+        chrome.storage.onChanged.addListener(this.storageChangeHandler);
     }
     public updateSettings(prefs: ExtensionPreferences) {
         if (prefs.smartCaptureShortcut) this.shortcutConfig = prefs.smartCaptureShortcut;
@@ -157,6 +160,7 @@ export class SmartCaptureMode {
         try { this.selectableUnits.clear(); } catch { }
         try { this.actionBar.hide(); } catch { }
         if (this.animationFrameId) { cancelAnimationFrame(this.animationFrameId); this.animationFrameId = null; }
+        if (this.scrollAnimationFrameId) { cancelAnimationFrame(this.scrollAnimationFrameId); this.scrollAnimationFrameId = null; }
     }
 
     public isActiveMode(): boolean { return this.isActive; }
@@ -280,9 +284,14 @@ export class SmartCaptureMode {
     }
     private handleScroll(): void {
         if (!this.isActive) return;
-        this.selectableUnits.refreshRects();
-        this.selectionManager.refreshOverlays();
-        if (this.actionBar.isCurrentlyVisible()) this.actionBar.updatePosition();
+        if (this.scrollAnimationFrameId) return;
+
+        this.scrollAnimationFrameId = requestAnimationFrame(() => {
+            this.scrollAnimationFrameId = null;
+            this.selectableUnits.refreshRects();
+            if (this.selectionManager.hasVisualState()) this.selectionManager.refreshOverlays();
+            if (this.actionBar.isCurrentlyVisible()) this.actionBar.updatePosition();
+        });
     }
 
     public reshowActionBar(): void { this.showActionBar(); }
@@ -296,8 +305,16 @@ export class SmartCaptureMode {
     public destroy(): void {
         try { this.deactivate(); } catch { }
         try { this.actionBar?.destroy(); } catch { }
+        try {
+            if (this.storageChangeHandler) {
+                chrome.storage.onChanged.removeListener(this.storageChangeHandler);
+                this.storageChangeHandler = null;
+            }
+        } catch { }
         try { document.removeEventListener('keydown', this.globalKeydownHandler); document.removeEventListener('keyup', this.globalKeyupHandler); } catch { }
     }
 }
+
+
 
 
