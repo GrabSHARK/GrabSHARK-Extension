@@ -1,4 +1,4 @@
-import { lazy, Suspense, startTransition, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinkWithHighlights } from '../../@/lib/types/highlight.ts';
 import { ThemeProvider } from '../../@/components/ThemeProvider.tsx';
@@ -99,7 +99,10 @@ function useEmbeddedEvents({ handleClose, setIsVisible, handleSuccess }: {
                 isUploadingRef.current = true;
                 setIsVisible(true);
             } else if (message.type === 'LINK_SAVE_SUCCESS') {
-                handleSuccess(message.data);
+                const savedLink = message.data?.response || message.data;
+                if (savedLink?.id) {
+                    handleSuccess(savedLink);
+                }
             }
         };
 
@@ -209,7 +212,7 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
     const transitionView = useCallback((callback: () => void) => {
         setIsVisible(false);
         setTimeout(() => {
-            startTransition(() => callback());
+            callback();
             requestAnimationFrame(() => setIsVisible(true));
         }, 300);
     }, [setIsVisible]);
@@ -225,6 +228,18 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
 
     successHandlerRef.current = (linkData: any, openEdit = false) => {
         qc.setQueryData(['link', currentUrl], linkData);
+        try {
+            sessionStorage.setItem('lw_cache_' + currentUrl, JSON.stringify({
+                timestamp: Date.now(),
+                link: linkData,
+            }));
+        } catch {
+            // noop
+        }
+        window.dispatchEvent(new CustomEvent('grabshark-link-saved', {
+            detail: { link: linkData, url: currentUrl }
+        }));
+
         if (isUploadingRef.current || isUploading) {
             setIsUploading(false);
             setIsEditing(openEdit);
@@ -402,3 +417,5 @@ export const EmbeddedApp = ({ onClose, initialTheme, cachedUserTheme }: Embedded
         </QueryClientProvider>
     );
 };
+
+

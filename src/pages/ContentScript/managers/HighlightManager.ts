@@ -112,7 +112,7 @@ export const HighlightManager = {
         }
     },
 
-    /** Create a new highlight (and auto-save link if needed) */
+        /** Create a new highlight (and auto-save link if needed) */
     async createHighlight(
         selectionInfo: NonNullable<ReturnType<typeof getSelectionInfo>>,
         color: HighlightColor,
@@ -150,14 +150,28 @@ export const HighlightManager = {
             return;
         }
 
+        if (!currentPageLinkId) {
+            try {
+                const cached = sessionStorage.getItem('lw_cache_' + window.location.href);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    const cachedLinkId = parsed?.link?.id;
+                    if (typeof cachedLinkId === 'number' && cachedLinkId > 0) {
+                        currentPageLinkId = cachedLinkId;
+                    }
+                }
+            } catch {
+                // Ignore cache parsing issues and fall back to runtime lookup/create.
+            }
+        }
+
         // If page not saved yet, save it first
         if (!currentPageLinkId) {
-            // Check if user wants to save the full page or just create a lightweight anchor
             let shouldSavePage = true;
             try {
                 const prefs = await getPreferences();
                 shouldSavePage = prefs.savePageOnHighlight ?? true;
-            } catch (e) {
+            } catch {
                 // Fallback to default (save page)
             }
 
@@ -168,7 +182,6 @@ export const HighlightManager = {
                 title: document.title,
             };
 
-            // If user disabled page saving, create a hidden "highlight" type link with no archiving
             if (!shouldSavePage) {
                 linkPayload.type = 'highlight';
                 linkPayload.preservationConfig = {
@@ -184,11 +197,37 @@ export const HighlightManager = {
             const linkResponse = await sendMessage<{ link: LinkData }>('CREATE_LINK', linkPayload);
 
             if (!linkResponse.success || !linkResponse.data?.link) {
-                showToast('Failed to save page', 'error');
-                return;
-            }
+                const existingLinkResponse = await sendMessage<{ link: LinkData | null; highlights: Highlight[] }>(
+                    'GET_LINK_WITH_HIGHLIGHTS',
+                    { url: window.location.href }
+                );
 
-            currentPageLinkId = linkResponse.data.link.id;
+                if (!existingLinkResponse.success || !existingLinkResponse.data?.link) {
+                    showToast('Failed to save page', 'error');
+                    return;
+                }
+
+                currentPageLinkId = existingLinkResponse.data.link.id;
+                currentHighlights = existingLinkResponse.data.highlights || currentHighlights;
+                try {
+                    sessionStorage.setItem('lw_cache_' + window.location.href, JSON.stringify({
+                        timestamp: Date.now(),
+                        link: existingLinkResponse.data.link,
+                    }));
+                } catch {
+                    // noop
+                }
+            } else {
+                currentPageLinkId = linkResponse.data.link.id;
+                try {
+                    sessionStorage.setItem('lw_cache_' + window.location.href, JSON.stringify({
+                        timestamp: Date.now(),
+                        link: linkResponse.data.link,
+                    }));
+                } catch {
+                    // noop
+                }
+            }
         }
 
         const highlightData: HighlightCreateData = {
@@ -220,7 +259,6 @@ export const HighlightManager = {
             showToast(response.error || 'Failed to create highlight', 'error');
         }
     },
-
     /** Update an existing highlight (color or comment) */
     async updateHighlight(
         highlight: Highlight,
@@ -298,3 +336,4 @@ export const HighlightManager = {
         }
     }
 };
+

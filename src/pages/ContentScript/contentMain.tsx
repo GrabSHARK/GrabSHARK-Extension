@@ -324,21 +324,56 @@ function signalExtensionPresence(): void {
 
 function setupGlobalListeners(): void {
     try {
+        const applySavedLinkState = (savedLink: any): void => {
+            if (!savedLink?.id) return;
+            HighlightManager.setLinkId(savedLink.id);
+            try {
+                sessionStorage.setItem('lw_cache_' + window.location.href, JSON.stringify({
+                    timestamp: Date.now(),
+                    link: savedLink,
+                }));
+            } catch {
+                // Ignore storage errors; local state sync is the critical part.
+            }
+        };
+
         const runtimeMessageHandler = (message: any, _sender: any, sendResponse: any) => {
-            if (message.type === 'TOGGLE_EMBEDDED_MENU') { toggleEmbeddedMenu(); sendResponse({ success: true }); }
-            else if (message.type === 'TOGGLE_SMART_CAPTURE') { smartCaptureMode?.toggle(); sendResponse({ success: true }); }
+            if (message.type === 'TOGGLE_EMBEDDED_MENU') {
+                toggleEmbeddedMenu();
+                sendResponse({ success: true });
+            }
+            else if (message.type === 'TOGGLE_SMART_CAPTURE') {
+                smartCaptureMode?.toggle();
+                sendResponse({ success: true });
+            }
+            else if (message.type === 'LINK_SAVE_SUCCESS') {
+                applySavedLinkState(message.data?.response || message.data);
+                sendResponse({ success: true });
+            }
             else if (message.type === 'PREFERENCES_UPDATED') {
                 applyPreferenceState(message.data ?? {});
                 sendResponse({ success: true });
             }
-            else if (message.type === 'SHOW_HIGHLIGHT_TOOLBOX') { interactionManager?.handleContextMenuHighlight(); sendResponse({ success: true }); }
+            else if (message.type === 'SHOW_HIGHLIGHT_TOOLBOX') {
+                interactionManager?.handleContextMenuHighlight();
+                sendResponse({ success: true });
+            }
             return true;
         };
+
+        const localLinkSavedHandler = (event: Event) => {
+            const customEvent = event as CustomEvent<{ link?: any; url?: string }>;
+            if (customEvent.detail?.url === window.location.href) {
+                applySavedLinkState(customEvent.detail.link);
+            }
+        };
+
         chrome.runtime.onMessage.addListener(runtimeMessageHandler);
+        window.addEventListener('grabshark-link-saved', localLinkSavedHandler as EventListener);
         cleanupRegistry.push(() => chrome.runtime.onMessage.removeListener(runtimeMessageHandler));
+        cleanupRegistry.push(() => window.removeEventListener('grabshark-link-saved', localLinkSavedHandler as EventListener));
     } catch { }
 }
-
 // --- Main Init ---
 
 async function init(): Promise<boolean> {
@@ -474,4 +509,6 @@ export async function initContentMain(): Promise<void> {
 }
 
 void initContentMain();
+
+
 
