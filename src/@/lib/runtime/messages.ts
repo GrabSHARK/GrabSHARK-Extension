@@ -2,12 +2,8 @@ import type { configType } from '../validators/config.ts';
 import type { ExtensionPreferences, SiteOverrides } from '../settings.ts';
 import type { ResponseCollections } from '../actions/collections.ts';
 import type { ResponseTags } from '../actions/tags.ts';
-
-export interface RuntimeResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+import { sendRuntimeMessage } from './core.ts';
+export type { RuntimeResponse } from './core.ts';
 
 export interface DomainPreferencePayload {
   domain: string;
@@ -59,18 +55,9 @@ export interface LocaleSettings {
   localeSetting: 'en' | 'tr' | 'system';
 }
 
-export async function sendExtensionMessage<T>(type: string, data?: unknown): Promise<RuntimeResponse<T>> {
-  try {
-    return await chrome.runtime.sendMessage({ type, data });
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
+export const sendExtensionMessage = sendRuntimeMessage;
 
-async function expectSuccess<T>(promise: Promise<RuntimeResponse<T>>, fallbackError: string) {
+async function expectSuccess<T>(promise: Promise<import('./core.ts').RuntimeResponse<T>>, fallbackError: string) {
   const response = await promise;
   if (!response.success) {
     throw new Error(response.error || fallbackError);

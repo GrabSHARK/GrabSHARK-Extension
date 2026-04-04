@@ -13,6 +13,7 @@ import { SmartCaptureHandlers } from './managers/SmartCaptureHandlers';
 
 import { DEFAULT_PREFERENCES, getEffectivePreferences, getHostname, getPreferences } from '../../@/lib/settings';
 import { sendMessage } from './utils/messaging';
+import { writeLinkSessionCache } from '../../@/lib/runtime/sessionCache';
 import { HighlightColor } from '../../@/lib/types/highlight';
 import { captureAnchor } from './anchorUtils';
 
@@ -28,6 +29,24 @@ let defaultHighlightColor: HighlightColor = DEFAULT_PREFERENCES.defaultHighlight
 const cleanupRegistry: (() => void)[] = [];
 const EXTENSION_MARKER_ID = 'grabshark-extension-installed';
 const CONTENT_MAIN_READY_EVENT = 'grabshark-content-main-ready';
+const DEBUG_PREFIX = '[GrabSHARK EXT][contentMain]';
+
+type LifecycleDebugCounterKey =
+    | 'cleanupCount'
+    | 'windowListenerCount'
+    | 'runtimeListenerCount'
+    | 'storageListenerCount'
+    | 'observerCount'
+    | 'timeoutCount';
+
+const lifecycleDebugCounters: Record<LifecycleDebugCounterKey, number> = {
+    cleanupCount: 0,
+    windowListenerCount: 0,
+    runtimeListenerCount: 0,
+    storageListenerCount: 0,
+    observerCount: 0,
+    timeoutCount: 0,
+};
 
 declare global {
     interface Window {
@@ -45,11 +64,112 @@ function setDebugState(state: Record<string, string | number | boolean | null | 
         else marker.setAttribute(attr, String(value));
     });
 }
-const DEBUG_PREFIX = '[GrabSHARK EXT][contentMain]';
 
 function debugLog(message: string, meta?: unknown): void {
     if (typeof meta === 'undefined') console.info(DEBUG_PREFIX, message);
     else console.info(DEBUG_PREFIX, message, meta);
+}
+
+function syncLifecycleDebugState(): void {
+    setDebugState({
+        cleanupCount: lifecycleDebugCounters.cleanupCount,
+        windowListenerCount: lifecycleDebugCounters.windowListenerCount,
+        runtimeListenerCount: lifecycleDebugCounters.runtimeListenerCount,
+        storageListenerCount: lifecycleDebugCounters.storageListenerCount,
+        observerCount: lifecycleDebugCounters.observerCount,
+        timeoutCount: lifecycleDebugCounters.timeoutCount,
+    });
+}
+
+function updateLifecycleCounter(key: LifecycleDebugCounterKey, delta: number): void {
+    lifecycleDebugCounters[key] = Math.max(0, lifecycleDebugCounters[key] + delta);
+    syncLifecycleDebugState();
+}
+
+function registerCleanup(cleanupFn: () => void): void {
+    let settled = false;
+    updateLifecycleCounter('cleanupCount', 1);
+    cleanupRegistry.push(() => {
+        if (settled) return;
+        settled = true;
+        try {
+            cleanupFn();
+        } finally {
+            updateLifecycleCounter('cleanupCount', -1);
+        }
+    });
+}
+
+function addManagedWindowListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+): void {
+    window.addEventListener(type, listener, options);
+    updateLifecycleCounter('windowListenerCount', 1);
+    registerCleanup(() => {
+        window.removeEventListener(type, listener, options);
+        updateLifecycleCounter('windowListenerCount', -1);
+    });
+}
+
+function addManagedRuntimeListener(
+    listener: Parameters<typeof chrome.runtime.onMessage.addListener>[0],
+): void {
+    chrome.runtime.onMessage.addListener(listener);
+    updateLifecycleCounter('runtimeListenerCount', 1);
+    registerCleanup(() => {
+        chrome.runtime.onMessage.removeListener(listener);
+        updateLifecycleCounter('runtimeListenerCount', -1);
+    });
+}
+
+function addManagedStorageListener(
+    listener: Parameters<typeof chrome.storage.onChanged.addListener>[0],
+): void {
+    chrome.storage.onChanged.addListener(listener);
+    updateLifecycleCounter('storageListenerCount', 1);
+    registerCleanup(() => {
+        chrome.storage.onChanged.removeListener(listener);
+        updateLifecycleCounter('storageListenerCount', -1);
+    });
+}
+
+function createManagedObserver(observer: MutationObserver): () => void {
+    let active = true;
+    updateLifecycleCounter('observerCount', 1);
+    return () => {
+        if (!active) return;
+        active = false;
+        observer.disconnect();
+        updateLifecycleCounter('observerCount', -1);
+    };
+}
+
+function createManagedTimeout(callback: () => void, delayMs: number): () => void {
+    let active = true;
+    updateLifecycleCounter('timeoutCount', 1);
+
+    const timeoutId = window.setTimeout(() => {
+        if (!active) return;
+        active = false;
+        updateLifecycleCounter('timeoutCount', -1);
+        callback();
+    }, delayMs);
+
+    return () => {
+        if (!active) return;
+        active = false;
+        window.clearTimeout(timeoutId);
+        updateLifecycleCounter('timeoutCount', -1);
+    };
+}
+
+function getRuntimeConfigState(): Promise<{ configured: boolean; baseUrl?: string }> {
+    return sendMessage<{ configured: boolean; baseUrl?: string }>('CHECK_CONFIG').then((response) => ({
+        configured: !!(response.success && response.data?.configured),
+        baseUrl: response.success ? response.data?.baseUrl : undefined,
+    }));
 }
 
 function applyPreferenceState(preferences: Partial<{
@@ -78,12 +198,15 @@ function applyPreferenceState(preferences: Partial<{
 }
 
 function cleanup(): void {
-    cleanupRegistry.forEach(fn => { try { fn(); } catch { } });
+    debugLog('cleanup start', { ...lifecycleDebugCounters, cleanupRegistrySize: cleanupRegistry.length });
+    cleanupRegistry.forEach((fn) => { try { fn(); } catch { } });
     cleanupRegistry.length = 0;
     if (toolbox) { toolbox.destroy(); toolbox = null; }
     if (notePanel) { notePanel.destroy(); notePanel = null; }
     if (smartCaptureMode) { smartCaptureMode.destroy(); smartCaptureMode = null; }
     if (interactionManager) { interactionManager.destroy(); interactionManager = null; }
+    setDebugState({ mainStage: 'cleanup-complete' });
+    debugLog('cleanup complete', { ...lifecycleDebugCounters });
 }
 
 function markContentMainReady(): void {
@@ -92,7 +215,7 @@ function markContentMainReady(): void {
     document.dispatchEvent(new CustomEvent(CONTENT_MAIN_READY_EVENT, { detail: { ready: true } }));
 }
 
-window.addEventListener('beforeunload', cleanup);
+addManagedWindowListener('beforeunload', cleanup);
 
 // --- Init Helpers (previously in contentScriptInit.ts) ---
 
@@ -115,19 +238,33 @@ function setupReadableViewObserver(): void {
     const fileIdElement = document.querySelector('[data-ext-lw-file-id]');
     const fileId = fileIdElement?.getAttribute('data-ext-lw-file-id') || null;
 
-    if (linkId || fileId) { loadHighlightsOnly(linkId, fileId); return; }
+    if (linkId || fileId) {
+        void loadHighlightsOnly(linkId, fileId);
+        return;
+    }
 
     const observer = new MutationObserver(async () => {
         const el = document.querySelector('[data-lw-link-id]');
         const lId = el?.getAttribute('data-lw-link-id') || null;
         const fEl = document.querySelector('[data-ext-lw-file-id]');
         const fId = fEl?.getAttribute('data-ext-lw-file-id') || null;
-        if (lId || fId) { observer.disconnect(); await loadHighlightsOnly(lId, fId); }
+        if (lId || fId) {
+            disconnectObserver();
+            clearObserverTimeout();
+            await loadHighlightsOnly(lId, fId);
+        }
     });
+    const disconnectObserver = createManagedObserver(observer);
     observer.observe(document.body, { childList: true, subtree: true });
 
-    const observerTimeout = setTimeout(() => observer.disconnect(), 10000);
-    cleanupRegistry.push(() => { observer.disconnect(); clearTimeout(observerTimeout); });
+    const clearObserverTimeout = createManagedTimeout(() => {
+        disconnectObserver();
+    }, 10000);
+
+    registerCleanup(() => {
+        clearObserverTimeout();
+        disconnectObserver();
+    });
 }
 
 function setupWebViewMessageListener(): void {
@@ -137,8 +274,7 @@ function setupWebViewMessageListener(): void {
             if (linkId && typeof linkId === 'number') HighlightManager.loadHighlightsForLinkId(linkId);
         }
     };
-    window.addEventListener('message', handler);
-    cleanupRegistry.push(() => window.removeEventListener('message', handler));
+    addManagedWindowListener('message', handler as EventListener);
 }
 
 function createBatchHandler() {
@@ -250,12 +386,9 @@ function postMessageToManagedFrames(message: Record<string, unknown>): void {
 
 function processExtensionMessage(event: MessageEvent): void {
     if (event.data?.type === 'LW_PING') {
-        try {
-            chrome.runtime.sendMessage({ type: 'CHECK_CONFIG' }, (response) => {
-                const configured = response?.success && response?.data?.configured;
-                window.postMessage({ type: 'LW_PONG', version: '1.3.3', configured }, window.location.origin);
-            });
-        } catch { }
+        void getRuntimeConfigState().then(({ configured }) => {
+            window.postMessage({ type: 'LW_PONG', version: '1.3.3', configured }, window.location.origin);
+        }).catch(() => { });
         return;
     }
 
@@ -299,6 +432,7 @@ function signalExtensionPresence(): void {
         marker.style.display = 'none';
         document.documentElement.appendChild(marker);
     }
+    syncLifecycleDebugState();
     document.dispatchEvent(new CustomEvent('grabshark-extension-ready', { detail: { version: '1.3.3' } }));
 
     const extensionMessageHandler = (event: MessageEvent) => {
@@ -307,19 +441,18 @@ function signalExtensionPresence(): void {
         if (!isFromSelf && !isFromParent) return;
         if (isFromSelf && event.origin !== window.location.origin) return;
         if (isFromParent && event.origin !== window.location.origin) {
-            try {
-                chrome.runtime.sendMessage({ type: 'CHECK_CONFIG' }, (response) => {
-                    if (!response?.data?.baseUrl) return;
-                    if (event.origin !== new URL(response.data.baseUrl).origin) return;
+            void getRuntimeConfigState().then(({ baseUrl }) => {
+                if (!baseUrl) return;
+                try {
+                    if (event.origin !== new URL(baseUrl).origin) return;
                     processExtensionMessage(event);
-                });
-            } catch { }
+                } catch { }
+            }).catch(() => { });
             return;
         }
         processExtensionMessage(event);
     };
-    window.addEventListener('message', extensionMessageHandler);
-    cleanupRegistry.push(() => window.removeEventListener('message', extensionMessageHandler));
+    addManagedWindowListener('message', extensionMessageHandler as EventListener);
 }
 
 function setupGlobalListeners(): void {
@@ -327,14 +460,7 @@ function setupGlobalListeners(): void {
         const applySavedLinkState = (savedLink: any): void => {
             if (!savedLink?.id) return;
             HighlightManager.setLinkId(savedLink.id);
-            try {
-                sessionStorage.setItem('lw_cache_' + window.location.href, JSON.stringify({
-                    timestamp: Date.now(),
-                    link: savedLink,
-                }));
-            } catch {
-                // Ignore storage errors; local state sync is the critical part.
-            }
+            writeLinkSessionCache(window.location.href, savedLink);
         };
 
         const runtimeMessageHandler = (message: any, _sender: any, sendResponse: any) => {
@@ -368,10 +494,8 @@ function setupGlobalListeners(): void {
             }
         };
 
-        chrome.runtime.onMessage.addListener(runtimeMessageHandler);
-        window.addEventListener('grabshark-link-saved', localLinkSavedHandler as EventListener);
-        cleanupRegistry.push(() => chrome.runtime.onMessage.removeListener(runtimeMessageHandler));
-        cleanupRegistry.push(() => window.removeEventListener('grabshark-link-saved', localLinkSavedHandler as EventListener));
+        addManagedRuntimeListener(runtimeMessageHandler);
+        addManagedWindowListener('grabshark-link-saved', localLinkSavedHandler as EventListener);
     } catch { }
 }
 // --- Main Init ---
@@ -381,12 +505,12 @@ async function init(): Promise<boolean> {
     setDebugState({ mainStage: 'init-started', href: window.location.href.slice(0, 200), contentmaininitialized: false });
     debugLog('init started', { href: window.location.href });
     await ThemeManager.initExtensionTheme();
-    cleanupRegistry.push(() => ThemeManager.cleanup());
+    registerCleanup(() => ThemeManager.cleanup());
 
     const storageChangeHandler = (changes: { [key: string]: chrome.storage.StorageChange }, area: string) => {
         debugLog('storage change', { area, keys: Object.keys(changes) });
         if (area === 'local' && (changes.grabshark_preferences || changes.grabshark_site_overrides)) {
-            getEffectivePreferences(getHostname(window.location.href)).then(p => {
+            getEffectivePreferences(getHostname(window.location.href)).then((p) => {
                 applyPreferenceState({
                     enableSelectionMenu: p.enableSelectionMenu,
                     enableSmartCapture: p.enableSmartCapture,
@@ -395,8 +519,7 @@ async function init(): Promise<boolean> {
             }).catch(() => { });
         }
     };
-    chrome.storage.onChanged.addListener(storageChangeHandler);
-    cleanupRegistry.push(() => chrome.storage.onChanged.removeListener(storageChangeHandler));
+    addManagedStorageListener(storageChangeHandler);
 
     const isInIframe = window.self !== window.top;
     const hostname = getHostname(window.location.href);
@@ -509,6 +632,5 @@ export async function initContentMain(): Promise<void> {
 }
 
 void initContentMain();
-
 
 
