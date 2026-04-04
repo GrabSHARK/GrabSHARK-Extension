@@ -57,7 +57,7 @@
         "./contentScript.js"
       ],
       "css": [
-        "./style.css"
+        "./contentScript.css"
       ],
       "run_at": "document_idle"
     }
@@ -70,6 +70,13 @@
   },
   "content_security_policy": "script-src 'self'; object-src 'self'; base-uri 'self';",
   "web_accessible_resources": [
-    "embeddedUI.js"
+    "embeddedUI.js",
+    "16.png",
+    "48.png",
+    "contentScript.css",
+    "contentMain.js",
+    "captureDock.js",
+    "saveNotificationToast.js",
+    "assets/*"
   ]
 }

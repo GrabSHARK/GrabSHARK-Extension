@@ -10,7 +10,9 @@
     "dev": "vite",
     "build": "tsc && vite build && vite build -c vite.config.content.ts && vite build -c vite.config.content-main.ts && vite build -c vite.config.embedded.ts && node ./scripts/report-bundles.mjs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "smoke": "npm run build && node ./scripts/smoke-check.mjs chromium",
+    "smoke:firefox": "npm run build && node ./scripts/smoke-check.mjs firefox"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.2.0",
@@ -64,4 +66,3 @@
     "webextension-polyfill": "^0.12.0"
   }
 }
-
