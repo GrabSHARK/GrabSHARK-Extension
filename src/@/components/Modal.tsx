@@ -86,49 +86,46 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
   const logoSrc = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL
     ? chrome.runtime.getURL('48.png')
     : '48.png';
-  const showTopNav = step === 2 || !!onClose;
-
   return (
     <div className={cn(
       'relative z-50 flex flex-col items-center bg-void-bg px-3 pt-2 pb-[68px] rounded-2xl transition-all duration-300',
       isClosing && 'opacity-0 scale-95'
     )}>
-      {showTopNav && (
-        <div className="w-full max-w-[280px] flex items-center justify-between mb-3">
-          {step === 2 ? (
-            <button
-              onClick={() => setStep(1)}
-              className="hover:bg-zinc-200 dark:hover:bg-zinc-800 p-1.5 rounded-full transition-colors text-zinc-500"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          ) : (
-            <div className="w-7 h-7" />
-          )}
+      <div className={cn(
+        'w-full max-w-[280px] flex items-center justify-between mb-3 transition-opacity duration-300',
+        step === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      )}>
+        {step === 2 ? (
+          <button
+            onClick={() => setStep(1)}
+            className="hover:bg-zinc-200 dark:hover:bg-zinc-800 p-1.5 rounded-full transition-colors text-zinc-500"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        ) : (
+          <div className="w-7 h-7" />
+        )}
 
-          {onClose && (
-            <button
-              onClick={handleClose}
-              className="hover:bg-zinc-200 dark:hover:bg-zinc-800 p-1.5 rounded-full transition-colors text-zinc-500"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      )}
+        {onClose && (
+          <button
+            onClick={handleClose}
+            className="hover:bg-zinc-200 dark:hover:bg-zinc-800 p-1.5 rounded-full transition-colors text-zinc-500"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
 
       {(step === 1 || step === 2 || step === 3) && (
         <div className={cn(
-          'shrink-0 flex items-center justify-center transition-all duration-500 ease-out',
-          step === 1 ? 'w-20 h-20 mt-6 mb-8' : 'w-14 h-14 mb-7',
-          step === 3 && 'mt-2'
+          'shrink-0 w-14 h-14 flex items-center justify-center transition-all duration-500 ease-out',
+          step === 1 ? 'mb-[72px]' : 'mb-7'
         )}>
           <img
             src={logoSrc}
             alt="GrabSHARK"
             className={cn(
-              'transition-all duration-500 ease-out origin-center',
-              step === 1 ? 'w-20 h-20' : 'w-14 h-14',
+              'w-14 h-14 transition-all duration-500 ease-out origin-top',
               step === 2 && 'scale-[0.75]'
             )}
             style={{
@@ -155,7 +152,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
         >
           <div ref={contentRef}>
             {step === 1 && (
-              <div className="px-6 pt-8 pb-10 flex flex-col items-center justify-center text-center space-y-3 animate-in fade-in duration-300 fill-mode-forwards">
+              <div className="p-6 flex flex-col items-center justify-center text-center space-y-2 animate-in fade-in duration-300 fill-mode-forwards">
                 <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Welcome to GrabSHARK</h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
                   Connect your account to start.
