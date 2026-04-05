@@ -216,6 +216,10 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/pages/api/v1/links/index.ts
 └─ Purpose: List all links (GET) or save new link (POST).
 
+[GET] /api/v1/links/urls
+└─ File: grabshark/apps/web/pages/api/v1/links/urls.ts
+└─ Purpose: Lightweight endpoint returning only saved URL→linkId map. Supports ?since={ISO8601} for delta sync. Used by browser extension to maintain local URL index for badge (✓) display.
+
 == Logins API ==
 
 [GET] /api/v1/logins

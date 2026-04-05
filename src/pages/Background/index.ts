@@ -1,10 +1,10 @@
-// import { checkLinkExists } from '../../@/lib/actions/links';
 import { getCurrentUser } from '../../@/lib/actions/users';
 import { getConfig } from '../../@/lib/config';
 import { getBrowser } from '../../@/lib/utils';
 import { BadgeManager } from './managers/BadgeManager';
 import { BookmarksManager } from './managers/BookmarksManager';
 import { ContextManager } from './managers/ContextManager';
+import { LinkUrlSyncManager } from './managers/LinkUrlSyncManager';
 import { MessageRouter } from './managers/MessageRouter';
 
 const browser = getBrowser();
@@ -141,6 +141,7 @@ async function toggleSmartCaptureOnTab(tabId: number, url?: string): Promise<voi
 new ContextManager();
 new BadgeManager();
 new BookmarksManager();
+const linkUrlSync = new LinkUrlSyncManager();
 
 const cacheUserPrefs = async () => {
   try {
@@ -163,8 +164,8 @@ const cacheUserPrefs = async () => {
   }
 };
 
-browser.runtime.onStartup.addListener(cacheUserPrefs);
-browser.runtime.onInstalled.addListener(cacheUserPrefs);
+browser.runtime.onStartup.addListener(() => { cacheUserPrefs(); linkUrlSync.sync(); });
+browser.runtime.onInstalled.addListener(() => { cacheUserPrefs(); linkUrlSync.sync(); });
 
 if (browser.commands?.onCommand) {
   browser.commands.onCommand.addListener(async (command: string) => {

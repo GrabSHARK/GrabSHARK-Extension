@@ -1,4 +1,5 @@
 import { clearConfig, getConfig, isConfigured, saveConfig } from '../../../@/lib/config';
+import { clear as clearUrlIndex } from '../../../@/lib/linkUrlIndex';
 import type { configType } from '../../../@/lib/validators/config';
 
 const EXTENSION_MARKER_ID = 'grabshark-extension-installed';
@@ -129,6 +130,7 @@ export class ConfigManager {
     static async clearConfig() {
         try {
             await clearConfig();
+            await clearUrlIndex();
             return { success: true };
         } catch (error) {
             return { success: false, error: error instanceof Error ? error.message : 'Failed to clear config' };

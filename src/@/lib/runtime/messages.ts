@@ -188,3 +188,7 @@ export async function saveLocaleSettings(settings: LocaleSettings) {
 export async function broadcastPreferencesUpdated(data: Record<string, unknown>) {
   await expectSuccess(sendExtensionMessage('BROADCAST_PREFERENCES_UPDATED', data), 'Failed to broadcast preference changes');
 }
+
+export async function syncLinkUrls() {
+  await expectSuccess(sendExtensionMessage('SYNC_LINK_URLS'), 'Failed to sync link URLs');
+}

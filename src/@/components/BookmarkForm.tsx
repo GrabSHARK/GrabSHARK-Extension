@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '../../hooks/use-toast.ts';
 import { useTranslation } from 'react-i18next';
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap.ts';
+import { syncLinkUrls } from '../lib/runtime/messages.ts';
 
 const BookmarkCollectionPicker = lazy(() =>
   import('./Bookmark/BookmarkCollectionPicker.tsx').then((module) => ({ default: module.BookmarkCollectionPicker }))
@@ -51,6 +52,7 @@ const BookmarkForm = ({ onClose, onSuccess }: { onClose?: () => void; onSuccess?
     queryClient.setQueryData(['collections'], bootstrap.collections || []);
     queryClient.setQueryData(['tags'], bootstrap.tags || []);
     queryClient.setQueryData(['userProfile'], bootstrap.user || null);
+    syncLinkUrls().catch(() => {});
     return bootstrap;
   }, [queryClient]);
 

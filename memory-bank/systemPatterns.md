@@ -1,17 +1,17 @@
 # GrabSHARK Extension — System Patterns
 
-## Three-Layer Build Architecture
+## Four-Layer Build Architecture
 
-The extension uses 3 separate Vite configurations that build **sequentially** into a single `dist/` folder:
+The extension uses **4 separate Vite configurations** that build **sequentially** into a single `dist/` folder:
 
 ```
 Build Pipeline:
-tsc → vite build → vite build -c content → vite build -c embedded
-       ↓                    ↓                        ↓
-    main.js              contentScript.js         embeddedUI.js
-    options.js           contentScript.css
-    background.js
-    style.css
+tsc → vite build → vite build -c content → vite build -c content-main → vite build -c embedded
+       ↓                    ↓                       ↓                          ↓
+    main.js           contentScript.js         contentMain.js            embeddedUI.js
+    options.js        contentScript.css                                  captureDock.js
+    background.js                                                       saveNotificationToast.js
+    style.css                                                           assets/embedded-*.js (chunks)
 ```
 
 ### Layer 1: Popup + Options + Background (`vite.config.ts`)
@@ -25,12 +25,26 @@ tsc → vite build → vite build -c content → vite build -c embedded
 - **`emptyOutDir: false`** — must NOT wipe existing build
 - Lightweight: no React bundled, just vanilla TS + DOM manipulation
 
-### Layer 3: Embedded UI (`vite.config.embedded.ts`)
-- **Entry:** `ContentScript/embeddedUI.ts`
-- **Output:** ES module — `embeddedUI.js` (~6MB)
+### Layer 3: Content Main (`vite.config.content-main.ts`)
+- **Entry:** `ContentScript/contentMain.tsx`
+- **Output:** ES module — `contentMain.js`
+- **`emptyOutDir: false`** — must NOT wipe existing build
+- Main content script logic: manager init, keyboard shortcuts, lifecycle handlers
+
+### Layer 4: Embedded UI (`vite.config.embedded.ts`)
+- **3 Entry Points:**
+  - `embeddedEntries/embeddedApp.ts` → `embeddedUI.js` (main in-page UI)
+  - `embeddedEntries/captureDock.ts` → `captureDock.js` (Smart Capture controls)
+  - `embeddedEntries/saveNotificationToast.ts` → `saveNotificationToast.js` (toast notifications)
+- **Manual chunk splitting:**
+  - `embedded-preferences` — PreferencesView components
+  - `embedded-edit` — EditLinkView components
+  - `embedded-saved` — AlreadySavedView components
+  - `embedded-save` — SaveLinkCard/SaveLink components
+  - `embedded-auth` — Modal/OptionsForm components
 - **`emptyOutDir: false`** — must NOT wipe existing build
 - Heavy: full React + Radix UI + React Query + all shared components
-- **Lazy-loaded:** Content script loads this only when user opens in-page popup
+- **Lazy-loaded:** Content script loads these only when user triggers UI
 
 ### Manifest Copy (Post-Build)
 ```
@@ -54,8 +68,9 @@ grabshark-extension/
 │   │   │   └── Preferences/        → 4 preference sections + disconnect dialog
 │   │   ├── hooks/                  → Custom hooks (useThumbnail)
 │   │   ├── lib/                    → Utilities, API, auth, validators
-│   │   │   ├── actions/            → API wrappers (collections, links, tags, users, highlights)
+│   │   │   ├── actions/            → API wrappers (collections, links, tags, users, highlights, bootstrap)
 │   │   │   ├── auth/               → Authentication logic
+│   │   │   ├── runtime/            → Runtime messaging layer (core, messages, sessionCache)
 │   │   │   ├── validators/         → Zod schemas
 │   │   │   ├── validations/        → Message schema validation
 │   │   │   └── types/              → TypeScript types
@@ -63,11 +78,13 @@ grabshark-extension/
 │   └── pages/
 │       ├── Background/             → Service worker entry + managers
 │       │   ├── index.ts            → Service worker bootstrap
-│       │   └── managers/           → 8 Manager classes
+│       │   └── managers/           → 13 Manager classes
 │       ├── ContentScript/          → Content script + subsystems
-│       │   ├── contentScript.tsx   → Main injector entry
-│       │   ├── EmbeddedApp.tsx     → Shadow DOM React app
-│       │   ├── embeddedUI.ts       → Lazy-load entry for embedded React
+│       │   ├── contentScript.tsx   → IIFE injector entry (lightweight)
+│       │   ├── contentMain.tsx     → ES module content script (main logic)
+│       │   ├── EmbeddedApp.tsx     → Shadow DOM React app (primary shell)
+│       │   ├── NotePanel.ts        → Standalone highlight note/color picker
+│       │   ├── embeddedEntries/    → Lazy-load entry points (3 entries)
 │       │   ├── highlighting/       → Highlight DOM manipulation
 │       │   ├── SmartCapture/       → Element detection + marquee
 │       │   ├── agents/             → Data extraction agents
@@ -76,25 +93,29 @@ grabshark-extension/
 │       │   ├── toolbox/            → Highlight toolbox listeners
 │       │   ├── handlers/           → Drag handler
 │       │   ├── shared/             → Shared utilities
-│       │   ├── utils/              → Messaging, DOM helpers, image helpers
+│       │   ├── utils/              → Messaging, DOM helpers, lazy registry, React loader
 │       │   ├── SaveNotificationToast/ → Toast notification system
 │       │   └── components/         → Content script components
 │       ├── Options/                → Extension settings page
 │       │   ├── App.tsx             → Options root
 │       │   ├── Options.tsx         → Options form
 │       │   └── options.html        → Options HTML entry
-│       └── Popup/                  → Extension popup
+│       └── Popup/                  → Extension popup (thin wrapper)
 │           ├── App.tsx             → Popup root
 │           └── main.tsx            → Popup entry
 ├── chromium/                       → Chromium Manifest V3
 │   └── manifest.json
 ├── firefox/                        → Firefox Manifest V2
 │   └── manifest.json
+├── scripts/                        → Build tooling
+│   ├── smoke-check.mjs            → Extension smoke test harness
+│   └── report-bundles.mjs         → Bundle size reporting
 ├── dist/                           → Build output
 ├── public/                         → Static assets (icons: 16, 32, 48, 128)
 ├── vite.config.ts                  → Main build config
-├── vite.config.content.ts          → Content script build config
-├── vite.config.embedded.ts         → Embedded UI build config
+├── vite.config.content.ts          → Content script build config (IIFE)
+├── vite.config.content-main.ts     → Content main build config (ES module)
+├── vite.config.embedded.ts         → Embedded UI build config (multi-entry + chunks)
 ├── tailwind.config.js              → Tailwind CSS configuration
 ├── build.sh                        → Build + manifest copy script
 └── contentscript.css               → Content script styles (58KB, ARMOR Protocol)
@@ -104,20 +125,25 @@ grabshark-extension/
 
 ## Background Manager Pattern
 
-All background service worker logic is organized into **self-contained Manager classes**:
+All background service worker logic is organized into **self-contained Manager classes** (13 total):
 
 ```
 Background/
-├── index.ts              → Bootstrap: instantiates all managers, registers listeners
+├── index.ts                → Bootstrap: instantiates all managers, registers listeners
 └── managers/
-    ├── AuthManager.ts    → Token refresh, session management, credential storage
-    ├── BadgeManager.ts   → Extension icon badge (notifications, save status)
+    ├── ApiClient.ts        → HTTP client wrapper for authenticated API requests
+    ├── AuthManager.ts      → Token refresh, session management, credential storage
+    ├── BadgeManager.ts     → Extension icon badge (notifications, save status)
     ├── BookmarksManager.ts → Browser bookmarks sync with GrabSHARK collections
-    ├── ContextManager.ts → Right-click context menu (save page/link/image/text)
-    ├── LinksManager.ts   → CORS proxy for link CRUD → backend API
-    ├── MediaManager.ts   → Screenshot capture (tabs.captureVisibleTab)
-    ├── MessageRouter.ts  → Cross-script communication (background ↔ content ↔ popup)
-    └── UserManager.ts    → User profile/settings sync from backend
+    ├── BootstrapManager.ts → Aggregates init state (user, collections, tags, domain prefs, AI tags)
+    ├── CollectionsManager.ts → Collection/tag fetching with full path building
+    ├── ConfigManager.ts    → Config save/load/clear, tab bootstrapping via marker detection
+    ├── ContextManager.ts   → Right-click context menu (save page/link/image/text)
+    ├── LinksManager.ts     → CORS proxy for link CRUD → backend API
+    ├── MediaManager.ts     → Screenshot capture (tabs.captureVisibleTab)
+    ├── MessageRouter.ts    → Cross-script communication (background ↔ content ↔ popup)
+    ├── PreferencesManager.ts → Preference CRUD, site overrides, locale settings
+    └── UserManager.ts      → User profile sync from backend
 ```
 
 **Communication Flow:**
@@ -129,15 +155,31 @@ Content Script ──message──→ Background ──HTTP──→ GrabSHARK B
 
 ---
 
+## Runtime Messaging Layer (`src/@/lib/runtime/`)
+
+Centralized typed API for all extension-to-background communication:
+
+```
+runtime/
+├── core.ts         → sendRuntimeMessage<T>(type, data?) with RuntimeResponse<T> envelope
+├── messages.ts     → 30+ typed functions: bootstrap, collections, tags, links, prefs, AI
+└── sessionCache.ts → Browser session storage cache (5 min links, 15 min AI prefs TTL)
+```
+
+**Pattern:** Content scripts and popup call `getExtensionBootstrapState()` once on load, then use other message functions as needed. `expectSuccess()` helper auto-throws on `!response.success`.
+
+---
+
 ## Content Script Architecture
 
 ### Injection Flow
 ```
 1. contentScript.tsx loads on every page (IIFE, lightweight)
-2. Initializes managers: HighlightManager, InteractionManager, ToastManager, etc.
-3. When user triggers popup/highlight → lazy-loads embeddedUI.js
-4. embeddedUI.ts creates Shadow DOM host → renders EmbeddedApp (React)
-5. EmbeddedApp receives messages from contentScript via CustomEvents
+2. Loads contentMain.tsx (ES module) which initializes managers and listeners
+3. Registers keyboard shortcuts, text selection handlers, context menu
+4. When user triggers popup/highlight → lazy-loads embedded UI via reactLoader.ts
+5. reactLoader.ts fetches embeddedUI.js/captureDock.js/saveNotificationToast.js
+6. EmbeddedApp renders inside Shadow DOM as primary interactive shell
 ```
 
 ### Content Script Managers (`pages/ContentScript/managers/`)
@@ -150,10 +192,20 @@ Content Script ──message──→ Background ──HTTP──→ GrabSHARK B
 | `SmartCaptureHandlers.ts` | Smart Capture event handling |
 | `toolboxCallbacks.ts` | Highlight toolbox action callbacks |
 
+### Lazy Component Loading
+```
+utils/
+├── lazyComponentRegistry.ts → Global registry (__grabsharkLazyComponents) for loaded modules
+└── reactLoader.ts           → Lazy-loader with caching + dedup for:
+                                - loadEmbeddedAppModule()     → embeddedUI.js
+                                - loadCaptureDockModule()     → captureDock.js
+                                - loadSaveNotificationToastModule() → saveNotificationToast.js
+```
+
 ### Smart Capture System (`pages/ContentScript/SmartCapture/`)
 ```
 SmartCaptureMode.ts        → Main controller (enter/exit capture mode)
-SelectionManager.ts        → Tracks hovered/selected elements
+SelectionManager.ts        → Tracks hovered/selected elements (throttled overlay refresh)
 CaptureOverlay.ts          → Visual overlay on detected elements
 MarqueeSelection.ts        → Draw-to-select region capture
 CaptureActionBar.ts        → Action bar with save/cancel controls
@@ -179,6 +231,23 @@ When re-rendering saved highlights on page revisit:
 4. `semanticAnchor.ts` — Semantic HTML matching
 5. `textUtils.ts` — Text content matching fallback
 6. `contextCapture.ts` — Context text extraction for verification
+
+---
+
+## Two-Tier UI Architecture
+
+### Popup (Thin Wrapper)
+- 396px fixed width
+- Lazy-loads BookmarkForm and PreferencesView
+- Calls `getExtensionBootstrapState()` on mount, pre-fills React Query cache
+- Secondary access point for quick save
+
+### Embedded Panel (Primary Shell)
+- In-page React app rendered inside Shadow DOM
+- Launched via keyboard shortcut or selection menu
+- Full UI: SaveLinkCard, AlreadySavedView, EditLinkView, PreferencesView, auth Modal
+- Session cache (`readLinkSessionCache/writeLinkSessionCache`) prevents re-fetching
+- Custom events for inter-component communication (`grabshark-toggle-close`, `grabshark-open-edit`, etc.)
 
 ---
 
@@ -211,12 +280,18 @@ Host Page DOM
 - Smart Capture preferences
 - Last used collection/tags
 
+### Session Cache (`runtime/sessionCache.ts`)
+- Link data cache (5 min TTL) — prevents repeated backend fetches
+- AI tag preference cache (15 min TTL)
+- Stored in `sessionStorage`
+
 ### React Query (`@tanstack/react-query v4`)
 - Collections list query
 - Tags list query
 - User profile query
 - Link check (duplicate detection) query
 - Highlight queries for current page
+- Pre-filled from bootstrap call
 
 ### Form State (React Hook Form + Zod)
 - `bookmarkForm` — Save link form validation
@@ -227,20 +302,25 @@ Host Page DOM
 
 ## Message Passing Protocol
 
-Extension uses Chrome/Firefox messaging API for cross-context communication:
+Extension uses typed runtime messaging layer for cross-context communication:
 
 ```
-Message Types (validated via messageSchemas.ts):
-├── SAVE_LINK        → Content/Popup → Background → Backend
-├── CHECK_LINK       → Popup → Background → Backend (duplicate check)
-├── GET_COLLECTIONS  → Popup → Background → Backend
-├── GET_TAGS         → Popup → Background → Backend
-├── CAPTURE_TAB      → Content → Background (screenshot)
-├── HIGHLIGHT_SAVE   → Content → Background → Backend
-├── HIGHLIGHT_DELETE  → Content → Background → Backend
-├── HIGHLIGHT_LOAD   → Content → Background → Backend
-├── SETTINGS_CHANGED → Options → Background → Content (broadcast)
-└── AUTH_STATUS      → Background → Popup/Content (auth state)
+Key Message Functions (via runtime/messages.ts):
+├── getExtensionBootstrapState(domain?) → Aggregated init state
+├── saveLinkFromExtension(data)         → Save link via background
+├── updateLinkMessage(data)             → Update existing link
+├── checkLinkExistsMessage(url)         → Duplicate detection
+├── getCollectionsData()                → Fetch collections
+├── getTagsData()                       → Fetch tags
+├── getCurrentUserProfile()             → Fetch user
+├── getDomainPreference(domain)         → Per-domain settings
+├── saveDomainPreference(data)          → Save domain prefs
+├── suggestTags(data)                   → AI tag suggestions
+├── getExtensionPreferences()           → Get preferences
+├── saveExtensionPreferences(data)      → Save preferences
+├── getLocaleSettings()                 → Get locale
+├── saveLocaleSettings(data)            → Save locale
+└── broadcastPreferencesUpdated()       → Notify all contexts
 ```
 
 ---
@@ -262,4 +342,5 @@ Message Types (validated via messageSchemas.ts):
 - **Initialization:** `@/lib/i18n.ts` — detects browser language, falls back to English
 - **15 Languages:** de, en, es, fr, it, ja, nl, pl, pt-BR, ro, ru, tr, uk, zh, zh-TW
 - **Translation files:** `src/@/locales/{lang}.json`
+- **Lazy-loaded:** Locale bundles loaded on demand, not bundled upfront
 - **Usage:** `const { t } = useTranslation()` in React components

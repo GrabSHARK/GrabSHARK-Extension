@@ -7,13 +7,13 @@
 | **TypeScript** | ^5.0 | Language |
 | **React** | ^18.2 | UI framework |
 | **React DOM** | ^18.2 | React rendering |
-| **Vite** | ^4.4 | Build tool (3-layer config) |
+| **Vite** | ^4.4 | Build tool (4-layer config) |
 | **Tailwind CSS** | ^3.3 | Styling |
 | **React Query** | @tanstack/react-query ^4.32 | Server state / data fetching |
 | **Axios** | ^1.4 | HTTP client for backend API |
 | **React Hook Form** | ^7.45 | Form state management |
 | **Zod** | ^3.21 | Schema validation |
-| **i18next** | ^25.7 | Internationalization |
+| **i18next** | ^25.7 | Internationalization (lazy-loaded bundles) |
 | **react-i18next** | ^16.5 | React i18n bindings |
 | **webextension-polyfill** | ^0.12 | Cross-browser API compatibility |
 
@@ -83,24 +83,35 @@
 
 ## Build System
 
-### Three Vite Configs
+### Four Vite Configs
 
 | Config | Entry | Output | Format |
 |---|---|---|---|
 | `vite.config.ts` | `index.html`, `Options/options.html`, `Background/index.ts` | `main.js`, `options.js`, `background.js` | ES modules |
 | `vite.config.content.ts` | `ContentScript/contentScript.tsx` | `contentScript.js` | IIFE |
-| `vite.config.embedded.ts` | `ContentScript/embeddedUI.ts` | `embeddedUI.js` | ES module |
+| `vite.config.content-main.ts` | `ContentScript/contentMain.tsx` | `contentMain.js` | ES module |
+| `vite.config.embedded.ts` | 3 entries: `embeddedApp.ts`, `captureDock.ts`, `saveNotificationToast.ts` | `embeddedUI.js`, `captureDock.js`, `saveNotificationToast.js` + chunks | ES module |
 
 ### Build Command
 ```bash
-tsc && vite build && vite build -c vite.config.content.ts && vite build -c vite.config.embedded.ts
+tsc && vite build && vite build -c vite.config.content.ts && vite build -c vite.config.content-main.ts && vite build -c vite.config.embedded.ts
 ```
+
+### Embedded UI Chunks (Manual Splitting)
+| Chunk | Contents |
+|---|---|
+| `embedded-preferences` | PreferencesView components |
+| `embedded-edit` | EditLinkView components |
+| `embedded-saved` | AlreadySavedView components |
+| `embedded-save` | SaveLinkCard/SaveLink components |
+| `embedded-auth` | Modal/OptionsForm components |
 
 ### Build Flags
 - **Production:** `console` and `debugger` statements are dropped via esbuild
 - **Development:** `minify: false`, console/debugger preserved
 - **Content Script:** IIFE format, single file, no imports
-- **Embedded UI:** ES module, `inlineDynamicImports: true` (single file)
+- **Content Main:** ES module format
+- **Embedded UI:** ES module, multi-entry with manual chunk splitting
 
 ### Build Script (`build.sh`)
 ```bash
@@ -110,6 +121,10 @@ npm run build
 ./build.sh           # → Chromium (chromium/manifest.json → dist/)
 ./build.sh --firefox # → Firefox (firefox/manifest.json → dist/)
 ```
+
+### Build Tooling
+- **scripts/report-bundles.mjs** — Bundle size reporting and guardrails
+- **scripts/smoke-check.mjs** — Extension smoke test harness
 
 ---
 
@@ -129,7 +144,7 @@ npm run build
 |---|---|
 | `npm install` | Install all dependencies |
 | `npm run dev` | Start Vite dev server (popup/options hot reload only) |
-| `npm run build` | Full production build (3 Vite passes) |
+| `npm run build` | Full production build (4 Vite passes) |
 | `npm run lint` | ESLint check |
 | `npm run preview` | Preview production build |
 | `./build.sh` | Build + copy Chromium manifest to dist |
@@ -170,3 +185,4 @@ Configured in both `tsconfig.json` (`paths`) and all Vite configs (`resolve.alia
 - **Files:** `src/@/locales/{lang}.json`
 - **Detection:** Browser language → fallback to English
 - **Initialization:** `@/lib/i18n.ts`
+- **Loading:** Lazy-loaded locale bundles (not bundled upfront)

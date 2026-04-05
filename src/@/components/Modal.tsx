@@ -118,12 +118,17 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
       )}
 
       {(step === 1 || step === 2 || step === 3) && (
-        <div className={cn('shrink-0 w-14 h-14 flex items-center justify-center', showTopNav ? 'mb-7' : 'mb-5')}>
+        <div className={cn(
+          'shrink-0 flex items-center justify-center transition-all duration-500 ease-out',
+          step === 1 ? 'w-20 h-20 mt-6 mb-8' : 'w-14 h-14 mb-7',
+          step === 3 && 'mt-2'
+        )}>
           <img
             src={logoSrc}
             alt="GrabSHARK"
             className={cn(
-              'w-14 h-14 transition-all duration-500 ease-out origin-top',
+              'transition-all duration-500 ease-out origin-center',
+              step === 1 ? 'w-20 h-20' : 'w-14 h-14',
               step === 2 && 'scale-[0.75]'
             )}
             style={{
@@ -150,7 +155,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
         >
           <div ref={contentRef}>
             {step === 1 && (
-              <div className="p-6 flex flex-col items-center justify-center text-center space-y-2 animate-in fade-in duration-300 fill-mode-forwards">
+              <div className="px-6 pt-8 pb-10 flex flex-col items-center justify-center text-center space-y-3 animate-in fade-in duration-300 fill-mode-forwards">
                 <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Welcome to GrabSHARK</h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
                   Connect your account to start.

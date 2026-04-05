@@ -1,19 +1,11 @@
 import { getBrowser } from '../../../@/lib/utils';
 import { getConfig } from '../../../@/lib/config';
 import { getPreferences } from '../../../@/lib/settings';
-import { checkLinkExists } from '../../../@/lib/actions/links';
+import { hasUrl } from '../../../@/lib/linkUrlIndex';
 
 const browser = getBrowser();
-const BADGE_CACHE_TTL_MS = 30_000;
-
-interface BadgeCacheEntry {
-    exists: boolean;
-    expiresAt: number;
-}
 
 export class BadgeManager {
-    private existenceCache = new Map<string, BadgeCacheEntry>();
-    private inFlightChecks = new Map<string, Promise<boolean>>();
     constructor() {
         this.init();
     }
@@ -76,7 +68,7 @@ export class BadgeManager {
             return;
         }
 
-        const linkExists = await this.getLinkExists(cachedConfig.baseUrl, cachedConfig.apiKey, url);
+        const linkExists = await hasUrl(url);
 
         if (linkExists) {
             this.setBadge(tabId, '✓', '#2c46f1', '#FFFFFF');
@@ -85,57 +77,6 @@ export class BadgeManager {
         }
     }
 
-
-    private buildCacheKey(baseUrl: string, url: string): string {
-        return `${baseUrl}::${url}`;
-    }
-
-    private getCachedResult(cacheKey: string): boolean | null {
-        const entry = this.existenceCache.get(cacheKey);
-        if (!entry) {
-            return null;
-        }
-
-        if (entry.expiresAt <= Date.now()) {
-            this.existenceCache.delete(cacheKey);
-            return null;
-        }
-
-        return entry.exists;
-    }
-
-    private setCachedResult(cacheKey: string, exists: boolean): void {
-        this.existenceCache.set(cacheKey, {
-            exists,
-            expiresAt: Date.now() + BADGE_CACHE_TTL_MS,
-        });
-    }
-
-    private async getLinkExists(baseUrl: string, apiKey: string, url: string): Promise<boolean> {
-        const cacheKey = this.buildCacheKey(baseUrl, url);
-        const cached = this.getCachedResult(cacheKey);
-        if (cached !== null) {
-            return cached;
-        }
-
-        const existingPromise = this.inFlightChecks.get(cacheKey);
-        if (existingPromise) {
-            return existingPromise;
-        }
-
-        const requestPromise = (async () => {
-            try {
-                const exists = await checkLinkExists(baseUrl, apiKey, url);
-                this.setCachedResult(cacheKey, exists);
-                return exists;
-            } finally {
-                this.inFlightChecks.delete(cacheKey);
-            }
-        })();
-
-        this.inFlightChecks.set(cacheKey, requestPromise);
-        return requestPromise;
-    }
 
     private setBadge(tabId: number, text: string, bgColor: string, _textColor: string) {
         if (browser.action) {

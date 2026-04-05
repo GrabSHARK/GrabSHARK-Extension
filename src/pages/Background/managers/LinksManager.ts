@@ -1,8 +1,7 @@
 import {
     postLink,
-    checkLinkExists,
-    // getLinksFetch
 } from '../../../@/lib/actions/links';
+import { addUrl, removeUrlByLinkId, hasUrl } from '../../../@/lib/linkUrlIndex';
 import {
     getLinkByUrl,
     getLinkHighlights,
@@ -147,7 +146,11 @@ export class LinksManager {
             }
 
             if (result && result.data && result.data.response) {
-                return { success: true, data: { link: result.data.response } };
+                const link = result.data.response;
+                if (link.url) {
+                    addUrl(link.url, link.id).catch(() => {});
+                }
+                return { success: true, data: { link } };
             } else {
                 return { success: false, error: 'Failed to create link' };
             }
@@ -192,6 +195,8 @@ export class LinksManager {
             if (!response.ok) {
                 throw new Error('Failed to delete link');
             }
+
+            removeUrlByLinkId(id).catch(() => {});
 
             if (sender?.tab?.id) {
                 const tabId = sender.tab.id;
@@ -280,12 +285,12 @@ export class LinksManager {
         }
     }
 
-    static async checkLinkExists(config: { baseUrl: string; apiKey: string }, url: string) {
+    static async checkLinkExists(_config: { baseUrl: string; apiKey: string }, url: string) {
         try {
-            const response = await checkLinkExists(config.baseUrl, config.apiKey, url);
-            return { success: true, data: response };
+            const exists = await hasUrl(url);
+            return { success: true, data: exists };
         } catch {
-            return { success: false, error: 'Network error' };
+            return { success: false, error: 'Lookup error' };
         }
     }
 
@@ -293,6 +298,9 @@ export class LinksManager {
         try {
             const link = await createLinkForHighlight(config.baseUrl, url, title, config.apiKey);
             if (link) {
+                if (link.url) {
+                    addUrl(link.url, link.id).catch(() => {});
+                }
                 return { success: true, data: { link } };
             } else {
                 return { success: false, error: 'Failed to save link' };

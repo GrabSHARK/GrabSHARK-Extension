@@ -8,6 +8,7 @@ import { BootstrapManager } from './BootstrapManager';
 import { ConfigManager } from './ConfigManager';
 import { CollectionsManager } from './CollectionsManager';
 import { PreferencesManager } from './PreferencesManager';
+import { LinkUrlSyncManager } from './LinkUrlSyncManager';
 
 export class MessageRouter {
     static async route(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
@@ -191,6 +192,16 @@ export class MessageRouter {
                     const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.checkLinkExists(config, message.data.url));
+                    break;
+                }
+
+                case 'SYNC_LINK_URLS': {
+                    const syncManager = LinkUrlSyncManager.getInstance();
+                    if (syncManager) {
+                        syncManager.sync().then(() => sendResponse({ success: true })).catch(() => sendResponse({ success: false, error: 'Sync failed' }));
+                    } else {
+                        sendResponse({ success: false, error: 'Sync manager not initialized' });
+                    }
                     break;
                 }
 
