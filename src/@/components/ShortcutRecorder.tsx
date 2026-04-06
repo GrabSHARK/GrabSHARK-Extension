@@ -260,15 +260,15 @@ export const ShortcutRecorder = ({ config, onChange }: ShortcutRecorderProps) =>
         if (pressedModifiers.meta) elements.push(renderKey('', <Command size={iconSize} />));
 
         const content = elements.length > 0 ? (
-            <div className="flex items-center gap-0.5">{elements} <span className="ml-1 text-[10px] text-blue-500">...</span></div>
+            <div className="flex items-center gap-0.5">{elements} <span className="ml-1 text-[10px] text-primary">...</span></div>
         ) : (
-            <span className="text-[10px] text-blue-500">Type keys...</span>
+            <span className="text-[10px] text-primary">Type keys...</span>
         );
 
         return (
             <div className="flex items-center gap-2">
                 <div
-                    className="h-6 px-2 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center min-w-[60px] cursor-pointer"
+                    className="h-6 px-2 bg-primary/10 dark:bg-primary/10 rounded flex items-center justify-center min-w-[60px] cursor-pointer"
                     onClick={() => setIsRecording(false)}
                     title="Click to cancel"
                 >
@@ -288,7 +288,7 @@ export const ShortcutRecorder = ({ config, onChange }: ShortcutRecorderProps) =>
                 </span>
 
                 {/* Hover: Pencil Icon */}
-                <span className="absolute right-0 text-zinc-400 group-hover:text-blue-500 transition-all duration-200 translate-y-[150%] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 flex items-center justify-center">
+                <span className="absolute right-0 text-zinc-400 group-hover:text-primary transition-all duration-200 translate-y-[150%] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 flex items-center justify-center">
                     <PencilSimple size={12} />
                 </span>
             </div>

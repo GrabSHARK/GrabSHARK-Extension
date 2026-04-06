@@ -184,13 +184,13 @@ export function TagInput({ value, onChange, tags, className, placeholder, contai
               {value.map((tag) => (
                 <span
                   key={tag.name}
-                  className="inline-flex items-center gap-1 bg-blue-600 text-white pl-2.5 pr-1 py-1 rounded-full text-xs font-medium"
+                  className="inline-flex items-center gap-1 bg-primary text-primary-foreground pl-2.5 pr-1 py-1 rounded-full text-xs font-medium"
                 >
                   {tag.name}
                   <button
                     type="button"
                     onClick={(e) => handleRemove(e, tag)}
-                    className="ml-0.5 p-0.5 rounded-full hover:bg-blue-500 hover:text-white transition-colors"
+                    className="ml-0.5 p-0.5 rounded-full hover:bg-primary/80 hover:text-primary-foreground transition-colors"
                   >
                     <X className="h-3 w-3" />
                   </button>

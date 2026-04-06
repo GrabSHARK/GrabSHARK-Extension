@@ -201,28 +201,28 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
             <button
               onClick={() => setTheme('dark')}
               title="Dark"
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'dark' ? 'bg-primary text-primary-foreground' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
             >
               <Moon className="w-4 h-4" />
             </button>
             <button
               onClick={() => setTheme('light')}
               title="Light"
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'light' ? 'bg-blue-600 text-white' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'light' ? 'bg-primary text-primary-foreground' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
             >
               <Sun className="w-4 h-4" />
             </button>
             <button
               onClick={() => setTheme('website')}
               title="Follow Website"
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'website' ? 'bg-blue-600 text-white' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'website' ? 'bg-primary text-primary-foreground' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
             >
               <Monitor className="w-4 h-4" />
             </button>
             <button
               onClick={() => setTheme('system')}
               title="Follow GrabSHARK"
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'system' ? 'bg-blue-600 text-white' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${theme === 'system' ? 'bg-primary text-primary-foreground' : 'bg-zinc-200 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
             >
               <Link2 className="w-4 h-4" />
             </button>
@@ -238,7 +238,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
               onClick={() => setStep(2)}
               type="button"
               className={cn(
-                'absolute inset-0 w-full h-11 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_rgba(37,99,235,0.45)] transition-all duration-300',
+                'absolute inset-0 w-full h-11 rounded-2xl font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_hsl(var(--primary)/0.45)] transition-all duration-300',
                 step === 1 ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
               )}
             >
@@ -250,7 +250,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
               form="connection-form"
               disabled={isConnecting}
               className={cn(
-                'absolute inset-0 w-full h-11 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_rgba(37,99,235,0.45)] transition-all duration-300',
+                'absolute inset-0 w-full h-11 rounded-2xl font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_hsl(var(--primary)/0.45)] transition-all duration-300',
                 step === 2 ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
                 hasError && 'animate-shake'
               )}
@@ -266,7 +266,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
               onClick={handleDone}
               type="button"
               className={cn(
-                'absolute inset-0 w-full h-11 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_rgba(37,99,235,0.45)] transition-all duration-300',
+                'absolute inset-0 w-full h-11 rounded-2xl font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_hsl(var(--primary)/0.45)] transition-all duration-300',
                 step === 3 ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
               )}
             >

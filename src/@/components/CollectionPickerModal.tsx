@@ -105,7 +105,7 @@ export const CollectionPickerModal: FC<CollectionPickerModalProps> = ({
                             placeholder={t('preferences.searchCollections')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 rounded-xl border-0 focus:ring-2 focus:ring-blue-500 outline-none text-zinc-900 dark:text-zinc-100 placeholder-zinc-400"
+                            className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 rounded-xl border-0 focus:ring-2 focus:ring-primary outline-none text-zinc-900 dark:text-zinc-100 placeholder-zinc-400"
                         />
                     </div>
                 </div>
@@ -113,7 +113,7 @@ export const CollectionPickerModal: FC<CollectionPickerModalProps> = ({
                 <div className="flex-1 overflow-y-auto p-2">
                     {loading ? (
                         <div className="flex items-center justify-center py-8">
-                            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                         </div>
                     ) : filteredCollections.length === 0 ? (
                         <div className="text-center py-8 text-sm text-zinc-500">
@@ -128,7 +128,7 @@ export const CollectionPickerModal: FC<CollectionPickerModalProps> = ({
                                     className={cn(
                                         "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors",
                                         selectedCollectionId === collection.id
-                                            ? "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400"
+                                            ? "bg-primary/10 dark:bg-primary/10 text-primary dark:text-primary"
                                             : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                                     )}
                                 >
@@ -139,7 +139,7 @@ export const CollectionPickerModal: FC<CollectionPickerModalProps> = ({
                                     />
                                     <span className="flex-1 text-sm truncate">{collection.name}</span>
                                     {selectedCollectionId === collection.id && (
-                                        <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                        <Check className="w-4 h-4 text-primary" />
                                     )}
                                 </button>
                             ))}

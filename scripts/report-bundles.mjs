@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 const distDir = join(process.cwd(), 'dist');
 const budgets = [
-  { label: 'popup main', file: 'main.js', maxBytes: 250 * 1024 },
+  { label: 'options', file: 'options.js', maxBytes: 400 * 1024 },
   { label: 'content script', file: 'contentScript.js', maxBytes: 250 * 1024 },
   { label: 'embedded UI', file: 'embeddedUI.js', maxBytes: 3 * 1024 * 1024 },
   { label: 'save notification toast', file: 'saveNotificationToast.js', maxBytes: 500 * 1024 },

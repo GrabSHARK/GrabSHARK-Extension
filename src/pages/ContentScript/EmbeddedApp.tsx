@@ -6,6 +6,7 @@ import { ThemeDetector } from './SmartCapture/ThemeDetector.ts';
 import { getExtensionBootstrapState } from '../../@/lib/actions/bootstrap.ts';
 import { getLinkWithHighlights, syncUserLocale } from '../../@/lib/runtime/messages.ts';
 import { readLinkSessionCache, writeLinkSessionCache } from '../../@/lib/runtime/sessionCache';
+import { applyAccentColor } from '../../@/lib/accentColor.ts';
 
 const LazySaveLinkCard = lazy(async () => ({
     default: (await import('../../@/components/SaveLinkCard.tsx')).SaveLinkCard,
@@ -147,6 +148,9 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
                 if (!active) return;
                 setIsAllConfigured(bootstrap.configured);
                 setUserProfile(bootstrap.user || null);
+                if (bootstrap.user?.accentColor) {
+                    chrome.storage.local.set({ grabshark_accent_color: bootstrap.user.accentColor });
+                }
             } catch {
                 if (!active) return;
                 setIsAllConfigured(false);
@@ -188,6 +192,13 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
             void syncUserLocale().catch(() => { });
         }
     }, [isVisible]);
+
+    useEffect(() => {
+        if (userProfile?.accentColor && containerRef) {
+            const isDark = containerRef.classList.contains('dark');
+            applyAccentColor(userProfile.accentColor, isDark, containerRef);
+        }
+    }, [userProfile?.accentColor, containerRef]);
 
     const loading = loadingBootstrap || (isAllConfigured === true && !cachedLink && isLinkLoading);
 

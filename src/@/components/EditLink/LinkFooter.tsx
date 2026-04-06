@@ -41,9 +41,9 @@ export const LinkFooter: FC<LinkFooterProps> = ({
                     onSave();
                 }}
                 className={cn(
-                    "w-full h-11 rounded-xl font-semibold transition-all duration-300",
+                    "w-full h-11 rounded-2xl font-semibold transition-all duration-300",
                     form.formState.isDirty && !saveSuccess
-                        ? "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_rgba(37,99,235,0.45)]"
+                        ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_hsl(var(--primary)/0.45)]"
                         : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 shadow-none pointer-events-none"
                 )}
                 disabled={isSaving || (!form.formState.isDirty && !saveSuccess)}

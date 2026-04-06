@@ -246,7 +246,7 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
         <div className="flex flex-col h-full p-4 relative">
             <div className="flex items-center justify-between mb-4 px-1">
                 <div className="flex items-center gap-2">
-                    <div className="bg-blue-600 rounded-full p-1.5 shadow-[0_0_12px_rgba(59,130,246,0.5)]"><GearSix className="w-3.5 h-3.5 text-white" weight="bold" /></div>
+                    <div className="bg-primary rounded-full p-1.5 shadow-[0_0_12px_hsl(var(--primary)/0.5)]"><GearSix className="w-3.5 h-3.5 text-white" weight="bold" /></div>
                     <span className="font-semibold text-base text-zinc-800 dark:text-zinc-200">{t('preferences.title')}</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -273,7 +273,7 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
             </div>
 
             <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800">
-                <Button onClick={() => void handleSave()} className="w-full h-11 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_rgba(37,99,235,0.45)] transition-all duration-300">{t('common.done')}</Button>
+                <Button onClick={() => void handleSave()} className="w-full h-11 rounded-2xl font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_hsl(var(--primary)/0.45)] transition-all duration-300">{t('common.done')}</Button>
             </div>
 
             <CollectionPickerModal isOpen={showCollectionPicker} onClose={() => setShowCollectionPicker(false)} selectedCollectionId={extensionSelectedCollectionId}

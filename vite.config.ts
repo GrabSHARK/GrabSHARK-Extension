@@ -14,7 +14,6 @@ export default defineConfig({
     minify: process.env.NODE_ENV === 'development' ? false : 'esbuild',
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html'),
         options: path.resolve(__dirname, 'src/pages/Options/options.html'),
         background: path.resolve(__dirname, 'src/pages/Background/index.ts'),
       },

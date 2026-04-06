@@ -61,8 +61,8 @@ export const SaveLinkPreview: FC<SaveLinkPreviewProps> = ({
                     "absolute inset-0 bg-black/60 flex flex-col items-center justify-center transition-opacity duration-200 z-10",
                     uploadScreenshot ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                 )}>
-                    <Camera className={cn("w-5 h-5 text-white mb-0.5", uploadScreenshot && "text-blue-400")} />
-                    <span className={cn("text-[9px] font-medium text-white leading-tight text-center px-1", uploadScreenshot && "text-blue-400")}>
+                    <Camera className={cn("w-5 h-5 text-white mb-0.5", uploadScreenshot && "text-primary")} />
+                    <span className={cn("text-[9px] font-medium text-white leading-tight text-center px-1", uploadScreenshot && "text-primary")}>
                         Shot on<br />Page
                     </span>
                 </div>
@@ -73,7 +73,7 @@ export const SaveLinkPreview: FC<SaveLinkPreviewProps> = ({
                 {/* Title: Editable Input replacing H3 */}
                 <div className="font-semibold text-sm">
                     <input
-                        className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none transition-all truncate font-semibold placeholder:font-normal placeholder:text-zinc-500 dark:placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600"
+                        className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none transition-all truncate font-semibold placeholder:font-normal placeholder:text-zinc-500 dark:placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100 group-hover:text-primary"
                         {...form.register('name')}
                         placeholder={initialTitle || "Title"}
                     />
@@ -110,7 +110,7 @@ export const SaveLinkPreview: FC<SaveLinkPreviewProps> = ({
                                     className={cn(
                                         "w-7 h-7 flex items-center justify-center cursor-pointer transition-all duration-300 rounded-lg border",
                                         isActive
-                                            ? "text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-400/15 border-blue-200 dark:border-blue-400/30"
+                                            ? "text-primary dark:text-primary bg-primary/10 dark:bg-primary/15 border-primary/20 dark:border-primary/30"
                                             : "text-zinc-400 dark:text-zinc-600 bg-void-island/20 dark:bg-void-island/10 border-void-border/10 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:border-void-border/20"
                                     )}
                                     title={item.label}

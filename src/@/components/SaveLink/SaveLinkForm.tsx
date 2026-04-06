@@ -168,8 +168,8 @@ export const SaveLinkForm: FC<SaveLinkFormProps> = ({
                                                             className={cn(
                                                                 "absolute left-2 z-10 w-5 h-5 flex items-center justify-center transition-all duration-200",
                                                                 isSuggestingTags
-                                                                    ? "text-blue-500"
-                                                                    : "text-zinc-400 hover:text-blue-500"
+                                                                    ? "text-primary"
+                                                                    : "text-zinc-400 hover:text-primary"
                                                             )}
                                                             title="Generate AI tag suggestions"
                                                         >

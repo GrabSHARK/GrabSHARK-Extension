@@ -227,7 +227,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         <div className="w-full">
             <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                    <div className="bg-blue-600 rounded-full p-1.5 shadow-[0_0_12px_rgba(59,130,246,0.5)]"><Check className="w-3.5 h-3.5 text-white stroke-[3px]" /></div>
+                    <div className="bg-primary rounded-full p-1.5 shadow-[0_0_12px_hsl(var(--primary)/0.5)]"><Check className="w-3.5 h-3.5 text-white stroke-[3px]" /></div>
                     <span>{t('savedLink.title')}</span>
                 </div>
                 {onClose && (
@@ -272,7 +272,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                     </div>
 
                     <div className="flex flex-col justify-center min-w-0 flex-1">
-                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate pr-2 group-hover:text-blue-600 transition-colors duration-300" title={link.name}>{link.name}</h3>
+                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate pr-2 group-hover:text-primary transition-colors duration-300" title={link.name}>{link.name}</h3>
                         <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                             <span className="truncate inline-flex items-center gap-1 font-medium min-w-0">
                                 {link.collection?.color ? (
@@ -287,7 +287,7 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                         </div>
                         {isPollingTags ? (
                             <div className="flex items-center gap-2 mt-2 h-[16px]">
-                                <OutlineSparkleIcon className="w-3.5 h-3.5 text-blue-500" loading={true} />
+                                <OutlineSparkleIcon className="w-3.5 h-3.5 text-primary" loading={true} />
                                 <span className="text-[10px] text-zinc-400 font-medium italic animate-pulse">{t('editLink.generatingTags') || 'Generating tags...'}</span>
                             </div>
                         ) : (link.tags && link.tags.length > 0) && (
