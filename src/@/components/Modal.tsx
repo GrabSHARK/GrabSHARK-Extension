@@ -3,6 +3,7 @@ import { Button } from './ui/Button.tsx';
 import { cn } from '../lib/utils.ts';
 import { OptionsFormContent } from './OptionsFormContent';
 import { Moon, Sun, Monitor, Link2, X, ChevronLeft, Loader2 } from 'lucide-react';
+import { Toaster } from './ui/Toaster.tsx';
 import { useTheme } from './ThemeProvider.tsx';
 
 interface ModalProps {
@@ -275,6 +276,7 @@ const Modal: FC<ModalProps> = ({ open, initialStep = 1, onClose, onDone }) => {
           </div>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 };

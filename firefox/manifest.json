@@ -29,9 +29,7 @@
     "tabs",
     "bookmarks",
     "contextMenus",
-    "<all_urls>",
-    "http://*/*",
-    "https://*/*"
+    "<all_urls>"
   ],
   "commands": {
     "_execute_browser_action": {
