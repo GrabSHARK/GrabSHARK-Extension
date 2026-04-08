@@ -163,7 +163,7 @@ function useSaveLinkMutation({
     ogImageUrl, preProcessedThumbnail, collections, baseUrl, onClose, onSuccess: onSuccessCallback, t,
 }: {
     form: UseFormReturn<bookmarkFormValues>; currentUrl: string; prefs: ExtensionPreferences;
-    archiveOptions: { archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; aiTag: boolean } | null;
+    archiveOptions: { archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; archiveAsWaybackMachine: boolean; aiTag: boolean } | null;
     uploadScreenshot: boolean; ogImageUrl: string | null; preProcessedThumbnail: Blob | null;
     collections: any[] | undefined; baseUrl: string | null; onClose?: () => void; onSuccess?: (link: any, openEdit?: boolean) => void; t: (key: string) => string;
 }) {
@@ -180,7 +180,7 @@ function useSaveLinkMutation({
                 url: values.url || currentUrl,
                 collection: { name: values.collection?.name, id: values.collection?.id, ownerId: values.collection?.ownerId },
                 tags: (values.tags || []).map((tag) => ({ name: tag.name })),
-                preservationConfig: archiveOptions || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, aiTag: false },
+                preservationConfig: archiveOptions || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, archiveAsWaybackMachine: false, aiTag: false },
                 uploadImage: uploadScreenshot,
             };
 
@@ -293,7 +293,7 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
     const [showCaptureConfirmation, setShowCaptureConfirmation] = useState(false);
     const [captureOverlayVisible, setCaptureOverlayVisible] = useState(false);
     const [archiveOptions, setArchiveOptions] = useState<{
-        archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; aiTag: boolean;
+        archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; archiveAsWaybackMachine: boolean; aiTag: boolean;
     } | null>(null);
 
     const manualTaggingRef = useRef(false);
@@ -321,7 +321,7 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
     } = useSaveLinkInit(form);
 
     useEffect(() => {
-        setArchiveOptions(archiveDefaults || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, aiTag: false });
+        setArchiveOptions(archiveDefaults || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, archiveAsWaybackMachine: false, aiTag: false });
     }, [archiveDefaults]);
 
     const { handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, successTimeoutRef } =
@@ -336,6 +336,7 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
                 archiveAsMonolith: archivalTags.some((tag: any) => tag.archiveAsMonolith),
                 archiveAsPDF: archivalTags.some((tag: any) => tag.archiveAsPDF),
                 archiveAsReadable: archivalTags.some((tag: any) => tag.archiveAsReadable),
+                archiveAsWaybackMachine: archivalTags.some((tag: any) => tag.archiveAsWaybackMachine),
                 aiTag: archivalTags.some((tag: any) => tag.aiTag),
             });
         } else if (userProfile) {
@@ -344,6 +345,7 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
                 archiveAsMonolith: userProfile.archiveAsMonolith ?? true,
                 archiveAsPDF: userProfile.archiveAsPDF ?? true,
                 archiveAsReadable: userProfile.archiveAsReadable ?? true,
+                archiveAsWaybackMachine: userProfile.archiveAsWaybackMachine ?? false,
                 aiTag: (manualTaggingRef.current || manualAiToggleRef.current)
                     ? (prev?.aiTag ?? false)
                     : (userProfile.aiTaggingMethod !== 'DISABLED' && userProfile.aiTaggingMethod !== undefined),

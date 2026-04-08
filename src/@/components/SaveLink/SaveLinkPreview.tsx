@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { Camera, FilePdf, FileImage, FileText, FileHtml } from '@phosphor-icons/react';
+import { Camera, FilePdf, FileImage, FileText, FileHtml, ClockCounterClockwise } from '@phosphor-icons/react';
 import { cn } from '../../lib/utils';
 import { OutlineSparkleIcon } from '../CustomIcons';
 
@@ -91,6 +91,7 @@ export const SaveLinkPreview: FC<SaveLinkPreviewProps> = ({
                         { key: 'archiveAsMonolith', icon: FileHtml, label: 'Monolith' },
                         { key: 'archiveAsReadable', icon: FileText, label: 'Readable' },
                         { key: 'archiveAsScreenshot', icon: FileImage, label: 'Screenshot' },
+                        { key: 'archiveAsWaybackMachine', icon: ClockCounterClockwise, label: 'Wayback Machine' },
                         // AI Tag toggle - only shown if user has AI enabled
                         ...(userProfile?.aiTaggingMethod && userProfile.aiTaggingMethod !== 'DISABLED'
                             ? [{ key: 'aiTag', icon: OutlineSparkleIcon, label: 'AI Tagging' }]
