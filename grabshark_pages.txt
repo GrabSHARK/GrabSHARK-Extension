@@ -214,6 +214,11 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ Category: Config
 └─ Purpose: Açık/Koyu Tema seçimi, Çoklu Dil (i18n) ayarı ve Grid/List varsayılan görüntülenme tercihleri.
 
+[/settings/browser]
+└─ File: grabshark/apps/web/pages/settings/browser.tsx
+└─ Category: Config
+└─ Purpose: Kullanıcıya özel browser tercihleri — Playwright vs CloakBrowser seçimi, stealth toggle, CloakBrowser parametreleri (stealthArgs, humanize, preset, proxy, timezone, locale, geoip), son launch hata banner'ı.
+
 [/settings/rss-subscriptions]
 └─ File: grabshark/apps/web/pages/settings/rss-subscriptions.tsx
 └─ Category: Config

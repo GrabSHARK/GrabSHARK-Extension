@@ -136,15 +136,31 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 
 [Playwright]
 └─ Category: Browser Automation & E2E Testing
-└─ Purpose: Web sayfalarını arşivlemek için headless browser (screenshot, PDF, monolith HTML), ayrıca E2E test altyapısı. Worker'da primary browser olarak kullanılır.
+└─ Purpose: Web sayfalarını arşivlemek için headless browser (screenshot, PDF, monolith HTML), ayrıca E2E test altyapısı. Worker'da primary browser olarak kullanılır. BrowserManager per-user `user.browserType='playwright'` + opsiyonel `useStealth` toggle ile seçilir.
+
+[playwright-extra + puppeteer-extra-plugin-stealth]
+└─ Category: Stealth Plugin Layer
+└─ Purpose: Playwright'in üstüne geçirilen stealth wrapper. `navigator.webdriver`, `chrome.runtime`, WebGL vendor gibi otomasyon izlerini gizler. `user.useStealth=true` ile etkinleştirilir. browser.ts'te `stealthChromium` olarak import edilir, plain `rawChromium` ile paralel kullanılır.
 
 [CloakBrowser]
 └─ Category: Stealth Browser (Opsiyonel)
-└─ Purpose: 33 C++ source-level patch ile bot tespitine dayanıklı Chromium. Kullanıcı tercihiyle (useCloakBrowser) etkinleştirilir. Playwright API uyumlu, launch() ile kullanılır.
+└─ Purpose: 33 C++ source-level patch ile bot tespitine dayanıklı Chromium. Kullanıcı `user.browserType='cloakbrowser'` ile seçer. Per-user opsiyonlar: cloakStealth, cloakHumanize, cloakHumanPreset, cloakProxy, cloakTimezone, cloakLocale, cloakGeoip (hepsi DB'de User model'de). Library-level: CLOAKBROWSER_AUTO_UPDATE ve CLOAKBROWSER_CACHE_DIR env var'larıyla kontrol edilir.
+
+[BrowserManager]
+└─ Category: Worker Browser Lifecycle
+└─ Purpose: `apps/worker/lib/browser.ts` modülü — 2-slot cache (Playwright + CloakBrowser) lazy mode için, per-link mode'da config-compare-reuse ile tek browser. Lifecycle env var BROWSER_LIFECYCLE=lazy|per-link ile kontrol edilir (default lazy). Config değişikliğinde slot kill & relaunch. Launch hatası → user.browserConfigError yaz + per-type defaults'a fallback. Eski 30-dakika rotation silindi.
 
 [FlareSolverr (PR-1300)]
 └─ Category: Anti-Bot Cookie Extraction
-└─ Purpose: Cloudflare JS Challenge, Turnstile ve benzeri bot korumalarını DrissionPage engine ile çözer. Sadece cookie extraction servisi olarak çalışır, HTML döndürmez. Docker servisi: alexfozor/flaresolverr:pr-1300-experimental (port 8191).
+└─ Purpose: Cloudflare JS Challenge (eski tarz, iframe'siz) icin cookie extraction servisi. Sadece CLOUDFLARE_JS ResolutionStrategy'sinde kullanilir. Docker servisi: alexfozor/flaresolverr:pr-1300-experimental (port 8191).
+
+[Challenge Detector (Refactored)]
+└─ Category: Anti-Bot Detection
+└─ Purpose: Live page state bazli challenge tespit sistemi. `apps/worker/lib/challengeDetector.ts` (~200 satir). 4 ChallengeType (NONE, CLOUDFLARE_TURNSTILE, CLOUDFLARE_JS, RECAPTCHA) + 5 ResolutionStrategy (NONE, WAIT, CLICK, FLARESOLVERR_COOKIE, UNSOLVABLE). HTML regex yerine `page.frames()` + `page.title()` kullanir. Eski 10-sinyalli tier sistemi kaldirildi. hCaptcha/Arkose/CUSTOM_HOLD detection yok (zaten auto-solve imkansizdi).
+
+[Challenge Click Resolver]
+└─ Category: Anti-Bot Resolution
+└─ Purpose: Cloudflare Turnstile + reCAPTCHA v2 checkbox challenge'lari icin generic click resolver (`apps/worker/lib/fallback/challengeClickResolver.ts`). Iframe bounding box alip human-like mouse movement ile checkbox'a tiklar. CloakBrowser source-level stealth ile birlesip moneysavingexpert.com gibi managed Turnstile siteleri ~3 saniyede geciyor. cf_clearance cookie polling ile dogrulama yapar. ENV: `CHALLENGE_DETECT_MOUNT_WAIT_MS` (3000), `CHALLENGE_RESOLVE_POLL_TIMEOUT_MS` (15000).
 
 [ws]
 └─ Category: WebSocket Server
