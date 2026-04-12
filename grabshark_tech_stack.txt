@@ -156,7 +156,11 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 
 [Challenge Detector (Refactored)]
 └─ Category: Anti-Bot Detection
-└─ Purpose: Live page state bazli challenge tespit sistemi. `apps/worker/lib/challengeDetector.ts` (~200 satir). 4 ChallengeType (NONE, CLOUDFLARE_TURNSTILE, CLOUDFLARE_JS, RECAPTCHA) + 5 ResolutionStrategy (NONE, WAIT, CLICK, FLARESOLVERR_COOKIE, UNSOLVABLE). HTML regex yerine `page.frames()` + `page.title()` kullanir. Eski 10-sinyalli tier sistemi kaldirildi. hCaptcha/Arkose/CUSTOM_HOLD detection yok (zaten auto-solve imkansizdi).
+└─ Purpose: Live page state bazli challenge tespit sistemi. `apps/worker/lib/challengeDetector.ts` (~200 satir). 4 ChallengeType (NONE, CLOUDFLARE_TURNSTILE, CLOUDFLARE_JS, RECAPTCHA) + 5 ResolutionStrategy (NONE, WAIT, CLICK, FLARESOLVERR_COOKIE, UNSOLVABLE). Dil-bagımsız tespit: `window._cf_chl_opt` JS globals + HTTP 403/503 + page size <50KB. Hardcoded title pattern YOK (CF localized titles). HTML regex yerine `page.frames()` kullanir. Eski 10-sinyalli tier sistemi kaldirildi. hCaptcha/Arkose/CUSTOM_HOLD detection yok.
+
+[Cross-Origin Image Handling]
+└─ Category: Archive Quality
+└─ Purpose: SingleFile fetch() CORS kısıtlamasını bypass eder. İki katmanlı çözüm: (1) `page.route()` image proxy — Playwright network seviyesinde image request'leri yakalayıp Node.js HTTP ile proxy'ler (CORS yok). (2) Cross-origin image inliner — server-side fetch + base64 data URI injection DOM'a SingleFile öncesi. Browser `<img>` tag'leri CORS'a tabi değil (görseller browser'da görünür), ama JS `fetch()` tabi — bu yüzden SingleFile embed edemiyor.
 
 [Challenge Click Resolver]
 └─ Category: Anti-Bot Resolution
