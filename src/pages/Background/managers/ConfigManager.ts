@@ -1,5 +1,5 @@
 import { clearConfig, getConfig, isConfigured, saveConfig } from '../../../@/lib/config';
-import { clear as clearUrlIndex } from '../../../@/lib/linkUrlIndex';
+import { clear as clearUrlIndex, clearDomainPrefsCache } from '../../../@/lib/siteStateCache';
 import type { configType } from '../../../@/lib/validators/config';
 
 function isInjectableUrl(url?: string): boolean {
@@ -43,6 +43,7 @@ export class ConfigManager {
         try {
             await clearConfig();
             await clearUrlIndex();
+            await clearDomainPrefsCache();
             return { success: true };
         } catch (error) {
             return { success: false, error: error instanceof Error ? error.message : 'Failed to clear config' };

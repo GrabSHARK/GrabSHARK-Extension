@@ -1,25 +1,52 @@
 import { getEffectivePreferences } from '../../../@/lib/settings';
+import { getCachedDomainPref, setCachedDomainPref } from '../../../@/lib/siteStateCache';
 import { ApiClient, type BackgroundApiConfig } from './ApiClient';
 import { CollectionsManager } from './CollectionsManager';
 import { UserManager } from './UserManager';
 
 export class BootstrapManager {
     static async getDomainPreference(config: BackgroundApiConfig, domain: string) {
-        const localPrefs = await getEffectivePreferences(domain);
-
-        try {
-            const data = await ApiClient.request<{ response?: any }>(config, `/api/v1/domain-preferences/${encodeURIComponent(domain)}`);
-            const preference = data?.response || {};
+        // 1. Cache-first: return immediately if a fresh entry exists
+        const cached = await getCachedDomainPref(domain);
+        if (cached) {
             return {
                 success: true,
                 data: {
                     configured: true,
                     baseUrl: config.baseUrl,
                     domain,
-                    enableSmartCapture: preference.enableSmartCapture ?? localPrefs.enableSmartCapture,
-                    enableSelectionMenu: preference.enableSelectionMenu ?? localPrefs.enableSelectionMenu,
-                    isModified: preference.isModified ?? false,
-                    globalDefaults: preference.globalDefaults ?? null,
+                    enableSmartCapture: cached.enableSmartCapture,
+                    enableSelectionMenu: cached.enableSelectionMenu,
+                    isModified: cached.isModified,
+                    globalDefaults: cached.globalDefaults,
+                },
+            };
+        }
+
+        // 2. Cache miss or stale — fetch from API
+        const localPrefs = await getEffectivePreferences(domain);
+
+        try {
+            const data = await ApiClient.request<{ response?: any }>(config, `/api/v1/domain-preferences/${encodeURIComponent(domain)}`);
+            const preference = data?.response || {};
+
+            const resolved = {
+                enableSmartCapture: preference.enableSmartCapture ?? localPrefs.enableSmartCapture,
+                enableSelectionMenu: preference.enableSelectionMenu ?? localPrefs.enableSelectionMenu,
+                isModified: preference.isModified ?? false,
+                globalDefaults: preference.globalDefaults ?? null,
+            };
+
+            // 3. Populate cache for subsequent reads
+            await setCachedDomainPref(domain, resolved);
+
+            return {
+                success: true,
+                data: {
+                    configured: true,
+                    baseUrl: config.baseUrl,
+                    domain,
+                    ...resolved,
                 },
             };
         } catch {
@@ -47,6 +74,15 @@ export class BootstrapManager {
                     enableSelectionMenu: payload.enableSelectionMenu,
                 }),
             });
+
+            // Write-through: update local cache immediately
+            await setCachedDomainPref(payload.domain, {
+                enableSmartCapture: payload.enableSmartCapture ?? false,
+                enableSelectionMenu: payload.enableSelectionMenu ?? false,
+                isModified: true,
+                globalDefaults: null,
+            });
+
             return { success: true, data: data?.response || null };
         } catch (error) {
             return { success: false, error: error instanceof Error ? error.message : 'Failed to save domain preference' };
@@ -93,4 +129,3 @@ export class BootstrapManager {
         };
     }
 }
-
