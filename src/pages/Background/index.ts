@@ -165,7 +165,7 @@ const cacheUserPrefs = async () => {
 };
 
 browser.runtime.onStartup.addListener(() => { cacheUserPrefs(); linkUrlSync.sync(); });
-browser.runtime.onInstalled.addListener(() => { cacheUserPrefs(); linkUrlSync.sync(); });
+browser.runtime.onInstalled.addListener(() => { cacheUserPrefs(); linkUrlSync.syncFull(); });
 
 if (browser.commands?.onCommand) {
   browser.commands.onCommand.addListener(async (command: string) => {

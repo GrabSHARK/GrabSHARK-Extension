@@ -1,12 +1,12 @@
 import { getEffectivePreferences } from '../../../@/lib/settings';
-import { getCachedDomainPref, setCachedDomainPref } from '../../../@/lib/siteStateCache';
+import { getCachedDomainPref, setCachedDomainPref, getGlobalDomainDefaults } from '../../../@/lib/siteStateCache';
 import { ApiClient, type BackgroundApiConfig } from './ApiClient';
 import { CollectionsManager } from './CollectionsManager';
 import { UserManager } from './UserManager';
 
 export class BootstrapManager {
     static async getDomainPreference(config: BackgroundApiConfig, domain: string) {
-        // 1. Cache-first: return immediately if a fresh entry exists
+        // 1. Cache-first: return immediately if an entry exists
         const cached = await getCachedDomainPref(domain);
         if (cached) {
             return {
@@ -23,46 +23,29 @@ export class BootstrapManager {
             };
         }
 
-        // 2. Cache miss or stale — fetch from API
+        // 2. Cache miss = no domain-specific override.
+        //    Use cached global defaults (populated during full sync).
+        //    Falls back to local extension preferences if global defaults not yet synced.
+        const globalDefaults = await getGlobalDomainDefaults();
         const localPrefs = await getEffectivePreferences(domain);
 
-        try {
-            const data = await ApiClient.request<{ response?: any }>(config, `/api/v1/domain-preferences/${encodeURIComponent(domain)}`);
-            const preference = data?.response || {};
+        const defaults = {
+            enableSmartCapture: globalDefaults?.enableSmartCapture ?? localPrefs.enableSmartCapture,
+            enableSelectionMenu: globalDefaults?.enableSelectionMenu ?? localPrefs.enableSelectionMenu,
+        };
 
-            const resolved = {
-                enableSmartCapture: preference.enableSmartCapture ?? localPrefs.enableSmartCapture,
-                enableSelectionMenu: preference.enableSelectionMenu ?? localPrefs.enableSelectionMenu,
-                isModified: preference.isModified ?? false,
-                globalDefaults: preference.globalDefaults ?? null,
-            };
-
-            // 3. Populate cache for subsequent reads
-            await setCachedDomainPref(domain, resolved);
-
-            return {
-                success: true,
-                data: {
-                    configured: true,
-                    baseUrl: config.baseUrl,
-                    domain,
-                    ...resolved,
-                },
-            };
-        } catch {
-            return {
-                success: true,
-                data: {
-                    configured: true,
-                    baseUrl: config.baseUrl,
-                    domain,
-                    enableSmartCapture: localPrefs.enableSmartCapture,
-                    enableSelectionMenu: localPrefs.enableSelectionMenu,
-                    isModified: false,
-                    globalDefaults: null,
-                },
-            };
-        }
+        return {
+            success: true,
+            data: {
+                configured: true,
+                baseUrl: config.baseUrl,
+                domain,
+                enableSmartCapture: defaults.enableSmartCapture,
+                enableSelectionMenu: defaults.enableSelectionMenu,
+                isModified: false,
+                globalDefaults: globalDefaults ?? null,
+            },
+        };
     }
 
     static async setDomainPreference(config: BackgroundApiConfig, payload: { domain: string; enableSmartCapture?: boolean; enableSelectionMenu?: boolean }) {

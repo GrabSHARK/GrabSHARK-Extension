@@ -32,16 +32,24 @@ async function writeIndex(index: LinkUrlIndex): Promise<void> {
 
 export async function hasUrl(url: string): Promise<boolean> {
   const index = await readIndex();
-  return url in index.urls;
+  if (url in index.urls) return true;
+  const alt = url.endsWith('/') ? url.slice(0, -1) : url + '/';
+  return alt in index.urls;
 }
 
 /**
  * Return the linkId for a URL, or `null` if the URL is not in the local index.
  * Pure local lookup — no network request.
+ * Tolerates trailing-slash differences (e.g. example.com vs example.com/).
  */
 export async function getLinkIdByUrl(url: string): Promise<number | null> {
   const index = await readIndex();
-  return index.urls[url] ?? null;
+  const exact = index.urls[url];
+  if (exact !== undefined) return exact;
+
+  // Fallback: try with/without trailing slash
+  const alt = url.endsWith('/') ? url.slice(0, -1) : url + '/';
+  return index.urls[alt] ?? null;
 }
 
 export async function addUrl(url: string, linkId: number): Promise<void> {
@@ -107,14 +115,10 @@ export async function clear(): Promise<void> {
 }
 
 // ─── Domain Preferences Cache ────────────────────────────────────────────────
-// On-demand cache for per-domain preferences (selection menu, smart capture).
-// Written via write-through on SET_DOMAIN_PREFERENCE and lazily populated on
-// GET_DOMAIN_PREFERENCE cache misses.
+// Bulk-populated during full sync, write-through on SET_DOMAIN_PREFERENCE.
+// Cache miss = no domain-specific override exists → use globalDefaults.
 
 const DOMAIN_PREFS_KEY = 'grabshark_domain_prefs';
-
-/** Safety-net max age — in practice cache is always fresh via write-through. */
-const DOMAIN_PREF_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface CachedDomainPref {
   enableSmartCapture: boolean;
@@ -124,11 +128,17 @@ export interface CachedDomainPref {
   cachedAt: number;
 }
 
-interface DomainPrefsStore {
-  prefs: Record<string, CachedDomainPref>;
+export interface GlobalDomainDefaults {
+  enableSmartCapture: boolean;
+  enableSelectionMenu: boolean;
 }
 
-const EMPTY_PREFS_STORE: DomainPrefsStore = { prefs: {} };
+interface DomainPrefsStore {
+  prefs: Record<string, CachedDomainPref>;
+  globalDefaults: GlobalDomainDefaults | null;
+}
+
+const EMPTY_PREFS_STORE: DomainPrefsStore = { prefs: {}, globalDefaults: null };
 
 async function readDomainPrefs(): Promise<DomainPrefsStore> {
   const browser = getBrowser();
@@ -143,14 +153,11 @@ async function writeDomainPrefs(store: DomainPrefsStore): Promise<void> {
 
 /**
  * Read a single domain's cached preference.
- * Returns `null` on cache miss or if the entry is stale (older than 24 h).
+ * Returns `null` on cache miss (= no domain-specific override).
  */
 export async function getCachedDomainPref(domain: string): Promise<CachedDomainPref | null> {
   const store = await readDomainPrefs();
-  const entry = store.prefs[domain];
-  if (!entry) return null;
-  if (Date.now() - entry.cachedAt > DOMAIN_PREF_MAX_AGE_MS) return null;
-  return entry;
+  return store.prefs[domain] ?? null;
 }
 
 /**
@@ -163,6 +170,19 @@ export async function setCachedDomainPref(
 ): Promise<void> {
   const store = await readDomainPrefs();
   store.prefs[domain] = { ...pref, cachedAt: Date.now() };
+  await writeDomainPrefs(store);
+}
+
+/** Get the cached global domain defaults (set during full sync). */
+export async function getGlobalDomainDefaults(): Promise<GlobalDomainDefaults | null> {
+  const store = await readDomainPrefs();
+  return store.globalDefaults;
+}
+
+/** Set the global domain defaults (called during full sync). */
+export async function setGlobalDomainDefaults(defaults: GlobalDomainDefaults): Promise<void> {
+  const store = await readDomainPrefs();
+  store.globalDefaults = defaults;
   await writeDomainPrefs(store);
 }
 

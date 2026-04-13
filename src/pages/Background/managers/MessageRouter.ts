@@ -197,7 +197,21 @@ export class MessageRouter {
                 }
 
                 case 'LOOKUP_LINK_ID': {
-                    const linkId = await getLinkIdByUrl(message.data.url);
+                    // 1. Fire delta sync if cooldown elapsed (fire-and-forget)
+                    LinkUrlSyncManager.getInstance()?.sync();
+
+                    // 2. Check local cache
+                    let linkId = await getLinkIdByUrl(message.data.url);
+
+                    // 3. If locally "saved", verify the link still exists on the server
+                    if (linkId !== null) {
+                        const syncManager = LinkUrlSyncManager.getInstance();
+                        if (syncManager) {
+                            linkId = await syncManager.verifyLink(message.data.url, linkId);
+                        }
+                    }
+
+                    console.log('[LOOKUP_LINK_ID] url:', message.data.url, 'linkId:', linkId);
                     sendResponse({ success: true, data: { linkId } });
                     break;
                 }
