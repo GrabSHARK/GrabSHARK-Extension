@@ -32,26 +32,37 @@ export const HighlightManager = {
     setLinkId: (id: number | null) => { currentPageLinkId = id; },
     setFileId: (id: number | null) => { currentPageFileId = id; },
 
-    /** Load highlights for the current page by URL */
+    /** Load highlights for the current page by URL (cache-first) */
     async loadHighlightsForPage(): Promise<void> {
         const pageUrl = window.location.href;
 
-        const response = await sendMessage<{ link: LinkData | null; highlights: Highlight[] }>(
-            'GET_LINK_WITH_HIGHLIGHTS',
+        // 1. Local-only lookup — no network request
+        const lookupResponse = await sendMessage<{ linkId: number | null }>(
+            'LOOKUP_LINK_ID',
             { url: pageUrl }
         );
 
+        const linkId = lookupResponse.success ? lookupResponse.data?.linkId ?? null : null;
+
+        if (!linkId) {
+            // Page is not in the system — nothing to load, zero API calls
+            return;
+        }
+
+        // 2. Page is known — set linkId and fetch highlights (single API call)
+        currentPageLinkId = linkId;
+        writeLinkSessionCache(pageUrl, { id: linkId, url: pageUrl, name: '' });
+
+        const response = await sendMessage<{ highlights: Highlight[] }>(
+            'GET_HIGHLIGHTS_BY_LINK_ID',
+            { linkId }
+        );
+
         if (response.success && response.data) {
-            // Cache the result for Optimistic UI in EmbeddedApp
-            writeLinkSessionCache(pageUrl, response.data.link);
+            currentHighlights = response.data.highlights || [];
 
-            if (response.data.link) {
-                currentPageLinkId = response.data.link.id;
-                currentHighlights = response.data.highlights || [];
-
-                if (currentHighlights.length > 0) {
-                    applyHighlights(currentHighlights);
-                }
+            if (currentHighlights.length > 0) {
+                applyHighlights(currentHighlights);
             }
         }
     },
@@ -161,7 +172,10 @@ export const HighlightManager = {
                 // Fallback to default (save page)
             }
 
-            showToast('Saving page to GrabSHARK...', 'success');
+            showToast(
+                shouldSavePage ? 'Saving page to GrabSHARK...' : 'Saving highlight...',
+                'success',
+            );
 
             const linkPayload: Record<string, any> = {
                 url: window.location.href,
@@ -183,19 +197,28 @@ export const HighlightManager = {
             const linkResponse = await sendMessage<{ link: LinkData }>('CREATE_LINK', linkPayload);
 
             if (!linkResponse.success || !linkResponse.data?.link) {
-                const existingLinkResponse = await sendMessage<{ link: LinkData | null; highlights: Highlight[] }>(
-                    'GET_LINK_WITH_HIGHLIGHTS',
+                // Fallback: check if the link already exists via local cache
+                const lookupResp = await sendMessage<{ linkId: number | null }>(
+                    'LOOKUP_LINK_ID',
                     { url: window.location.href }
                 );
 
-                if (!existingLinkResponse.success || !existingLinkResponse.data?.link) {
+                if (!lookupResp.success || !lookupResp.data?.linkId) {
                     showToast('Failed to save page', 'error');
                     return;
                 }
 
-                currentPageLinkId = existingLinkResponse.data.link.id;
-                currentHighlights = existingLinkResponse.data.highlights || currentHighlights;
-                writeLinkSessionCache(window.location.href, existingLinkResponse.data.link);
+                currentPageLinkId = lookupResp.data.linkId;
+                writeLinkSessionCache(window.location.href, { id: currentPageLinkId, url: window.location.href, name: '' });
+
+                // Fetch existing highlights for this link
+                const hlResp = await sendMessage<{ highlights: Highlight[] }>(
+                    'GET_HIGHLIGHTS_BY_LINK_ID',
+                    { linkId: currentPageLinkId }
+                );
+                if (hlResp.success && hlResp.data) {
+                    currentHighlights = hlResp.data.highlights || currentHighlights;
+                }
             } else {
                 currentPageLinkId = linkResponse.data.link.id;
                 writeLinkSessionCache(window.location.href, linkResponse.data.link);

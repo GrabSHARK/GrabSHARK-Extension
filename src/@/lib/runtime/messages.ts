@@ -113,6 +113,21 @@ export async function getLinkWithHighlights(url: string) {
   return await expectSuccess<any>(sendExtensionMessage('GET_LINK_WITH_HIGHLIGHTS', { url }), 'Failed to load link details');
 }
 
+/**
+ * Local-only lookup: returns the linkId from siteStateCache if the URL is
+ * known to the extension, or `null` otherwise.  No network request is made.
+ * Never throws — returns null on any failure for graceful degradation.
+ */
+export async function lookupLinkId(url: string): Promise<number | null> {
+  try {
+    const response = await sendExtensionMessage<{ linkId: number | null }>('LOOKUP_LINK_ID', { url });
+    if (!response.success || !response.data) return null;
+    return response.data.linkId;
+  } catch {
+    return null;
+  }
+}
+
 export async function saveLinkFromExtension(values: Record<string, unknown>, aiTagged = false) {
   return await expectSuccess<any>(sendExtensionMessage('SAVE_LINK_FROM_EXTENSION', { values, aiTagged }), 'Failed to save link');
 }

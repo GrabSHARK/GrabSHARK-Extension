@@ -5,6 +5,7 @@
 
 export {
   hasUrl,
+  getLinkIdByUrl,
   addUrl,
   removeUrl,
   removeUrlByLinkId,

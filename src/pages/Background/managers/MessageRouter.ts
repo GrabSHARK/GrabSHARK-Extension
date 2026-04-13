@@ -9,6 +9,7 @@ import { ConfigManager } from './ConfigManager';
 import { CollectionsManager } from './CollectionsManager';
 import { PreferencesManager } from './PreferencesManager';
 import { LinkUrlSyncManager } from './LinkUrlSyncManager';
+import { getLinkIdByUrl } from '../../../@/lib/siteStateCache';
 
 export class MessageRouter {
     static async route(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
@@ -192,6 +193,12 @@ export class MessageRouter {
                     const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
                     sendResponse(await LinksManager.checkLinkExists(config, message.data.url));
+                    break;
+                }
+
+                case 'LOOKUP_LINK_ID': {
+                    const linkId = await getLinkIdByUrl(message.data.url);
+                    sendResponse({ success: true, data: { linkId } });
                     break;
                 }
 

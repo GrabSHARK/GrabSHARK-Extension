@@ -35,6 +35,15 @@ export async function hasUrl(url: string): Promise<boolean> {
   return url in index.urls;
 }
 
+/**
+ * Return the linkId for a URL, or `null` if the URL is not in the local index.
+ * Pure local lookup — no network request.
+ */
+export async function getLinkIdByUrl(url: string): Promise<number | null> {
+  const index = await readIndex();
+  return index.urls[url] ?? null;
+}
+
 export async function addUrl(url: string, linkId: number): Promise<void> {
   const index = await readIndex();
   index.urls[url] = linkId;

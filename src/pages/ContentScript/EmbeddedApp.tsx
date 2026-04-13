@@ -4,7 +4,7 @@ import { LinkWithHighlights } from '../../@/lib/types/highlight.ts';
 import { ThemeProvider } from '../../@/components/ThemeProvider.tsx';
 import { ThemeDetector } from './SmartCapture/ThemeDetector.ts';
 import { getExtensionBootstrapState } from '../../@/lib/actions/bootstrap.ts';
-import { getLinkWithHighlights, syncUserLocale } from '../../@/lib/runtime/messages.ts';
+import { getLinkWithHighlights, lookupLinkId, syncUserLocale } from '../../@/lib/runtime/messages.ts';
 import { readLinkSessionCache, writeLinkSessionCache } from '../../@/lib/runtime/sessionCache';
 import { applyAccentColor } from '../../@/lib/accentColor.ts';
 
@@ -171,6 +171,11 @@ const EmbeddedAppContent = ({ initialTheme, cachedUserTheme, containerRef, setCo
         queryFn: async () => {
             if (!isAllConfigured) return null;
             try {
+                // Cache-first: check local siteStateCache before any API call
+                const linkId = await lookupLinkId(currentUrl);
+                if (!linkId) return null; // URL not in the system — zero API calls
+
+                // URL is known — fetch full link data (for panel UI)
                 const response = await getLinkWithHighlights(currentUrl);
                 if (response?.link) {
                     writeLinkSessionCache(currentUrl, response.link);

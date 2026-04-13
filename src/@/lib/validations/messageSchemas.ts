@@ -24,6 +24,7 @@ export const CheckLinkExistsSchema = z.object({ url: z.string().min(1) });
 export const SaveLinkQuickSchema = z.object({ url: z.string().min(1), title: z.string().optional() });
 export const SaveLinkFromExtensionSchema = z.object({ values: z.record(z.unknown()), aiTagged: z.boolean().optional() });
 export const GetLinkWithHighlightsSchema = z.object({ url: z.string().min(1) });
+export const LookupLinkIdSchema = z.object({ url: z.string().min(1) });
 
 export const CreateHighlightSchema = z.object({
     linkId: z.number().int().optional(),
@@ -84,6 +85,7 @@ export const MESSAGE_SCHEMAS: Record<string, z.ZodSchema> = {
     DELETE_LINK: DeleteLinkSchema,
     ARCHIVE_LINK: ArchiveLinkSchema,
     CHECK_LINK_EXISTS: CheckLinkExistsSchema,
+    LOOKUP_LINK_ID: LookupLinkIdSchema,
     SAVE_LINK_QUICK: SaveLinkQuickSchema,
     SAVE_LINK_FROM_EXTENSION: SaveLinkFromExtensionSchema,
     CREATE_HIGHLIGHT: CreateHighlightSchema,
