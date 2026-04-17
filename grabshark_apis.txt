@@ -353,3 +353,19 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 [GET] /api/v1/proxy
 └─ File: grabshark/apps/web/pages/api/v1/proxy.ts
 └─ Purpose: General request proxy for bypassing CORS or specific origin issues.
+
+[GET] /api/v1/worker
+└─ File: grabshark/apps/web/pages/api/v1/worker/index.ts
+└─ Purpose: Admin-only worker stats endpoint (link/file/AI queue sizes).
+
+[GET] /api/v1/worker/status
+└─ File: grabshark/apps/web/pages/api/v1/worker/status.ts
+└─ Purpose: Per-user archiving state (idle/archiving + url/linkId). Reads `worker:status:<userId>` from Redis. Polled by SidebarBottomDock status dot every 5s — lightweight alternative to WS presence.
+
+[WS] /api/ws/screencast
+└─ File: grabshark/apps/web/server.ts (custom Next.js server)
+└─ Purpose: Live browser screencast stream. NextAuth cookie auth, Redis Pub/Sub bridge. Each viewer SUBSCRIBE's `screencast:<uid>` (frames) + `screencast:<uid>:status`. Presence tracked via sorted set `screencast:viewers:<uid>` (heartbeat-refreshed) — opening this WS causes the worker to start CDP capture.
+
+[WS] /api/ws/worker-status
+└─ File: grabshark/apps/web/server.ts (custom Next.js server)
+└─ Purpose: Status-only push channel for the sidebar worker status dot. Auth via NextAuth cookie. Subscribes to `screencast:<uid>:status` ONLY; does NOT register in the viewers sorted set, so this endpoint never triggers CDP capture. Replays `worker:status:<uid>` on connect for instant correct state. Used by SidebarBottomDock — replaces the previous 5s REST polling against /api/v1/worker/status.

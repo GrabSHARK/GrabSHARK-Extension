@@ -207,11 +207,6 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Listing
 └─ Purpose: Korunmuş, arşiv formatlarının görüntülendiği satır alanı.
 
-[ProfileDropdown]
-└─ File: grabshark/apps/web/components/ProfileDropdown.tsx
-└─ Category: Menu
-└─ Purpose: Kullanıcı profili fotosuna tıklandığında açılan ayarlar menüsü.
-
 [ProfilePhoto]
 └─ File: grabshark/apps/web/components/ProfilePhoto.tsx
 └─ Category: Visual

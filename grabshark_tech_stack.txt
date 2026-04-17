@@ -167,8 +167,16 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 └─ Purpose: Cloudflare Turnstile + reCAPTCHA v2 checkbox challenge'lari icin generic click resolver (`apps/worker/lib/fallback/challengeClickResolver.ts`). Iframe bounding box alip human-like mouse movement ile checkbox'a tiklar. CloakBrowser source-level stealth ile birlesip moneysavingexpert.com gibi managed Turnstile siteleri ~3 saniyede geciyor. cf_clearance cookie polling ile dogrulama yapar. ENV: `CHALLENGE_DETECT_MOUNT_WAIT_MS` (3000), `CHALLENGE_RESOLVE_POLL_TIMEOUT_MS` (15000).
 
 [ws]
-└─ Category: WebSocket Server
-└─ Purpose: Live browser screencast için WebSocket server. Worker process'te port 3001'de çalışır. CDP Page.startScreencast frame'lerini binary olarak admin client'lara iletir.
+└─ Category: WebSocket Server (web)
+└─ Purpose: Live browser screencast WebSocket endpoint (`/api/ws/screencast`). `apps/web/server.ts` custom server port 3000 üzerinde NextAuth cookie ile auth eder, Redis Pub/Sub'tan frame/status dinleyip client'a iletir.
+
+[ioredis]
+└─ Category: Redis Client
+└─ Purpose: Redis Pub/Sub ve presence tracking. Worker `screencastRelay.ts` publisher; web `server.ts` subscriber + command client. `worker:status:<uid>` key persistent status, `screencast:viewers:<uid>` sorted set presence tutar.
+
+[redis]
+└─ Category: Infrastructure (Docker service)
+└─ Purpose: Redis 7 Alpine. Screencast Pub/Sub + worker status persistence için. Port 6379 internal. Healthcheck: `redis-cli ping`.
 
 == Custom (Internal) Monorepo Packages ==
 
