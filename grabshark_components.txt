@@ -384,7 +384,7 @@ GrabSHARK Main Application Components (Complete List)
 [FileActions]
 └─ File: grabshark/apps/web/components/FileViews/FileComponents/FileActions.tsx
 └─ Category: Actions Group
-└─ Purpose: Dosya üzerinde hızlı arşiv, pin ve sil işlemlerinin düğmeleri.
+└─ Purpose: Dosya üzerinde hızlı arşiv, favorite ve sil işlemlerinin düğmeleri.
 
 [FileCard]
 └─ File: grabshark/apps/web/components/FileViews/FileComponents/FileCard.tsx
@@ -426,10 +426,10 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Visual Badge
 └─ Purpose: Dosyada not varsa bunu gösteren rozet.
 
-[FilePin]
-└─ File: grabshark/apps/web/components/FileViews/FileComponents/FilePin.tsx
+[FileFavorite]
+└─ File: grabshark/apps/web/components/FileViews/FileComponents/FileFavorite.tsx
 └─ Category: Action
-└─ Purpose: Dosyayı panoya iğneleyen ikon buton.
+└─ Purpose: Dosyayı favorilere ekleyen / çıkaran yıldız ikon butonu.
 
 [FileThumbnailBadges]
 └─ File: grabshark/apps/web/components/FileViews/FileComponents/FileThumbnailBadges.tsx
@@ -468,7 +468,7 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Visual Badges
 └─ Purpose: Linklerin meta verilerini simgeleyen minik etiketler (Not var mı, HTML mi vs).
 
-[LinkIcon] / [LinkPin]
+[LinkIcon] / [LinkFavorite]
 └─ File: grabshark/apps/web/components/LinkViews/LinkComponents/...
 └─ Category: Decorator & Actions
 └─ Purpose: Favicon tutucu ve panoya iğneleme işlemi ikonları.
@@ -500,6 +500,11 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Modal View
 └─ Purpose: Belirli bir öğeyi tamamen silmeden önce beliren ikaz modalları.
 
+[DisableTotpModal]
+└─ File: grabshark/apps/web/components/ModalContent/DisableTotpModal.tsx
+└─ Category: Modal Action
+└─ Purpose: TOTP 2FA'yı kapatmak için parola + anlık kod doğrulamalı onay penceresi.
+
 [EditCollectionModal] / [EditCollectionSharingModal]
 └─ File: grabshark/apps/web/components/ModalContent/EditCollection...
 └─ Category: Modal Update
@@ -509,6 +514,11 @@ GrabSHARK Main Application Components (Complete List)
 └─ File: grabshark/apps/web/components/ModalContent/EmailChangeVerificationModal.tsx
 └─ Category: Modal View
 └─ Purpose: E-posta değiştirildiğinde güvenlik amaçlı yeni onay pini formunu barındıran ekran.
+
+[EnableTotpModal]
+└─ File: grabshark/apps/web/components/ModalContent/EnableTotpModal.tsx
+└─ Category: Modal Creation
+└─ Purpose: QR kod + 6 haneli doğrulama ile TOTP 2FA kurulum sihirbazı.
 
 [FileModal] / [LinkModal]
 └─ File: grabshark/apps/web/components/ModalContent/[File|Link]Modal.tsx
@@ -535,6 +545,11 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Modal Creation Groups
 └─ Purpose: Sisteme eleman eklenmesini sağlayan Create işlem pencereleri.
 
+[RegenerateCodesModal]
+└─ File: grabshark/apps/web/components/ModalContent/RegenerateCodesModal.tsx
+└─ Category: Modal Action
+└─ Purpose: Parola + TOTP kodu doğrulamasıyla kurtarma kodlarını yeniden üretme onayı.
+
 [RenameTagModal]
 └─ File: grabshark/apps/web/components/ModalContent/RenameTagModal.tsx
 └─ Category: Modal Update
@@ -544,6 +559,11 @@ GrabSHARK Main Application Components (Complete List)
 └─ File: grabshark/apps/web/components/ModalContent/RevokeTokenModal.tsx
 └─ Category: Modal Action
 └─ Purpose: API yetki belirtecini iptal etme onayı.
+
+[ShowRecoveryCodesModal]
+└─ File: grabshark/apps/web/components/ModalContent/ShowRecoveryCodesModal.tsx
+└─ Category: Modal View
+└─ Purpose: Yeni oluşturulan kurtarma kodlarını tek seferlik gösterme; kopyala/indir seçenekli.
 
 [SurveyModal]
 └─ File: grabshark/apps/web/components/ModalContent/SurveyModal.tsx
@@ -591,6 +611,11 @@ GrabSHARK Main Application Components (Complete List)
 
 == Settings Components ==
 
+[ActiveSessionsCard]
+└─ File: grabshark/apps/web/components/Settings/ActiveSessionsCard.tsx
+└─ Category: Security Card
+└─ Purpose: Aktif tarayıcı ve mobil oturumlarını listeleyip bireysel/toplu iptal eden kart.
+
 [AISettings]
 └─ File: grabshark/apps/web/components/Settings/AISettings.tsx
 └─ Category: Setting Page
@@ -606,10 +631,30 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Setting Page
 └─ Purpose: Görüntüleme, grid sıklığı ve arayüz yapılandırma modülü.
 
+[PasswordCard]
+└─ File: grabshark/apps/web/components/Settings/PasswordCard.tsx
+└─ Category: Security Card
+└─ Purpose: Parola değişimi ve opsiyonel "diğer oturumları kapat" seçeneği sunan kart.
+
+[RecoveryCodesCard]
+└─ File: grabshark/apps/web/components/Settings/RecoveryCodesCard.tsx
+└─ Category: Security Card
+└─ Purpose: Kalan kurtarma kodu sayısını gösterip yeniden üretme akışını tetikleyen kart.
+
+[SecuritySectionHeader]
+└─ File: grabshark/apps/web/components/Settings/SecuritySectionHeader.tsx
+└─ Category: Security Layout
+└─ Purpose: Güvenlik sayfasındaki dört kart için ortak ikon + başlık + açıklama başlığı.
+
 [ThemeSettings]
 └─ File: grabshark/apps/web/components/Settings/ThemeSettings.tsx
 └─ Category: Setting Page
 └─ Purpose: Açık, Koyu mod ve genel tema seçeneği modülü.
+
+[TwoFactorCard]
+└─ File: grabshark/apps/web/components/Settings/TwoFactorCard.tsx
+└─ Category: Security Card
+└─ Purpose: TOTP 2FA durumunu gösterip etkinleştirme/kapatma sihirbazlarını tetikleyen kart.
 
 == UI Primitives (Radix-based) ==
 

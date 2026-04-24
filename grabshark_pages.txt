@@ -106,10 +106,10 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ Category: Listing View
 └─ Purpose: Kaynakların gizlendiği/soft-delete edildiği çöp kutusu (Geri Getirme/Arşiv) merkezi.
 
-[/pinned]
-└─ File: grabshark/apps/web/pages/pinned.tsx
+[/favorites]
+└─ File: grabshark/apps/web/pages/favorites.tsx
 └─ Category: Listing View
-└─ Purpose: Sürekli el altında tutulmak istenip "Pinlenmiş (iğnelenmiş)" kaynakların hızlı erişim panosu.
+└─ Purpose: Yıldız ile favoriye alınmış kaynakların hızlı erişim panosu.
 
 [/search]
 └─ File: grabshark/apps/web/pages/search.tsx

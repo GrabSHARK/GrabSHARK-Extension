@@ -94,9 +94,13 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/pages/api/v1/files/[id]/index.ts
 └─ Purpose: Get, update, or delete a specific file.
 
-[PUT] /api/v1/files/[id]/pin
-└─ File: grabshark/apps/web/pages/api/v1/files/[id]/pin.ts
-└─ Purpose: Pin/unpin a file.
+[POST] /api/v1/files/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/favorite.ts
+└─ Purpose: Add a file to the user's favorites.
+
+[DELETE] /api/v1/files/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/favorite.ts
+└─ Purpose: Remove a file from the user's favorites.
 
 [GET] /api/v1/files/[id]/preview
 └─ File: grabshark/apps/web/pages/api/v1/files/[id]/preview.ts
@@ -124,9 +128,21 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/pages/api/v1/highlights/[id].ts
 └─ Purpose: Get, update, or delete a specific highlight.
 
-[PUT] /api/v1/highlights/[id]/pin
-└─ File: grabshark/apps/web/pages/api/v1/highlights/[id]/pin.ts
-└─ Purpose: Pin/unpin a highlight.
+[POST] /api/v1/highlights/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/highlights/[id]/favorite.ts
+└─ Purpose: Add a highlight to the user's favorites.
+
+[DELETE] /api/v1/highlights/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/highlights/[id]/favorite.ts
+└─ Purpose: Remove a highlight from the user's favorites.
+
+[POST] /api/v1/links/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/favorite.ts
+└─ Purpose: Add a link to the user's favorites (also resets preservation if never preserved + demotes RSS link).
+
+[DELETE] /api/v1/links/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/favorite.ts
+└─ Purpose: Remove a link from the user's favorites.
 
 [GET, POST] /api/v1/highlights
 └─ File: grabshark/apps/web/pages/api/v1/highlights/index.ts
@@ -369,3 +385,50 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 [WS] /api/ws/worker-status
 └─ File: grabshark/apps/web/server.ts (custom Next.js server)
 └─ Purpose: Status-only push channel for the sidebar worker status dot. Auth via NextAuth cookie. Subscribes to `screencast:<uid>:status` ONLY; does NOT register in the viewers sorted set, so this endpoint never triggers CDP capture. Replays `worker:status:<uid>` on connect for instant correct state. Used by SidebarBottomDock — replaces the previous 5s REST polling against /api/v1/worker/status.
+
+== Security API (2FA / Active Sessions / Recovery Codes) ==
+
+[GET] /api/v1/security/sessions
+└─ File: grabshark/apps/web/pages/api/v1/security/sessions/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/sessions/listSessions.ts
+└─ Purpose: Unified list of browser (UserSession) + mobile (AccessToken.isSession=true) sessions for the authenticated user. Marks the current session via token.sid.
+
+[DELETE] /api/v1/security/sessions/[id]?kind=browser|mobile
+└─ File: grabshark/apps/web/pages/api/v1/security/sessions/[id].ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/sessions/revokeSession.ts
+└─ Purpose: Revoke a single session. Browser → prisma.userSession.delete; Mobile → accessToken.update({revoked:true}). Current session revoke rejected (400) — use sign-out.
+
+[POST] /api/v1/security/sessions/revoke-others
+└─ File: grabshark/apps/web/pages/api/v1/security/sessions/revoke-others.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/sessions/revokeOtherSessions.ts
+└─ Purpose: Revoke all browser + mobile sessions except the current one (token.sid preserved).
+
+[POST] /api/v1/security/totp/init
+└─ File: grabshark/apps/web/pages/api/v1/security/totp/init.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/totp/initTotp.ts
+└─ Purpose: Start TOTP enrollment — generate base32 secret, build otpauth URL, render QR SVG, store AES-GCM-encrypted pending secret in TotpSetupChallenge (15 min TTL). Rejects if user lacks a password or TOTP is already enabled. Rate-limited (AUTH preset).
+
+[POST] /api/v1/security/totp/enable
+└─ File: grabshark/apps/web/pages/api/v1/security/totp/enable.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/totp/enableTotp.ts
+└─ Purpose: Finish TOTP enrollment. Requires password re-auth + valid 6-digit code. Decrypts pending secret from TotpSetupChallenge, persists to User.totpSecret, generates + hashes 10 recovery codes, returns plaintext codes (one-time display).
+
+[POST] /api/v1/security/totp/disable
+└─ File: grabshark/apps/web/pages/api/v1/security/totp/disable.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/totp/disableTotp.ts
+└─ Purpose: Turn off TOTP. Requires password + (TOTP code OR recovery code). Wipes User.totpSecret/totpEnabledAt/recoveryCodeSalt + related challenge/code rows atomically.
+
+[POST] /api/v1/security/recovery-codes/regenerate
+└─ File: grabshark/apps/web/pages/api/v1/security/recovery-codes/regenerate.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/recoveryCodes/regenerateCodes.ts
+└─ Purpose: Rotate recovery codes. Requires password + current TOTP code. Fresh salt + 10 new codes; old set deleted atomically. Returns plaintext codes (one-time display).
+
+[GET] /api/v1/security/recovery-codes/status
+└─ File: grabshark/apps/web/pages/api/v1/security/recovery-codes/status.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/recoveryCodes/getCodesStatus.ts
+└─ Purpose: Returns { totpEnabled, total, remaining } for UI display of recovery code inventory.
+
+[DELETE] /api/v1/admin/users/[id]/2fa
+└─ File: grabshark/apps/web/pages/api/v1/admin/users/[id]/2fa.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/reset2fa.ts
+└─ Purpose: Admin-only emergency 2FA reset — wipes target user's TOTP secret, recovery codes, pending setup & two-factor challenges in one transaction. For users who lost both authenticator and recovery codes. Requires caller to match ADMIN_ID env var.
