@@ -215,11 +215,41 @@ The extension communicates with the GrabSHARK backend via:
 - **React Hook Form** + **Zod** for form validation.
 - Reuse existing components before creating new ones.
 
-## Localization (i18n)
-- **Framework:** i18next + react-i18next
-- **15 languages:** de, en, es, fr, it, ja, nl, pl, pt-BR, ro, ru, tr, uk, zh, zh-TW
-- **Translation files:** `src/@/locales/*.json`
-- All user-facing strings MUST use `t()` translation function.
+## Localization (i18n) — PROD-READY (NON-NEGOTIABLE)
+
+> **⚠️ THE EXTENSION IS NOW IN PRE-RELEASE / PROD HARDENING. EN + TR ALONE IS NO LONGER ACCEPTABLE.**
+
+The extension is fully synced across **15 locales** (en, tr, de, es, fr, it, ja, nl, pl, pt-BR, ro, ru, uk, zh, zh-TW) at `src/@/locales/{locale}.json` — 155 keys per file, 12 nested namespaces (`common`, `savedLink`, `saveLink`, `editLink`, `settings`, `shortcut`, `bookmark`, `tagInput`, `smartActions`, `highlightToolbox`, `notePanel`, `preferences`), mirrored to Crowdin project `grabshark-extension` (id 892464). See `grabshark-extension_i18n.txt` for the full namespace map, glossary, and sync workflow.
+
+**Stack:**
+- **Framework:** i18next ^25.7.3 + react-i18next ^16.5.1
+- **Init:** `src/@/lib/i18n.ts` — browser-language detection + `chrome.storage.local.grabshark_locale` persistence
+- **Loading:** Dynamic `import('./locales/{lang}.json')` — locale bundles are NOT bundled upfront
+- **Crowdin Config:** `crowdin.yml` (root) — token/project read from `.env`
+
+**Rules for every feature touch that involves user-facing text:**
+
+1. **New Key MUST Land in All 15 Locales.** When you add a new `t("namespace.some_key")` call:
+   - Add the key + EN value to `src/@/locales/en.json` under the appropriate namespace.
+   - Add the **same key** to all 14 target locale files with a **localized translation**. If you cannot produce a quality native translation, fall back to the EN value as a temporary placeholder AND queue the key in `tasks/todo.md` for community/Crowdin pickup. Do NOT leave the key absent in any locale.
+   - Run a sync verification: `node` script that flattens nested JSON and compares every locale's keys against EN — expect 155 + N keys, struct=OK in all 15 files.
+
+2. **Removed Key MUST Be Purged from All 15 Locales.** Before removing a key:
+   - `grep -rn "namespace.key_name" src/` to confirm zero remaining usages.
+   - Delete from all 15 locale files in the same commit.
+   - Crowdin auto-removes on next source upload if key is gone from `en.json`.
+
+3. **Renamed Key MUST Be Renamed in All 15 Locales.** Same key, same rename, same commit — across all 15 files.
+
+4. **Modified Source Value Triggers Re-Translation Flag.** If you change the EN value of an existing key in a way that changes its meaning (not just typo fix), update EN AND mark the same key in 14 other locales as needing review (Crowdin review status, TODO comment, or empty-string fallback). Push to Crowdin so community can re-validate.
+
+5. **Whitelist (Proper Nouns) Stay Identical.** Brand names (`GrabSHARK`, `Monolith`, `Playwright`, `CloakBrowser`, etc.), tech acronyms (`PDF`, `URL`, `2FA`, `OAuth`, `Worker`, etc.), and variable tokens (`{{varName}}`) MUST be preserved byte-identical across all 15 locales. Full glossary lives in `grabshark-extension_i18n.txt` → "Glossary / Whitelist".
+
+6. **Hardcoded English in Components is FORBIDDEN.** Any new component MUST use `t()` for every user-facing string (popup, options, content script, embedded UI, toast). Hardcoded fallbacks (e.g., `t("foo") || "Foo"`) are also forbidden — if the key resolution fails, that means the key is missing in EN, which violates rule #1.
+
+7. **Crowdin Sync After Every Locale-Touching PR.** After merging any change to `src/@/locales/en.json`, push the source to Crowdin (`crowdin upload sources` or wait for the GitHub Action). Community translations come back via `crowdin download translations`.
+
+**One-line summary:** *Hiçbir kullanıcı, herhangi bir desteklenen dilde, ne popup'ta ne sayfa içi UI'da, ne toast'ta İngilizce kırıntı görmeyecek.*
 
 ## System Context & Environment Rules
 - **OS Environment:** macOS or Windows (development). Extension runs in Chromium or Firefox.
@@ -247,7 +277,7 @@ At the end of each conversation (after all code changes are complete), you MUST 
 
 ## Architecture Reference Files (MANDATORY — Single Source of Truth)
 
-> **CRITICAL:** Both project directories (`grabshark/` and `grabshark-extension/`) contain the SAME set of 10 `.txt` reference files that document the COMPLETE architecture, design system, APIs, components, and page structures. These files are the **authoritative source** — always consult them before modifying or creating UI, API, or extension code.
+> **CRITICAL:** Both project directories (`grabshark/` and `grabshark-extension/`) contain the SAME set of 12 `.txt` reference files that document the COMPLETE architecture, design system, APIs, components, page structures, and i18n localization. These files are the **authoritative source** — always consult them before modifying or creating UI, API, extension, or locale code.
 
 **Browser Extension (grabshark-extension):**
 | File | Contents |
@@ -257,6 +287,7 @@ At the end of each conversation (after all code changes are complete), you MUST 
 | `grabshark-extension_components.txt` | Extension UI components: BookmarkForm, VOID Dock, Toast, etc. |
 | `grabshark-extension_apis.txt` | Background Managers, Content Script agents, message routing |
 | `grabshark-extension_design.txt` | Shadow DOM isolation, ARMOR Protocol, VOID tokens, animations |
+| `grabshark-extension_i18n.txt` | Extension i18n: 12 nested namespaces, locale inventory (15 langs × 155 keys), lazy-load mechanism, glossary, Crowdin project #892464, sync workflow |
 
 **Main Application (grabshark):**
 | File | Contents |
@@ -266,15 +297,16 @@ At the end of each conversation (after all code changes are complete), you MUST 
 | `grabshark_components.txt` | Complete UI component hierarchy (158+ components) |
 | `grabshark_apis.txt` | All 65+ API endpoints with HTTP methods and file paths |
 | `grabshark_design.txt` | Design system: OKLCH colors, typography, card system, animations |
+| `grabshark_i18n.txt` | Web app i18n: 37 semantic key sections, locale inventory (15 langs × 1083 keys), glossary/whitelist, Crowdin project #892352, sync workflow |
 
 ### .txt Synchronization Rules (NON-NEGOTIABLE)
 
 > **WARNING: KEEPING THESE FILES UP-TO-DATE IS VITALLY IMPORTANT.**
 
-1. **Auto-Update on Change:** If you modify, refactor, or rename ANY code element documented in a `.txt` file, you MUST immediately update the corresponding `.txt` file entry.
+1. **Auto-Update on Change:** If you modify, refactor, or rename ANY code element (component, manager, page, library, design token, locale key, namespace) documented in a `.txt` file, you MUST immediately update the corresponding `.txt` file entry.
 2. **Auto-Remove on Deletion:** If a documented element is removed from the codebase, remove its entry from the relevant `.txt` file.
-3. **Auto-Add on Creation:** If you create a new element that falls under any `.txt` file category, add its entry using the same format.
-4. **Cross-Directory Sync:** All 10 `.txt` files exist in BOTH `grabshark/` and `grabshark-extension/` directories. When you update a `.txt` file in one directory, you MUST immediately copy it to the other directory.
+3. **Auto-Add on Creation:** If you create a new element that falls under any `.txt` file category (incl. new locale section/namespace), add its entry using the same format.
+4. **Cross-Directory Sync:** All 12 `.txt` files exist in BOTH `grabshark/` and `grabshark-extension/` directories. When you update a `.txt` file in one directory, you MUST immediately copy it to the other directory.
 5. **Verification:** After any code change session, verify that affected `.txt` files are still accurate.
 
 ## Additional Context Files

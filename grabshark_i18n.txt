@@ -1,0 +1,284 @@
+GrabSHARK Main Application Internationalization (i18n Reference)
+
+== Framework & Runtime ==
+
+[next-i18next]
+└─ Category: i18n Framework
+└─ Version: ^15.3.0
+└─ Config: grabshark/apps/web/next-i18next.config.js
+└─ Purpose: Next.js Pages Router için sunucu/istemci ortak çeviri çatısı. SSR ve client tarafında aynı translation bundle'larını paylaşır.
+
+[i18next]
+└─ Category: Translation Engine
+└─ Purpose: Asıl çeviri motoru. `t("key")` çağrılarını işler, fallback zinciri yönetir, plural/interpolation çözer.
+
+[Translation Hook]
+└─ Function: useTranslation()
+└─ Purpose: React component içinde `const { t } = useTranslation()` ile key → string lookup. Aktif locale `User.locale` veya tarayıcı dilinden seçilir.
+
+== Locale Inventory ==
+
+[Source Language]
+└─ Code: en
+└─ File: grabshark/apps/web/public/locales/en/common.json
+└─ Phrases: 1083
+└─ Purpose: Tüm çevirilerin kaynağı. Diğer 14 dil bu dosyaya göre senkronlanır.
+
+[Target Languages — 14]
+└─ Codes: tr, de, es, fr, it, ja, nl, pl, pt-BR, ro, ru, uk, zh, zh-TW
+└─ Files: grabshark/apps/web/public/locales/{code}/common.json
+└─ Phrases: 1083 (her birinde EN ile %100 yapısal eşitlik)
+└─ Purpose: Topluluk + LLM çevirileriyle doldurulan hedef diller. Tümü EN sırasına göre sıralanmış (semantic 37-section ordering).
+
+[Locale Folder Structure]
+└─ Path: grabshark/apps/web/public/locales/{locale}/common.json
+└─ Format: Flat JSON (nested değil — tek seviye anahtar/değer)
+└─ Encoding: UTF-8
+└─ Trailing Newline: zorunlu (sync script tarafından korunur)
+
+== Source File Semantic Sections (37 blok) ==
+
+[Section 01 — Brand & Version]
+└─ Keys: grabshark_icon, grabshark_version, new_version_announcement, pwa_install_prompt, all_rights_reserved, list_created_with_grabshark
+└─ Purpose: Marka kimliği, sürüm anonsları, copyright.
+
+[Section 02 — Navigation / Top-level]
+└─ Keys: dashboard, dashboard_desc, all_collections, settings, preference, account, billing, help, github, twitter, mastodon, switch_to, logout, sign_out, start_journey, continue_to_dashboard
+└─ Purpose: Sidebar, üst bar, dış bağlantılar.
+
+[Section 03 — Primitives (entity nouns)]
+└─ Keys: link, links, collection, collections, tag, tags, file, files, highlight, highlights, note, notes, webpage, member, owner, admin, contributor, viewer …
+└─ Purpose: Tek kelimelik entity isimleri. Her yerde label olarak yeniden kullanılır.
+
+[Section 04 — Common UI]
+└─ Keys: save, cancel, edit, delete, add, create, new, update, rename, copy_to_clipboard, more, options, details, expand_sidebar, shrink_sidebar …
+└─ Purpose: Generic buton ve mikro-label havuzu.
+
+[Section 05 — Common States]
+└─ Keys: active, pending, enabled, disabled, completed, running, queued, done, failed, processing, verifying, archived, applying …
+└─ Purpose: Status etiketleri ve geçici durum metinleri.
+
+[Section 06 — Sort & Order]
+└─ Keys: date_newest_first, date_oldest_first, name_az, name_za, sort_az, sort_za, link_count_high_low, link_count_low_high, showing_count_results, showing_results_for
+└─ Purpose: Liste sıralama ve sonuç sayım metinleri.
+
+[Section 07 — Auth (login / register / verification / password reset)]
+└─ Keys: sign_in_to_your_account, login, sign_up, authenticating, forgot_password, send_reset_link, reset_password, password_email_prompt, email_sent, verification_email_sent …
+└─ Purpose: Tüm kimlik doğrulama akışı.
+
+[Section 08 — Security (sessions / 2FA / recovery codes)]
+└─ Keys: security, two_factor_auth, enable_two_factor, totp_scan_instructions, recovery_codes_remaining, regenerate_recovery_codes, active_sessions_section, session_revoked …
+└─ Purpose: Hesap güvenliği ayarları.
+
+[Section 09 — Account Settings / Profile]
+└─ Keys: accountSettings, profile_photo, change_password, delete_account, accept_promotional_emails, quick_survey, how_did_you_discover_grabshark …
+└─ Purpose: Profil, parola değişikliği, hesap silme akışı.
+
+[Section 10 — Billing & Subscription (Stripe)]
+└─ Keys: billing_settings, subscribe_title, monthly, yearly, total, trial_left_plural, redirecting_to_stripe …
+└─ Purpose: Abonelik ve ödeme akışı.
+
+[Section 11 — Access Tokens (API keys)]
+└─ Keys: access_tokens, create_access_token, token_creation_notice, expires_in, 7_days, 30_days, 60_days, 90_days, no_expiration, token_revoked …
+└─ Purpose: API token yönetimi.
+
+[Section 12 — Admin Panel — Users]
+└─ Keys: server_administration, user_administration, search_users, create_new_user, delete_user, admin_reset_2fa, admin_reset_2fa_confirm …
+└─ Purpose: Admin kullanıcı yönetimi.
+
+[Section 13 — Team Management — Invitations]
+└─ Keys: team_management, invite_user, invite_user_price, send_invitation, manage_seats, seats_purchased, resend_invite …
+└─ Purpose: Takım daveti, koltuk yönetimi.
+
+[Section 14 — Dashboard Layout / Sections]
+└─ Keys: edit_layout, display_on_dashboard, dashboard_stats, recent_links, recent_captures, recent_uploads, view_added_links_here …
+└─ Purpose: Dashboard widget yapılandırması ve boş durum mesajları.
+
+[Section 15 — Link CRUD]
+└─ Keys: add_link, create_link, link_url_placeholder, edit_link, delete_link, links_deletion_confirmation_message, link_already_in_collection …
+└─ Purpose: Tekil ve toplu link oluşturma/düzenleme/silme.
+
+[Section 16 — Link Opening Behavior / View Mode]
+└─ Keys: link_settings, links_route_to, prevent_duplicate_links, clicking_on_links_should, open_in_preview, open_in_new_tab …
+└─ Purpose: Link tıklama davranışı tercihleri.
+
+[Section 17 — Archive / Preservation]
+└─ Keys: archive_settings, formats_to_archive, archive_formats, screenshot, pdf, readable, monolith, wayback_machine, preservation_in_queue, refresh_preserved_formats …
+└─ Purpose: Sayfa koruma motoru, format seçimi, snapshot yönetimi.
+
+[Section 18 — Archive Backfill]
+└─ Keys: backfill_enabled_formats, backfill_description, queue_backfill, post_import_archive_followup_title, settings_archive_backfill_title …
+└─ Purpose: Geçmiş linklere yeni format uygulama akışı.
+
+[Section 19 — Browser Settings (Playwright / CloakBrowser / Stealth)]
+└─ Keys: browser_settings, browser_type, playwright_options, cloak_stealth_label, cloak_humanize_label, cloak_human_preset_default, browser_config_error_banner_title …
+└─ Purpose: Worker tarayıcı seçimi ve stealth/proxy/timezone ayarları.
+
+[Section 20 — Browser Monitor (live screencast)]
+└─ Keys: browser_monitor, browser_monitor_connected, browser_monitor_archiving, browser_monitor_ready, worker
+└─ Purpose: Canlı arşivleme önizlemesi ve worker durum etiketleri.
+
+[Section 21 — Collections]
+└─ Keys: new_collection, create_subcollection, lock_collection, propagate_members_to_subcollections, sharable_link, collection_publicly_shared, collection_with_same_name_exists …
+└─ Purpose: Koleksiyon yaşam döngüsü, paylaşım, kilitleme, hiyerarşi.
+
+[Section 22 — Members & Roles (within a collection)]
+└─ Keys: add_member_placeholder, remove_member, user_already_member, you_are_already_collection_owner
+└─ Purpose: Koleksiyon içi üye yönetimi.
+
+[Section 23 — Tags]
+└─ Keys: new_tag, create_subtag, parent_tag, merge_tags, bulk_delete_tags, tag_deletion_confirmation_message, this_tag_has_no_links …
+└─ Purpose: Etiket yaşam döngüsü, hiyerarşi, birleştirme.
+
+[Section 24 — Nesting Limit (collections + tags)]
+└─ Keys: nesting_limit, nesting_limit_desc, current_limit, nesting_limit_reached_desc, nesting_limit_absolute
+└─ Purpose: Hiyerarşi derinlik limiti.
+
+[Section 25 — AI Tagging]
+└─ Keys: ai_settings, ai_tagging, configure_ai_api_key_error, based_on_predefined_tags, auto_generate_tags, ai_tagging_disabled_desc …
+└─ Purpose: AI destekli etiketleme yöntem ve ayarları.
+
+[Section 26 — Highlights]
+└─ Keys: highlights_and_notes, search_highlights, all_colors, view_highlight, edit_highlight, add_note, save_note …
+└─ Purpose: Vurgu ve not akışı.
+
+[Section 27 — Files — Uploads & Captures]
+└─ Keys: upload_file, drag_drop_files, file_type_audio, captures, watchtower, no_uploads, move_to_uploads, file_moved …
+└─ Purpose: Dosya yükleme, capture/upload bucket'ları, dosya tipleri.
+
+[Section 28 — Link Health Check (LHC)]
+└─ Keys: schedule, schedules, run_check_now, total_checked, broken_links, run_history, response_time …
+└─ Purpose: Toplu link sağlık taraması ve geçmiş.
+
+[Section 29 — RSS Subscriptions]
+└─ Keys: rss_subscriptions, new_rss_subscription, rss_feed_fetched, max_items, unlimited, fetch_new_items …
+└─ Purpose: RSS abonelik yönetimi ve otomatik içerik çekimi.
+
+[Section 30 — Import / Export]
+└─ Keys: import_export, from_grabshark, from_linkwarden, from_pocket, import_summary, skip_duplicates, import_archive_pdf_label …
+└─ Purpose: Yedekleme/içe aktarma akışı (15+ kaynak desteği).
+
+[Section 31 — Preference — Reader / Theme / Visual]
+└─ Keys: theme, dark, light, auto, font_style, font_size, line_height, line_width, regular, thin, bold, fill …
+└─ Purpose: Kullanıcı görsel tercihleri.
+
+[Section 32 — Search]
+└─ Keys: search_results, search_for_everything, try_different_search_query, search_query_invalid_symbol, search_count_link
+└─ Purpose: Meilisearch sorgu arayüzü.
+
+[Section 33 — Favorites]
+└─ Keys: favorite, favorites, add_to_favorites, favorite_links, no_favorite_files, link_favorited …
+└─ Purpose: Yıldızlama, favori listeleri ve boş durumları.
+
+[Section 34 — SmartCapture / SmartScroll]
+└─ Keys: smart_scroll_rules_label, enter_domain, network_idle, custom_selector, custom_scripts, page_down_tooltip …
+└─ Purpose: Tarayıcı uzantısı ile paylaşılan domain bazlı capture/scroll kuralları.
+
+[Section 35 — Integrations (Telegram)]
+└─ Keys: integrations, telegram_integration, telegram_connect, telegram_pair_generating, telegram_unlink_confirm_body, telegram_webhook_degraded …
+└─ Purpose: Telegram bot entegrasyonu (eşleştirme, durum, kurulum).
+
+[Section 36 — Demo Mode]
+└─ Keys: demo_title, demo_desc, demo_desc_2, demo_button
+└─ Purpose: Public demo örneği uyarıları.
+
+[Section 37 — Misc]
+└─ Keys: email_invalid, username_invalid_guide, deleting_selections, other_settings
+└─ Purpose: Başka kategoriye uymayan tek-tük metinler.
+
+== Glossary / Whitelist (Tüm Diller İçin Korunur) ==
+
+[Brand & Product Names]
+└─ Values: GrabSHARK, Monolith, Wayback Machine, Playwright, CloakBrowser, Meilisearch, Stripe, Telegram, Readwise, Finn, finn@example.com
+└─ Purpose: Marka/ürün ismi → asla çevrilmez.
+
+[Tech Acronyms]
+└─ Values: PDF, RSS, API, URL, TOTP, 2FA, OAuth, Proxy, Stealth, GeoIP, Turnstile, reCAPTCHA, Worker
+└─ Purpose: Endüstri standardı kısaltma → her dilde aynen kalır.
+
+[OAuth Provider Names]
+└─ Values: GitHub, Google, OpenAI, Anthropic, Azure, Ollama, OpenRouter, Perplexity
+└─ Purpose: Üçüncü taraf servis ismi → değişmez.
+
+[Variable Tokens]
+└─ Pattern: {{varName}}
+└─ Purpose: i18next interpolation. ASLA değiştirilmez, kapsayan dile çevrilirken kelimenin yeri değişebilir ama token aynen taşınır.
+
+[HTML Tag Tokens]
+└─ Patterns: <0/>, <0>...</0>, <1>...</1>, <br/>
+└─ Purpose: react-i18next Trans component placeholder'ları. Sayı + sıra korunmalı.
+
+== Crowdin Setup ==
+
+[Project Identity]
+└─ Identifier: grabshark
+└─ Project ID: 892352
+└─ URL: https://crowdin.com/project/grabshark
+└─ Visibility: open
+└─ Source: en (1 file: common.json)
+└─ Targets: 14 dil (tr, de, es-ES, fr, it, ja, nl, pl, pt-BR, ro, ru, uk, zh-CN, zh-TW)
+
+[Config File]
+└─ File: grabshark/crowdin.yml
+└─ Source Pattern: /apps/web/public/locales/en/common.json
+└─ Translation Pattern: /apps/web/public/locales/%locale_with_underscore%/common.json
+└─ Mapping: zh-CN→zh, es-ES→es (Crowdin → folder)
+└─ Token Env: CROWDIN_PERSONAL_TOKEN
+└─ Project Env: CROWDIN_PROJECT_ID
+
+[Translation Memory]
+└─ Source: Yüklenen 14 dilin pre-translation seti otomatik TM'e gider
+└─ Purpose: Yeni eklenen string'lere benzer cümle önerisi getirir.
+
+== Sync Workflow ==
+
+[Local CLI]
+└─ Tool: crowdin@4 (Homebrew tap: crowdin/crowdin) veya npm @crowdin/cli
+└─ Upload Source: `crowdin upload sources`
+└─ Upload Translations: `crowdin upload translations --auto-approve-imported --import-eq-suggestions`
+└─ Download Translations: `crowdin download translations`
+
+[GitHub Actions (Opsiyonel)]
+└─ File: .github/workflows/crowdin.yml (henüz eklenmedi)
+└─ Triggers: push (en/common.json) → upload sources, schedule (gece) → download → auto-PR
+└─ Secrets: CROWDIN_PROJECT_ID, CROWDIN_PERSONAL_TOKEN
+
+[Reorder After Download]
+└─ Risk: Crowdin download key sırasını alfabetik bozabilir
+└─ Fix: `tools/i18n/reorder.js` (henüz repo'da yok) — EN sırasını referans alıp 14 locale'i hizalayan tek scriptlik node işi.
+
+== Verification ==
+
+[Local Sync Check]
+└─ Command: node script ile her locale için key count + EN ile yapısal eşitlik
+└─ Expected: 15 locale × 1083 key, 0 missing, 0 orphan
+
+[Placeholder/Tag Sync]
+└─ Check: Her locale'in `{{var}}` ve `<0/>` token'ları EN ile birebir aynı
+└─ Tolerance: 0 mismatch (variable veya tag sayısı/içeriği farkı kabul edilmez)
+
+[English-Left Audit]
+└─ Definition: Hedef dilde değer EN ile identik (whitelist hariç)
+└─ Expected: ≤ 25 (proper noun whitelist sayısı kadar)
+
+[Crowdin Progress API]
+└─ Endpoint: GET /api/v2/projects/892352/languages/progress
+└─ Expected: Her dilde >= %98 translated + approved
+
+== Maintainer Notes ==
+
+[New Key Lifecycle]
+└─ Step 1: en/common.json'a yeni key ekle (uygun semantic section'a)
+└─ Step 2: 14 locale'e aynı key'i sona ekle (geçici fallback EN değer)
+└─ Step 3: `crowdin upload sources` veya GitHub Action ile push
+└─ Step 4: Crowdin'de community çevirir → `crowdin download translations`
+└─ Step 5: Reorder script ile 14 locale yeni EN sırasına hizala
+
+[Removing a Key]
+└─ Step 1: Kodda hala kullanılıyor mu kontrol (`grep -rn "key_name" apps/web`)
+└─ Step 2: 15 locale'in 15'inden de sil
+└─ Step 3: Crowdin'den ayrıca silinmesi gerekir (manual veya CLI)
+
+[i18n Sync Rule]
+└─ Rule: Bu dosya kod tarafında yeni section/key girdiğinde anında güncellenmeli
+└─ Mirror: grabshark-extension/grabshark_i18n.txt (cross-directory sync zorunlu)
