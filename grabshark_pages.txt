@@ -214,6 +214,11 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ Category: Config
 └─ Purpose: Açık/Koyu Tema seçimi, Çoklu Dil (i18n) ayarı ve Grid/List varsayılan görüntülenme tercihleri.
 
+[/settings/integrations]
+└─ File: grabshark/apps/web/pages/settings/integrations.tsx
+└─ Category: Config
+└─ Purpose: Üçüncü-taraf servis entegrasyonları (şu an sadece Telegram). Sidebar görünürlüğü `enabled && (isAdmin || botConfigured)` — TELEGRAM_ENABLED=false ise tüm kullanıcılardan gizli, token configured değilse sadece admin görür (config help text ile). Direct URL hit'te `/settings/account`'a redirect.
+
 [/settings/browser]
 └─ File: grabshark/apps/web/pages/settings/browser.tsx
 └─ Category: Config

@@ -12,6 +12,7 @@
     <br />
     <img src="https://img.shields.io/badge/Chrome_Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome" />
     <img src="https://img.shields.io/badge/Firefox_Addon-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white" alt="Firefox" />
+    <a href="https://crowdin.com/project/grabshark-extension"><img src="https://img.shields.io/badge/Crowdin-15%20Languages-2A5891?style=for-the-badge&logo=crowdin&logoColor=white" alt="Localized via Crowdin" /></a>
   </p>
 </div>
 

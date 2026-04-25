@@ -656,6 +656,16 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Security Card
 └─ Purpose: TOTP 2FA durumunu gösterip etkinleştirme/kapatma sihirbazlarını tetikleyen kart.
 
+[TelegramCard]
+└─ File: grabshark/apps/web/components/Settings/TelegramCard.tsx
+└─ Category: Integration Card
+└─ Purpose: Telegram entegrasyonu ana kartı. Üç render branch: (a) `botConfigured: false` + admin → disabled state + BotFather rehber adımları, (b) `paired: false` → "Connect Telegram" butonu → TelegramPairModal, (c) `paired: true` → @username bilgisi + unlink. Ayrıca webhook degraded banner ve re-pair needed banner'ı yönetir.
+
+[TelegramPairModal]
+└─ File: grabshark/apps/web/components/ModalContent/TelegramPairModal.tsx
+└─ Category: Modal
+└─ Purpose: Pair code üretir, deep link (`https://t.me/<bot>?start=pair_<nonce>`) ve kopya-dostu metin gösterir. useTelegramPairStatus hook'u ile 5s aralıklarla `/api/v1/telegram/pair/status` polling yapar; kullanıcı Telegram'da `/start pair_<nonce>` yazdığında otomatik kapanır ve React Query cache invalidate olur.
+
 == UI Primitives (Radix-based) ==
 
 [button] / [checkbox] / [context-menu] / [dropdown-menu] / [icons] / [separator] / [tabs] / [tooltip] / [Loader]

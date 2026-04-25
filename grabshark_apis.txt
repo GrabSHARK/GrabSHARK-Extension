@@ -432,3 +432,30 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/pages/api/v1/admin/users/[id]/2fa.ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/reset2fa.ts
 └─ Purpose: Admin-only emergency 2FA reset — wipes target user's TOTP secret, recovery codes, pending setup & two-factor challenges in one transaction. For users who lost both authenticator and recovery codes. Requires caller to match ADMIN_ID env var.
+
+== Telegram Integration API ==
+
+[GET] /api/v1/telegram/bot
+└─ File: grabshark/apps/web/pages/api/v1/telegram/bot.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/telegram/getBotStatus.ts
+└─ Purpose: Central status probe for the Integrations UI. Returns { enabled, botConfigured, bot: {username, userId, transport, webhookUrl, pendingUpdates, lastErrorAt, lastErrorMsg, degraded}, pairing: {paired, telegramUsername, firstName, linkedAt, repairNeeded}, isAdmin }. Drives sidebar nav visibility (enabled && (isAdmin || botConfigured)) and all card render branches. Master kill switch (TELEGRAM_ENABLED=false) collapses everything to enabled:false.
+
+[POST] /api/v1/telegram/pair
+└─ File: grabshark/apps/web/pages/api/v1/telegram/pair.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/telegram/generatePairCode.ts
+└─ Purpose: Generate a one-time pairing nonce (12-byte base64url) for linking a Telegram account. Persists SHA-256(nonce) with 10-min TTL; returns { nonce, deepLink: "https://t.me/<bot>?start=pair_<nonce>", botUsername, expiresAt }. Invalidates any prior unused codes for this user. Rate-limited (AUTH preset). 503 when TELEGRAM_ENABLED=false.
+
+[GET] /api/v1/telegram/pair/status
+└─ File: grabshark/apps/web/pages/api/v1/telegram/pair/status.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/telegram/getPairStatus.ts
+└─ Purpose: Polled by the pair modal (~5s interval) to detect when the user completed /start pair_<nonce> in Telegram. Returns { paired: false } or { paired: true, telegramUserId, chatId, username, firstName, linkedAt, botUsername, botActive }.
+
+[DELETE] /api/v1/telegram/account
+└─ File: grabshark/apps/web/pages/api/v1/telegram/account.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/telegram/unlinkAccount.ts
+└─ Purpose: Delete the user's TelegramAccount row + any pending unused pair codes atomically. User can re-pair afterwards by generating a new code.
+
+[POST] /wh/telegram
+└─ File: grabshark/apps/web/server.ts (custom server interceptor before Next.js)
+└─ Handler: grabshark/apps/web/lib/webhooks/telegramWebhookHandler.ts
+└─ Purpose: Telegram webhook ingress. NOT a Next.js API route — mounted on the custom server's /wh/ namespace so we bypass Next's default bodyParser for raw-body access. Validates X-Telegram-Bot-Api-Secret-Token (timing-safe compare), persists (botId, update_id) for idempotency (P2002 = 200 OK duplicate), pushes envelope to Redis list telegram:updates:queue for the worker to dispatch, returns 200/500. 404 when TELEGRAM_ENABLED=false or no active bot. Max body 2MB.

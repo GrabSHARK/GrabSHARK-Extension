@@ -14,6 +14,10 @@ dist-ssr
 dist.crx
 dist.pem
 
+# Environment variables (Crowdin tokens, etc.)
+.env
+.env.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
