@@ -158,9 +158,14 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ Purpose: LHC (Link Health Check). Linklerin ölü veya erişilmez (404 vs.) olup olmadığını analiz eden rapor arayüzü.
 
 [/admin]
-└─ File: grabshark/apps/web/pages/admin.tsx
+└─ File: grabshark/apps/web/pages/admin/index.tsx
 └─ Category: Admin Console
-└─ Purpose: Sistem kullanıcılarını ve davet kodlarını vs idare eden Süper Yönetici ekranı.
+└─ Purpose: Sistem kullanıcılarını ve davet kodlarını vs idare eden Süper Yönetici ekranı. Üst nav strip ile /admin/logs sibling sayfasına geçiş; user row hover'larında "View Logs" butonu actorUserId pre-filter ile log sayfasına yönlendirir.
+
+[/admin/logs]
+└─ File: grabshark/apps/web/pages/admin/logs.tsx
+└─ Category: Admin Console
+└─ Purpose: Multi-type log viewer (AUDIT/SECURITY/SYSTEM/HTTP/WORKER/INTEGRATION). 7 type chip filter + 7 input filter (category, action, actorId, targetId, level, from-to date range, page size 50/100/250/500/1000/unlimited). Cursor-based pagination via "Load More". Click row → expand metadata JSON. Inline purge panel (admin-only, type + olderThanDays, audit-of-the-audit). URL state ile sync — deeplink desteği (?actorUserId=X).
 
 [/confirmation]
 └─ File: grabshark/apps/web/pages/confirmation.tsx

@@ -83,8 +83,12 @@ GrabSHARK Main Application Internationalization (i18n Reference)
 └─ Purpose: API token yönetimi.
 
 [Section 12 — Admin Panel — Users]
-└─ Keys: server_administration, user_administration, search_users, create_new_user, delete_user, admin_reset_2fa, admin_reset_2fa_confirm …
-└─ Purpose: Admin kullanıcı yönetimi.
+└─ Keys: server_administration, user_administration, search_users, create_new_user, delete_user, placeholder_first_name, placeholder_username, placeholder_email, admin_reset_2fa, admin_reset_2fa_confirm, last_login …
+└─ Purpose: Admin kullanıcı yönetimi. Placeholder key'leri (`placeholder_first_name`="Finn", `placeholder_username`="finn", `placeholder_email`="finn@example.com") NewUserModal ve InviteModal form alanlarında kullanılır. Linkwarden'den miras `placeholder_johnny`/`placeholder_john` kaldırıldı.
+
+[Section 12b — Admin Panel — Logs]
+└─ Keys: logs_title, logs_view, logs_filter_category, logs_filter_action, logs_filter_actor_id, logs_filter_target_id, logs_filter_level, logs_filter_page_size, logs_filter_page_size_label, logs_col_time, logs_col_type, logs_col_level, logs_col_category_action, logs_col_actor, logs_col_target, logs_col_message, logs_empty, logs_load_more, logs_loading, logs_purge, logs_purge_warning, logs_purge_confirm_button, logs_purge_confirm, logs_purging, logs_purged_count, logs_purge_failed, days
+└─ Purpose: `/admin/logs` çok-tipli log görüntüleyici (AUDIT/SECURITY/SYSTEM/HTTP/WORKER/INTEGRATION). Type chip + filter row + cursor pagination + purge panel için ~24 key. Page size dropdown 50/100/250/500/1000/unlimited (`{{size}}` interpolation). `days` kelimesi Section 36 ile çakışmasın diye isim çatışması yok.
 
 [Section 13 — Team Management — Invitations]
 └─ Keys: team_management, invite_user, invite_user_price, send_invitation, manage_seats, seats_purchased, resend_invite …

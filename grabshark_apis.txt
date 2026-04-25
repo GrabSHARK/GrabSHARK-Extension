@@ -433,6 +433,16 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/reset2fa.ts
 └─ Purpose: Admin-only emergency 2FA reset — wipes target user's TOTP secret, recovery codes, pending setup & two-factor challenges in one transaction. For users who lost both authenticator and recovery codes. Requires caller to match ADMIN_ID env var.
 
+[GET] /api/v1/admin/logs
+└─ File: grabshark/apps/web/pages/api/v1/admin/logs/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/logs/listLogs.ts
+└─ Purpose: Admin-only multi-type log query. Query params: type (AUDIT|SECURITY|SYSTEM|HTTP|WORKER|INTEGRATION|ALL), category, action, actorUserId, targetUserId, level (DEBUG|INFO|WARN|ERROR), from, to (ISO datetime), cursor (BigInt id desc pagination), take (1-100000, default 50). Returns { items: LogRow[], nextCursor: string|null, hasMore: boolean }. Cursor-based — id < cursor desc. BigInt ids serialized as strings.
+
+[DELETE] /api/v1/admin/logs/purge
+└─ File: grabshark/apps/web/pages/api/v1/admin/logs/purge.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/logs/purgeLogs.ts
+└─ Purpose: Admin-only retention purge — deletes Log rows of a given type older than N days. Body: { type: LogType, olderThanDays: number }. Audits itself via SECURITY log (admin.logs_purged) so the act of wiping audit history is itself forensic. Returns { deleted: number }.
+
 == Telegram Integration API ==
 
 [GET] /api/v1/telegram/bot

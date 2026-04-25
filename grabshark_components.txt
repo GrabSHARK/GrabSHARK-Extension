@@ -310,7 +310,7 @@ GrabSHARK Main Application Components (Complete List)
 [UserListing]
 └─ File: grabshark/apps/web/components/UserListing.tsx
 └─ Category: Listing
-└─ Purpose: Yönetici ekranında uygulamanın kullanıcılarını listeleme sayfası.
+└─ Purpose: Yönetici ekranında uygulamanın kullanıcılarını listeleme sayfası. Hover-reveal aksiyonlar: "View Logs" (bi-clock-history → /admin/logs?actorUserId=X), "Reset 2FA" (bi-shield-slash, totpEnabledAt'lı kullanıcılarda), "Delete" (bi-trash3).
 
 [ViewDropdown]
 └─ File: grabshark/apps/web/components/ViewDropdown.tsx
@@ -537,8 +537,8 @@ GrabSHARK Main Application Components (Complete List)
 
 [MergeTagsModal]
 └─ File: grabshark/apps/web/components/ModalContent/MergeTagsModal.tsx
-└─ Category: Modal View
-└─ Purpose: Aynı gruptaki X ve Y etiketlerini tek potada birleştirici modal.
+└─ Category: Modal View (size="lg", sectioned single-page)
+└─ Purpose: Hiyerarşik etiket birleştirme — 3 görsel bölüm (Önizleme / Ayarlar / Özet). Auto-detect common parent, name collision (rename/absorb), children strategy (adopt/orphan/delete), archive flag union, parent-child overlap warning. 12 hierarchical merge senaryosunu kapsıyor.
 
 [NewCollectionModal] / [NewLinkModal] / [NewRssSubscriptionModal] / [NewTagModal] / [NewTokenModal] / [NewUserModal]
 └─ File: grabshark/apps/web/components/ModalContent/New...
