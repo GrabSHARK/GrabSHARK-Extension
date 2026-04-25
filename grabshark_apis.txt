@@ -443,6 +443,26 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/logs/purgeLogs.ts
 └─ Purpose: Admin-only retention purge — deletes Log rows of a given type older than N days. Body: { type: LogType, olderThanDays: number }. Audits itself via SECURITY log (admin.logs_purged) so the act of wiping audit history is itself forensic. Returns { deleted: number }.
 
+[GET] /api/v1/admin/system/metrics
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/metrics.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getMetrics.ts
+└─ Purpose: Admin-only operations cockpit aggregator. Reads Redis hashes (system:process:web|worker, worker:heartbeat:*), Postgres metadata (pg_database_size, pg_stat_user_tables top 5, pg_stat_activity, _prisma_migrations), Redis info (memory, dbsize, queue depths log:queue/log:dead_letter/telegram:updates:queue), and disk (fs.statfs over STORAGE_FOLDER). Server-side in-memory cache 5s TTL — UI polls every 5s. Returns SystemMetrics: { health, processes, host, storage, database, redis, workers, build }.
+
+[POST] /api/v1/admin/system/jobs/run
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/jobs/run.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/runJob.ts
+└─ Purpose: Admin-only "Run X now" trigger. Body: { job: "logRetention" | "telegramHealthMonitor" } (allow-list). Publishes JSON to Redis Pub/Sub channel system:job:trigger; worker (apps/worker/lib/jobTrigger.ts) subscribes and dispatches to the matching exported runOnce(). Audits via auditLog (admin.system.job_triggered). Returns { job, subscribers, requestedAt }.
+
+[POST] /api/v1/admin/system/dead-letter/replay
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/dead-letter/replay.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/replayDeadLetter.ts
+└─ Purpose: Admin-only dead-letter replay. Body: { queue: "log:dead_letter", count: number } (allow-list, max 100). Atomically LMOVE entries from dead-letter list back to main queue (log:queue) so the drainer picks them up. Reversible operation — no confirm modal. Audits via auditLog (admin.system.dead_letter_replayed). Returns { queue, target, replayed }.
+
+[POST] /api/v1/admin/system/dead-letter/discard
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/dead-letter/discard.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/discardDeadLetter.ts
+└─ Purpose: Admin-only dead-letter discard. Body: { queue: "log:dead_letter", count: number } (allow-list, max 100). RPOP loop — destructive, items are gone. UI requires explicit confirm modal. Audits via auditLog (admin.system.dead_letter_discarded). Returns { queue, discarded }.
+
 == Telegram Integration API ==
 
 [GET] /api/v1/telegram/bot

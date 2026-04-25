@@ -160,12 +160,17 @@ GrabSHARK Main Application Pages (Route Reference)
 [/admin]
 └─ File: grabshark/apps/web/pages/admin/index.tsx
 └─ Category: Admin Console
-└─ Purpose: Sistem kullanıcılarını ve davet kodlarını vs idare eden Süper Yönetici ekranı. Üst nav strip ile /admin/logs sibling sayfasına geçiş; user row hover'larında "View Logs" butonu actorUserId pre-filter ile log sayfasına yönlendirir.
+└─ Purpose: Sistem kullanıcılarını ve davet kodlarını vs idare eden Süper Yönetici ekranı. Üst nav strip 3 link (Users / Logs / System); user row hover'larında "View Logs" butonu actorUserId pre-filter ile log sayfasına yönlendirir.
 
 [/admin/logs]
 └─ File: grabshark/apps/web/pages/admin/logs.tsx
 └─ Category: Admin Console
-└─ Purpose: Multi-type log viewer (AUDIT/SECURITY/SYSTEM/HTTP/WORKER/INTEGRATION). 7 type chip filter + 7 input filter (category, action, actorId, targetId, level, from-to date range, page size 50/100/250/500/1000/unlimited). Cursor-based pagination via "Load More". Click row → expand metadata JSON. Inline purge panel (admin-only, type + olderThanDays, audit-of-the-audit). URL state ile sync — deeplink desteği (?actorUserId=X).
+└─ Purpose: Multi-type log viewer (AUDIT/SECURITY/SYSTEM/HTTP/WORKER/INTEGRATION). 7 type chip filter + 7 input filter (category, action, actorId, targetId, level, from-to date range, page size 50/100/250/500/1000/unlimited). Cursor-based pagination via "Load More". Click row → expand metadata JSON. Inline purge panel (admin-only, type + olderThanDays, audit-of-the-audit). URL state ile sync — deeplink desteği (?actorUserId=X). 3-link admin nav strip (Users / Logs / System).
+
+[/admin/system]
+└─ File: grabshark/apps/web/pages/admin/system.tsx
+└─ Category: Admin Console
+└─ Purpose: Operations cockpit — read-only observability + minimum-blast-radius maintenance. 4 traffic light status strip (Postgres / Redis / Web / Worker) + 4 grid cards (Resources web+worker+host RSS/heap/CPU/event-loop-lag, Storage disk/DB/files-folder/top-tables, Redis memory+keys+queues+dead-letters, Workers heartbeat per-id). Maintenance accordion: Run logRetention now, Run telegramHealthMonitor now, Replay/Discard dead-letter (allow-list log:dead_letter, max 100, discard requires confirm modal), Purge logs link. Auto-refresh 5s; server-side cache 5s. State Redis-only (system:process:*, worker:heartbeat:*, system:storage:files_size). 3-link admin nav strip.
 
 [/confirmation]
 └─ File: grabshark/apps/web/pages/confirmation.tsx
