@@ -47,8 +47,8 @@ GrabSHARK Main Application Internationalization (i18n Reference)
 └─ Purpose: Sidebar, üst bar, dış bağlantılar.
 
 [Section 03 — Primitives (entity nouns)]
-└─ Keys: link, links, collection, collections, tag, tags, file, files, highlight, highlights, note, notes, webpage, member, owner, admin, contributor, viewer …
-└─ Purpose: Tek kelimelik entity isimleri. Her yerde label olarak yeniden kullanılır.
+└─ Keys: link, links, collection, collections, tag, tags, file, files, highlight, highlights, note, notes, webpage, image, icon, images, documents, others, domain, team, member, owner, admin, contributor, viewer …
+└─ Purpose: Tek kelimelik entity isimleri. Her yerde label olarak yeniden kullanılır. `icon` özellikle ViewDropdown checkbox listesinde kullanılır — her view'da ikon kolonu göstermek/gizlemek için.
 
 [Section 04 — Common UI]
 └─ Keys: save, cancel, edit, delete, add, create, new, update, rename, copy_to_clipboard, more, options, details, expand_sidebar, shrink_sidebar …
