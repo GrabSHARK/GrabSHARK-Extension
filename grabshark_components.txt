@@ -604,10 +604,10 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Clean Reader
 └─ Purpose: Makale vb. yapıları reklamdan arındırılmış saf haliyle sunan görünüm.
 
-[SmartRepreserveButton]
-└─ File: grabshark/apps/web/components/Preservation/SmartRepreserveButton.tsx
-└─ Category: Action
-└─ Purpose: Bozulan arşivi aynı URL üzerinden tekrardan zorla alma komutu veren buton.
+[EnhancedMonolithToggle]
+└─ File: grabshark/apps/web/components/Preservation/EnhancedMonolithToggle.tsx
+└─ Category: Action / Toggle
+└─ Purpose: Monolith arşivinde JS-included paralel sürüm (enhanced) ile JS-stripped default arasında geçiş yapan toggle. 3 durum (none/pending/ready). Default monolith ASLA silinmez. iframe sandbox conditional — default `allow-same-origin` (SmartCapture çalışır), enhanced `allow-scripts` (opaque origin, JS aktif, cookie/storage erişimi structural olarak imkansız, SmartCapture pasif + hint banner). Cross-domain serve gerekmez — HTML5 sandbox spec yeterli. SmartRepreserveButton'ın replacement'ı; eski destructive davranış sökülmüş. Toggle `useGetLink` side-channel'ı kullanır (Zustand snapshot stale kalmasın diye fresh `enhanceRequestedAt`/`enhancedMonolith` okur), function-form `refetchInterval` pending iken 3s polluyor; useRef edge detection pending→ready auto-flip yapıyor.
 
 == Settings Components ==
 

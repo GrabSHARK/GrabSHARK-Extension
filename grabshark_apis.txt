@@ -210,7 +210,19 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [POST] /api/v1/links/[id]/archive/refresh
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/refresh.ts
-└─ Purpose: Re-archive/refresh a link's archived content.
+└─ Purpose: Re-archive/refresh a link's archived content (her şeyi sıfırla, worker yeniden archive eder).
+
+[POST] /api/v1/links/[id]/archive/enhance
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/enhance.ts
+└─ Purpose: Queue an enhanced (JS-included) parallel monolith capture. Default `link.monolith` ASLA touch edilmez; worker yeni `link.enhancedMonolith` field'ına yazar.
+
+[GET] /api/v1/links/[id]/archive/enhance
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/enhance.ts
+└─ Purpose: Status (none/pending/ready) sorgu — UI polling kullanır.
+
+[DELETE] /api/v1/links/[id]/archive/enhance
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/enhance.ts
+└─ Purpose: Enhanced sürümü sil (file + DB field) — opsiyonel cleanup.
 
 [GET] /api/v1/links/[id]/highlights
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/highlights/index.ts
