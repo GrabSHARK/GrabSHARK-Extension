@@ -403,7 +403,6 @@ function processExtensionMessage(event: MessageEvent): void {
     }
 
     if (event.data?.type === 'GrabSHARK_CLIP') {
-        const { SmartCaptureHandlers } = require('./managers/SmartCaptureHandlers');
         if (smartCaptureMode) {
             const sel = event.data.selection;
             if (sel?.text && sel?.rect) {
