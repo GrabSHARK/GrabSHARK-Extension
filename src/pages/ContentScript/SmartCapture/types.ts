@@ -153,6 +153,7 @@ export interface SmartCaptureState {
  */
 export type CaptureActionType =
     | 'highlight'
+    | 'erase'
     | 'clip'
     | 'save_link'
     | 'save_image'
@@ -240,6 +241,7 @@ export function getFileTypeLabel(url: string): string {
  */
 export interface SmartCaptureCallbacks {
     onHighlight: (target: CaptureTarget) => Promise<void>;
+    onErase?: (target: CaptureTarget, highlightIds: number[]) => Promise<void>;
     onClip: (target: CaptureTarget, thumbnail?: string) => Promise<void>;
     onSaveLink: (target: CaptureTarget) => Promise<void>;
     onSaveImage: (target: CaptureTarget) => Promise<void>;
@@ -247,6 +249,7 @@ export interface SmartCaptureCallbacks {
     onSaveBatch?: (urls: string[], type: 'LINK' | 'IMAGE' | 'VIDEO' | 'FILE') => Promise<void>;
     onAddNote: (target: CaptureTarget) => Promise<void>;
     onBack?: (target: CaptureTarget) => void;  // Go back to selection mode (unlock target)
+    onReopen?: () => void;                     // Hide bar briefly and re-show on same selection (refreshes layout state, e.g. highlight↔erase swap)
     onClose: () => void;
     canSelectionChange?: () => boolean; // Check if selection change is allowed (e.g. protected note panel)
     onSelectionChange?: () => void;     // Called when selection actually changes

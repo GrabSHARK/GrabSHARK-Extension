@@ -88,9 +88,25 @@ export class ThemeManager {
         }
         // 'system' or 'website' or null - fall through to page/system detection
 
+        // Resolve top-frame document when accessible (same-origin). Critical for the GrabSHARK
+        // monolith viewer: the toolbox/capture UI runs inside the monolith iframe whose own
+        // <html> has no data-theme set, while the host web app's <html data-theme="dark"> lives
+        // on the top frame. Falling back to the current frame's document for cross-origin pages.
+        const resolveTopDoc = (): Document => {
+            try {
+                if (window.top && window.top !== window) {
+                    return window.top.document;
+                }
+            } catch {
+                // cross-origin — top frame's DOM is off-limits; use current
+            }
+            return document;
+        };
+        const topDoc = resolveTopDoc();
+
         // 2. Check data-theme attribute on html or body (common in DaisyUI/Tailwind)
-        const htmlTheme = document.documentElement.getAttribute('data-theme');
-        const bodyTheme = document.body?.getAttribute('data-theme');
+        const htmlTheme = topDoc.documentElement.getAttribute('data-theme');
+        const bodyTheme = topDoc.body?.getAttribute('data-theme');
 
         if (htmlTheme === 'dark' || bodyTheme === 'dark') {
             return true;
@@ -99,7 +115,8 @@ export class ThemeManager {
             return false;
         }
 
-        // 2.5. Check meta color-scheme (used by GrabSHARK Monoliths)
+        // 2.5. Check meta color-scheme (used by GrabSHARK Monoliths) — current frame is fine
+        // here, monoliths embed their own meta tag.
         const metaTheme = document.querySelector('meta[name="color-scheme"]')?.getAttribute('content');
         if (metaTheme === 'dark') {
             return true;
@@ -108,25 +125,26 @@ export class ThemeManager {
             return false;
         }
 
-        // 3. Check for common dark mode class names
+        // 3. Check for common dark mode class names (top frame first, then current)
         const darkClasses = ['dark', 'dark-mode', 'theme-dark', 'is-dark', 'night-mode'];
         for (const cls of darkClasses) {
-            if (document.body?.classList.contains(cls) ||
-                document.documentElement.classList.contains(cls)) {
+            if (topDoc.body?.classList.contains(cls) ||
+                topDoc.documentElement.classList.contains(cls)) {
                 return true;
             }
         }
 
-        // 4. Check for light mode class names
+        // 4. Check for light mode class names (top frame first)
         const lightClasses = ['light', 'light-mode', 'theme-light', 'is-light', 'day-mode'];
         for (const cls of lightClasses) {
-            if (document.body?.classList.contains(cls) ||
-                document.documentElement.classList.contains(cls)) {
+            if (topDoc.body?.classList.contains(cls) ||
+                topDoc.documentElement.classList.contains(cls)) {
                 return false;
             }
         }
 
-        // 5. Analyze page background color luminance
+        // 5. Analyze page background color luminance (current frame — represents the
+        // captured/visible content)
         try {
             const bodyBgColor = window.getComputedStyle(document.body).backgroundColor;
             let luminance = ThemeManager.getColorLuminance(bodyBgColor);

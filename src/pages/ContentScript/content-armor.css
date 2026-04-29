@@ -1410,9 +1410,12 @@ body.ext-grabshark-highlights-hidden .ext-lw-has-comment {
     background: #3b82f6 !important;
 }
 
-/* Hidden during screenshot capture - completely removes from rendering */
+/* Hidden during screenshot capture — kept in layout so removing the class
+   doesn't restart CSS animations on the action bar (which would read as a
+   close→open cycle when clip is taken). visibility+opacity+pointer-events
+   are enough to keep the bar out of captureVisibleTab's rendered output
+   without triggering display:none → display:flex animation replay. */
 .ext-lw-hidden-for-screenshot {
-    display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;

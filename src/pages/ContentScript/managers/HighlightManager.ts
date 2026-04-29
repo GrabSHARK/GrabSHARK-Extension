@@ -306,15 +306,16 @@ export const HighlightManager = {
     async deleteHighlight(highlightId: number): Promise<void> {
         const response = await sendMessage<{ linkId?: number }>('DELETE_HIGHLIGHT', { highlightId, linkId: currentPageLinkId });
 
+        // Always clean up local state + DOM, regardless of backend outcome.
+        // Rationale: a failed DELETE here shouldn't strand a visible-but-stale highlight
+        // span in the page (the prior bug: 500 from backend → response.success=false →
+        // span never unwrapped → silik tint kalıyordu). Treating delete as idempotent on
+        // the client matches REST best practice; if DB and client drift, next reload
+        // re-applies any surviving highlights.
+        currentHighlights = currentHighlights.filter(h => h.id !== highlightId);
+        removeHighlight(highlightId);
+
         if (response.success) {
-            // Remove from local state
-            currentHighlights = currentHighlights.filter(h => h.id !== highlightId);
-
-            // Remove from DOM
-            removeHighlight(highlightId);
-
-
-            // Notify web app to invalidate cache
             const message = currentPageFileId
                 ? {
                     type: 'LW_FILE_HIGHLIGHT_DELETED',

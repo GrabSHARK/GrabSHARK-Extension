@@ -295,6 +295,26 @@ interface SmartCaptureInitContext {
     smartCaptureModeRef: { current: SmartCaptureMode | null };
 }
 
+/**
+ * Find an existing extension-rendered highlight on (or inside) a Smart Capture
+ * target so the note panel can preload its comment+color in edit mode and the
+ * save flow can route to update instead of create. Returns null when no
+ * matching span is in the DOM or the id doesn't resolve in HighlightManager
+ * state (e.g. web-app-rendered span without an extension twin).
+ */
+function findExistingHighlightForTarget(target: any) {
+    const el = target?.elementRef as HTMLElement | undefined;
+    if (!el) return null;
+    const span =
+        el.querySelector('[data-ext-lw-highlight-id]') ||
+        el.closest('[data-ext-lw-highlight-id]');
+    const idAttr = span?.getAttribute('data-ext-lw-highlight-id');
+    if (!idAttr) return null;
+    const id = parseInt(idAttr, 10);
+    if (!Number.isFinite(id)) return null;
+    return HighlightManager.getHighlights().find(h => h.id === id) ?? null;
+}
+
 function createGrabSHARKSmartCaptureCallbacks(ctx: SmartCaptureInitContext) {
     return {
         onHighlight: async (target: any) => {
@@ -308,12 +328,58 @@ function createGrabSHARKSmartCaptureCallbacks(ctx: SmartCaptureInitContext) {
                 }, ctx.defaultHighlightColor);
             }
         },
+        onErase: async (_target: any, highlightIds: number[]) => {
+            for (const id of highlightIds) {
+                await HighlightManager.deleteHighlight(id);
+            }
+        },
         onClip: SmartCaptureHandlers.handleClip,
         onSaveLink: SmartCaptureHandlers.handleSaveLink,
         onSaveBatch: createBatchHandler(),
         onSaveImage: SmartCaptureHandlers.handleSaveImage,
         onSaveFile: SmartCaptureHandlers.handleSaveFile,
-        onAddNote: async () => { },
+        onAddNote: async (target: any) => {
+            // Was previously a no-op for GrabSHARK instances. Mirror the external flow.
+            // try/finally on save guarantees resumeSelection() even if handleNoteSave throws —
+            // otherwise a single failed save leaves SmartCaptureMode permanently paused
+            // (sticky `isPaused=true`) and the next activation looks frozen.
+            // Hide the action bar so only the note panel is visible; every exit path
+            // (save / cancel / close) resumes selection AND reshows the bar so the
+            // refreshed detector picks up the new highlight + comment state.
+            if (ctx.smartCaptureModeRef.current) {
+                ctx.smartCaptureModeRef.current.pauseSelection();
+                ctx.smartCaptureModeRef.current.hideActionBar();
+            }
+            if (ctx.notePanel) {
+                const restoreBar = () => {
+                    if (!ctx.smartCaptureModeRef.current) return;
+                    ctx.smartCaptureModeRef.current.resumeSelection();
+                    ctx.smartCaptureModeRef.current.reshowActionBar();
+                };
+                const existing = findExistingHighlightForTarget(target);
+                const initialComment = existing?.comment ?? '';
+                const initialColor = (existing?.color as HighlightColor | undefined) ?? ctx.defaultHighlightColor;
+                ctx.notePanel.show(
+                    { x: (target.rect?.left || 0) + (target.rect?.width || 0) / 2 + window.scrollX, y: (target.rect?.bottom || 0) + window.scrollY + 10 },
+                    {
+                        onSave: async (comment: string, color: HighlightColor) => {
+                            try {
+                                if (existing) {
+                                    await HighlightManager.updateHighlight(existing, color, comment);
+                                } else {
+                                    await SmartCaptureHandlers.handleNoteSave(target, comment, color);
+                                }
+                            } finally {
+                                restoreBar();
+                            }
+                        },
+                        onCancel: restoreBar,
+                        onClose: restoreBar,
+                    },
+                    initialComment, initialColor, target.rect,
+                );
+            }
+        },
         onClose: () => { },
         canSelectionChange: () => true,
         onSelectionChange: () => { },
@@ -338,25 +404,48 @@ function createExternalSmartCaptureCallbacks(ctx: SmartCaptureInitContext) {
                 }, ctx.defaultHighlightColor);
             }
         },
+        onErase: async (_target: any, highlightIds: number[]) => {
+            for (const id of highlightIds) {
+                await HighlightManager.deleteHighlight(id);
+            }
+        },
         onClip: SmartCaptureHandlers.handleClip,
         onSaveLink: SmartCaptureHandlers.handleSaveLink,
         onSaveBatch: createBatchHandler(),
         onSaveImage: SmartCaptureHandlers.handleSaveImage,
         onSaveFile: SmartCaptureHandlers.handleSaveFile,
         onAddNote: async (target: any) => {
-            if (ctx.smartCaptureModeRef.current) ctx.smartCaptureModeRef.current.pauseSelection();
+            if (ctx.smartCaptureModeRef.current) {
+                ctx.smartCaptureModeRef.current.pauseSelection();
+                ctx.smartCaptureModeRef.current.hideActionBar();
+            }
             if (ctx.notePanel) {
+                const restoreBar = () => {
+                    if (!ctx.smartCaptureModeRef.current) return;
+                    ctx.smartCaptureModeRef.current.resumeSelection();
+                    ctx.smartCaptureModeRef.current.reshowActionBar();
+                };
+                const existing = findExistingHighlightForTarget(target);
+                const initialComment = existing?.comment ?? '';
+                const initialColor = (existing?.color as HighlightColor | undefined) ?? ctx.defaultHighlightColor;
                 ctx.notePanel.show(
                     { x: (target.rect?.left || 0) + (target.rect?.width || 0) / 2 + window.scrollX, y: (target.rect?.bottom || 0) + window.scrollY + 10 },
                     {
                         onSave: async (comment: string, color: HighlightColor) => {
-                            await SmartCaptureHandlers.handleNoteSave(target, comment, color);
-                            if (ctx.smartCaptureModeRef.current) ctx.smartCaptureModeRef.current.resumeSelection();
+                            try {
+                                if (existing) {
+                                    await HighlightManager.updateHighlight(existing, color, comment);
+                                } else {
+                                    await SmartCaptureHandlers.handleNoteSave(target, comment, color);
+                                }
+                            } finally {
+                                restoreBar();
+                            }
                         },
-                        onCancel: () => { if (ctx.smartCaptureModeRef.current) { ctx.smartCaptureModeRef.current.resumeSelection(); ctx.smartCaptureModeRef.current.reshowActionBar(); } },
-                        onClose: () => { if (ctx.smartCaptureModeRef.current) ctx.smartCaptureModeRef.current.resumeSelection(); },
+                        onCancel: restoreBar,
+                        onClose: restoreBar,
                     },
-                    '', ctx.defaultHighlightColor, target.rect,
+                    initialComment, initialColor, target.rect,
                 );
             }
         },
@@ -563,6 +652,13 @@ async function init(): Promise<boolean> {
             if (dataLwFileId) await HighlightManager.loadHighlightsForFileId(Number(dataLwFileId));
             setupReadableViewObserver();
         }
+        // Instantiate the NotePanel for GrabSHARK instances too — Smart Capture's "Add note"
+        // action needs an actual NotePanel to call .show() on. Previously this branch passed
+        // the still-null `notePanel` reference into the callbacks, so the button silently
+        // no-op'd. Toolbox is also instantiated for symmetry / future reuse from inside
+        // GrabSHARK Smart Capture flows.
+        if (!notePanel) notePanel = new NotePanel();
+        if (!toolbox) toolbox = new HighlightToolbox();
         smartCaptureMode = new SmartCaptureMode(createGrabSHARKSmartCaptureCallbacks({ defaultHighlightColor, notePanel, toolbox, smartCaptureModeRef }), containerSelector);
         smartCaptureModeRef.current = smartCaptureMode;
         return true;

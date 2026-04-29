@@ -65,12 +65,16 @@ export const COLOR_VALUES: Record<HighlightColor, string> = {
   green: 'rgb(34, 197, 94)'
 };
 
+export type SuccessButtonAction = 'clip' | 'copy' | 'highlight' | 'erase';
+
 export interface ToolboxState {
   selectedColor: HighlightColor;
   existingHighlight: Highlight | null;
   detectedLinks: Array<{ url: string; label: string }>;
   isLinkMenuOpen: boolean;
   highlightIdsInSelection: number[];
+  /** Per-button inline-tick state. Only one button shows the tick at a time. */
+  successButton: SuccessButtonAction | null;
 }
 
 export class HighlightToolboxRenderer {
@@ -89,13 +93,19 @@ export class HighlightToolboxRenderer {
     container.className = `ext-lw-toolbox ${isDarkMode ? 'ext-lw-dark' : 'ext-lw-light'}`;
 
     const activeColor = state.selectedColor;
+    const success = state.successButton;
+    const tick = `<span class="ext-lw-dock-btn-tick">✓</span>`;
+    const successClass = (action: SuccessButtonAction) =>
+      success === action ? 'ext-lw-dock-btn-success' : '';
+    const successDisabled = (action: SuccessButtonAction) =>
+      success === action ? 'disabled' : '';
 
     // Build unified dock HTML
     let dockContent = '';
 
     // === COLOR SELECTOR (with dropdown) ===
     dockContent += `
-      <div class="ext-lw-dock-color-wrapper" title="${i18n.t('highlightToolbox.changeColor')}">
+      <div class="ext-lw-dock-color-wrapper">
         <div class="ext-lw-dock-color" style="background-color: ${COLOR_VALUES[activeColor]};" data-action="quick-color" data-color="${activeColor}"></div>
         <div class="ext-lw-void-dropdown-outer ext-lw-dock-color-dropdown-outer">
           <div class="ext-lw-void-dropdown ext-lw-dock-color-dropdown">
@@ -114,15 +124,15 @@ export class HighlightToolboxRenderer {
     // Highlighter button (only for new selections)
     if (!state.existingHighlight) {
       dockContent += `
-        <button class="ext-lw-dock-btn" data-action="highlight" title="${i18n.t('smartActions.highlight')}">
-          ${ICONS.highlighter}
+        <button class="ext-lw-dock-btn ${successClass('highlight')}" data-action="highlight" ${successDisabled('highlight')}>
+          ${success === 'highlight' ? tick : ICONS.highlighter}
         </button>
       `;
     }
 
     // Note/Comment button
     dockContent += `
-      <button class="ext-lw-dock-btn" data-action="comment" title="${state.existingHighlight?.comment ? i18n.t('highlightToolbox.editNote') : i18n.t('highlightToolbox.addNote')}">
+      <button class="ext-lw-dock-btn" data-action="comment">
         ${state.existingHighlight?.comment ? ICONS.commentFill : ICONS.comment}
       </button>
     `;
@@ -130,21 +140,21 @@ export class HighlightToolboxRenderer {
     // Clip or Copy button
     if (state.existingHighlight) {
       dockContent += `
-        <button class="ext-lw-dock-btn" data-action="copy-text" title="${i18n.t('highlightToolbox.copyText')}">
-          ${ICONS.copy}
+        <button class="ext-lw-dock-btn ${successClass('copy')}" data-action="copy-text" ${successDisabled('copy')}>
+          ${success === 'copy' ? tick : ICONS.copy}
         </button>
       `;
     } else {
       dockContent += `
-        <button class="ext-lw-dock-btn" data-action="clip" title="${i18n.t('highlightToolbox.captureSelection')}">
-          ${ICONS.camera}
+        <button class="ext-lw-dock-btn ${successClass('clip')}" data-action="clip" ${successDisabled('clip')}>
+          ${success === 'clip' ? tick : ICONS.camera}
         </button>
       `;
     }
 
     // Smart Capture
     dockContent += `
-      <button class="ext-lw-dock-btn" data-action="smart-capture" title="${i18n.t('highlightToolbox.smartCapture')}">
+      <button class="ext-lw-dock-btn" data-action="smart-capture">
         ${ICONS.target}
       </button>
     `;
@@ -160,7 +170,7 @@ export class HighlightToolboxRenderer {
 
       dockContent += `
         <div class="ext-lw-link-save-container">
-          <button class="ext-lw-dock-btn" data-action="save-link" title="${i18n.t('highlightToolbox.saveLinks')}">
+          <button class="ext-lw-dock-btn" data-action="save-link">
             ${ICONS.link}
             ${hasMultiple ? `<span class="ext-lw-link-badge">${badgeText}</span>` : ''}
           </button>
@@ -173,7 +183,7 @@ export class HighlightToolboxRenderer {
             <div class="ext-lw-link-dropdown-header">${i18n.t('highlightToolbox.saveCount', { count: linkCount })}</div>
             <div class="ext-lw-link-dropdown-content">
               ${state.detectedLinks.map((link) => `
-                <button class="ext-lw-link-item" data-url="${this.escapeHtml(link.url)}" title="${this.escapeHtml(link.url)}">
+                <button class="ext-lw-link-item" data-url="${this.escapeHtml(link.url)}">
                   <span class="ext-lw-link-item-icon">${ICONS.linkSmall}</span>
                   <span class="ext-lw-link-url">${this.escapeHtml(link.label)}</span>
                 </button>
@@ -189,13 +199,12 @@ export class HighlightToolboxRenderer {
       `;
     }
 
-    // === DELETE (for existing highlights) ===
-    if (state.existingHighlight || (state.highlightIdsInSelection && state.highlightIdsInSelection.length > 0)) {
+    // === DELETE (for existing highlights — also stays rendered while erase-success tick shows) ===
+    if (state.existingHighlight || (state.highlightIdsInSelection && state.highlightIdsInSelection.length > 0) || success === 'erase') {
       dockContent += '<div class="ext-lw-dock-divider"></div>';
-      const isBulkDelete = !state.existingHighlight && state.highlightIdsInSelection && state.highlightIdsInSelection.length > 0;
       dockContent += `
-        <button class="ext-lw-dock-btn" data-action="delete" title="${isBulkDelete ? i18n.t('highlightToolbox.deleteHighlights') : i18n.t('highlightToolbox.delete')}">
-          ${ICONS.trash}
+        <button class="ext-lw-dock-btn ${successClass('erase')}" data-action="delete" ${successDisabled('erase')}>
+          ${success === 'erase' ? tick : ICONS.trash}
         </button>
       `;
     }

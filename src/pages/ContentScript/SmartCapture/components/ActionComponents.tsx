@@ -18,28 +18,38 @@ export function ActionButton({
     icon,
     onClick,
     isDark,
+    success = false,
+    disabled = false,
 }: {
     label: string;
     icon: React.ReactNode;
     onClick: () => void;
     isDark: boolean;
+    success?: boolean;
+    disabled?: boolean;
 }) {
     const styles = getCaptureDockStyles(isDark);
     const [hovered, setHovered] = useState(false);
+
+    const displayIcon = success ? CHECK_ICON : icon;
+    const displayLabel = success ? i18n.t('common.done') : label;
 
     return (
         <button
             style={{
                 ...styles.actionButton,
-                ...(hovered ? styles.actionButtonHover : {}),
+                ...(hovered && !disabled && !success ? styles.actionButtonHover : {}),
+                ...(success ? { color: '#10b981' } : {}),
+                cursor: disabled ? 'default' : 'pointer',
             }}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            onClick={onClick}
-            title={label}
+            onClick={() => { if (!disabled) onClick(); }}
+            title={success ? '' : label}
+            disabled={disabled}
         >
-            <span style={styles.actionIcon}>{icon}</span>
-            <span style={{ flex: 1 }}>{label}</span>
+            <span style={styles.actionIcon}>{displayIcon}</span>
+            <span style={{ flex: 1 }}>{displayLabel}</span>
         </button>
     );
 }

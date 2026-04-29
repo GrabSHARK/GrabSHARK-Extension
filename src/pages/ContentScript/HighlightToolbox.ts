@@ -2,7 +2,7 @@
 import { Highlight, HighlightColor } from '../../@/lib/types/highlight';
 import { FeedbackIndicator } from './components/FeedbackIndicator';
 import { ThemeManager } from './shared/ThemeManager';
-import { HighlightToolboxRenderer, ToolboxState } from './HighlightToolboxRenderer';
+import { HighlightToolboxRenderer, SuccessButtonAction, ToolboxState, ICONS } from './HighlightToolboxRenderer';
 import { attachColorModeListeners } from './toolbox/colorModeListeners';
 import { attachCommentModeListeners } from './toolbox/commentModeListeners';
 import { extractLinksFromSelection, positionWithinViewport } from './toolbox/toolboxHelpers';
@@ -44,7 +44,8 @@ export class HighlightToolbox {
         existingHighlight: null,
         detectedLinks: [],
         highlightIdsInSelection: [],
-        isLinkMenuOpen: false
+        isLinkMenuOpen: false,
+        successButton: null
     };
 
     private _isOpen = false;
@@ -58,6 +59,12 @@ export class HighlightToolbox {
     private isDragging = false;
     private hasManualPosition = false;
     private clickOutsideHandler: ((e: MouseEvent) => void) | null = null;
+    /** Hover-aware close timer for clip/copy success ticks. */
+    private closeTimer: ReturnType<typeof setTimeout> | null = null;
+    /** Exit-animation completion timer for close() — must be cancelled on reopen so a stale
+     *  fire doesn't slam the freshly reopened toolbox shut. */
+    private closeAnimTimer: ReturnType<typeof setTimeout> | null = null;
+    private isHovering = false;
     constructor() {
         this.renderer = new HighlightToolboxRenderer();
     }
@@ -95,6 +102,24 @@ export class HighlightToolbox {
             const target = e.target as HTMLElement;
             if (['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
             e.preventDefault();
+        });
+
+        // Hover-aware close timer for clip/copy: pause while user lingers, restart on leave.
+        this.container.addEventListener('mouseenter', () => {
+            this.isHovering = true;
+            const success = this.state.successButton;
+            if ((success === 'clip' || success === 'copy') && this.closeTimer) {
+                clearTimeout(this.closeTimer);
+                this.closeTimer = null;
+            }
+        });
+        this.container.addEventListener('mouseleave', () => {
+            this.isHovering = false;
+            if (!this._isOpen) return;
+            const success = this.state.successButton;
+            if (success === 'clip' || success === 'copy') {
+                this.scheduleSuccessClose(450);
+            }
         });
 
         this.shadow.appendChild(this.container);
@@ -148,13 +173,26 @@ export class HighlightToolbox {
             detectedLinks,
             isLinkMenuOpen: false,
             selectedColor: existingHighlight?.color || defaultColor,
-            highlightIdsInSelection: highlightIdsInSelection || []
+            highlightIdsInSelection: highlightIdsInSelection || [],
+            successButton: null
         };
 
         this.callbacks = callbacks;
         this.commentValue = existingHighlight?.comment || '';
         this.originalCommentValue = this.commentValue;
         this.isPinned = initialCommentMode ? !!this.commentValue : false;
+        this.isHovering = false;
+        if (this.closeTimer) {
+            clearTimeout(this.closeTimer);
+            this.closeTimer = null;
+        }
+        // Cancel any pending exit-animation timer from a previous close() — without this,
+        // a reopen that lands inside the 200ms close window would be slammed shut by the
+        // stale timer firing after show() completes.
+        if (this.closeAnimTimer) {
+            clearTimeout(this.closeAnimTimer);
+            this.closeAnimTimer = null;
+        }
 
         this.render();
     }
@@ -167,6 +205,15 @@ export class HighlightToolbox {
     public close(): void {
         if (!this.container || !this._isOpen) return;
 
+        if (this.closeTimer) {
+            clearTimeout(this.closeTimer);
+            this.closeTimer = null;
+        }
+        if (this.closeAnimTimer) {
+            clearTimeout(this.closeAnimTimer);
+            this.closeAnimTimer = null;
+        }
+
         if (this._isCommentMode) {
             this.container.classList.add('ext-lw-closing');
         } else {
@@ -175,14 +222,69 @@ export class HighlightToolbox {
             else this.container.classList.add('ext-lw-closing');
         }
 
-        setTimeout(() => {
+        this.closeAnimTimer = setTimeout(() => {
+            this.closeAnimTimer = null;
             this._isOpen = false;
             this._isCommentMode = false;
             this.hasManualPosition = false;
+            this.state.successButton = null;
             this.callbacks?.onClose();
             this.render();
             window.getSelection()?.removeAllRanges();
         }, 200);
+    }
+
+    /** Set the per-button success state. Uses a targeted DOM update instead of a
+     *  full render() — innerHTML replacement would remount `.ext-lw-void-dock-outer`
+     *  and replay the spring entrance keyframes (perceived as a flicker), and would
+     *  also re-run positionWithinViewport (perceived as the bar nudging up a few
+     *  pixels). Toggling class + swapping the affected button's inner content keeps
+     *  the dock identity intact so the natural ext-lw-success-flood + ext-lw-tick-pop
+     *  animations on the changed button are the only motion the user sees. */
+    public setSuccessButton(action: SuccessButtonAction | null): void {
+        this.state.successButton = action;
+        if (!this._isOpen || !this.container) return;
+        this.applySuccessState();
+    }
+
+    private applySuccessState(): void {
+        if (!this.container) return;
+        const success = this.state.successButton;
+        const tickHTML = '<span class="ext-lw-dock-btn-tick">✓</span>';
+        const buttonMap: Record<SuccessButtonAction, { selector: string; icon: string }> = {
+            highlight: { selector: '[data-action="highlight"]', icon: ICONS.highlighter },
+            copy: { selector: '[data-action="copy-text"]', icon: ICONS.copy },
+            clip: { selector: '[data-action="clip"]', icon: ICONS.camera },
+            erase: { selector: '[data-action="delete"]', icon: ICONS.trash },
+        };
+        (Object.keys(buttonMap) as SuccessButtonAction[]).forEach(act => {
+            const { selector, icon } = buttonMap[act];
+            const btn = this.container!.querySelector(selector) as HTMLButtonElement | null;
+            if (!btn) return;
+            const isSuccess = success === act;
+            btn.classList.toggle('ext-lw-dock-btn-success', isSuccess);
+            if (isSuccess) {
+                btn.setAttribute('disabled', '');
+                btn.innerHTML = tickHTML;
+            } else {
+                btn.removeAttribute('disabled');
+                btn.innerHTML = icon;
+            }
+        });
+    }
+
+    /** Schedule a deferred close for hover-aware actions (clip / copy). */
+    public scheduleSuccessClose(delay: number): void {
+        if (this.closeTimer) clearTimeout(this.closeTimer);
+        this.closeTimer = setTimeout(() => {
+            this.closeTimer = null;
+            this.state.successButton = null;
+            this.close();
+        }, delay);
+    }
+
+    public isHoveringToolbox(): boolean {
+        return this.isHovering;
     }
 
     public setLoading(loading: boolean): void {
@@ -231,6 +333,9 @@ export class HighlightToolbox {
             callbacks: this.callbacks,
             setLoading: (l) => this.setLoading(l),
             setSuccess: () => this.setSuccess(),
+            setSuccessButton: (a) => this.setSuccessButton(a),
+            scheduleSuccessClose: (d) => this.scheduleSuccessClose(d),
+            isHoveringToolbox: () => this.isHoveringToolbox(),
             close: () => this.close(),
             targetRect: this._targetRect,
             setCommentMode: (v) => { this._isCommentMode = v; },
@@ -294,6 +399,8 @@ export class HighlightToolbox {
     }
 
     public destroy(): void {
+        if (this.closeTimer) { clearTimeout(this.closeTimer); this.closeTimer = null; }
+        if (this.closeAnimTimer) { clearTimeout(this.closeAnimTimer); this.closeAnimTimer = null; }
         if (this.clickOutsideHandler) { document.removeEventListener('mousedown', this.clickOutsideHandler); this.clickOutsideHandler = null; }
         if (this.feedbackIndicator) { this.feedbackIndicator.hide(); this.feedbackIndicator = null; }
         if (this.container) { this.container.remove(); this.container = null; }

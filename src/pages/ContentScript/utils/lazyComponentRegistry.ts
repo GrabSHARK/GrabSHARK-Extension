@@ -7,6 +7,7 @@ export interface EmbeddedAppModule {
 export interface CaptureDockModule {
     React: any;
     createRoot: any;
+    flushSync: any;
     CaptureDock: any;
 }
 

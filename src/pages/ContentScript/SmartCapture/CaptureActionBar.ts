@@ -141,6 +141,9 @@ export class CaptureActionBar {
             positionFloatingBar(this.host, this.container, target);
             this.updateTheme();
         } else {
+            // Fresh-show after hide. flushSync in render() guarantees the React
+            // tree is committed before this point, so positionFloatingBar can
+            // measure the final container width on the first try.
             this.host.style.setProperty('transition', 'none', 'important');
             this.container.classList.remove('ext-lw-capture-actionbar-hidden', 'ext-lw-closing');
             this.container.style.setProperty('display', 'flex', 'important');
@@ -181,14 +184,25 @@ export class CaptureActionBar {
             this.reactRoot = this.reactModule.createRoot(this.container);
         }
         if (this.reactRoot) {
-            this.reactRoot.render(
-                this.reactModule.React.createElement(this.reactModule.CaptureDock, {
+            // flushSync forces React 18 to commit synchronously so the very next
+            // getBoundingClientRect() (positionFloatingBar) sees the fully-mounted
+            // DOM with final width — otherwise it captures the bare container at
+            // its 160px min-width, places the host accordingly, then ResizeObserver
+            // fires after commit and shifts everything left. That mid-paint jump
+            // is the "settle" the user reported on every reshow.
+            const reactModule = this.reactModule;
+            const reactRoot = this.reactRoot;
+            const flushSync = reactModule.flushSync;
+            const doRender = () => reactRoot.render(
+                reactModule.React.createElement(reactModule.CaptureDock, {
                     target: this.currentTarget,
                     isDark: this.themeDetector.isDarkMode(),
                     callbacks: this.callbacks,
                     faviconUrl: chrome.runtime.getURL('16.png'),
                 })
             );
+            if (typeof flushSync === 'function') flushSync(doRender);
+            else doRender();
         }
     }
 

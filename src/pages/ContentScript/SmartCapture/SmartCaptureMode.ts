@@ -114,6 +114,11 @@ export class SmartCaptureMode {
     public activate(): void {
         if (this.isActive) return;
         this.isActive = true;
+        // Always start a fresh activation un-paused. Without this reset, a previous
+        // session that called pauseSelection() but never resumed (e.g. NotePanel
+        // closed without firing the resume callback) leaves `isPaused=true` sticky,
+        // which makes the element selector silently no-op on the next activation.
+        this.isPaused = false;
         this.isMarqueeMode = false;
         this.dragStartPoint = null;
 
@@ -139,6 +144,7 @@ export class SmartCaptureMode {
     public deactivate(): void {
         if (!this.isActive) return;
         this.isActive = false;
+        this.isPaused = false;
         this.isMarqueeMode = false;
         this.dragStartPoint = null;
 
@@ -296,10 +302,27 @@ export class SmartCaptureMode {
 
     public reshowActionBar(): void { this.showActionBar(); }
 
+    /** Hide the action bar without deactivating capture mode (e.g. while note panel is open). */
+    public hideActionBar(): void { this.actionBar.hide(); }
+
     private showActionBar(): void {
         const target = this.selectionManager.createCaptureTarget();
         if (!target) return;
-        this.actionBar.show(target, { ...this.callbacks, onClose: () => this.deactivate() });
+        this.actionBar.show(target, {
+            ...this.callbacks,
+            onClose: () => this.deactivate(),
+            // Hide → reshow with a fresh CaptureTarget object (new identity) so
+            // CaptureDock's [target] effects rerun, state resets, and the
+            // existing-highlight detector picks up the just-mutated DOM. Used by
+            // highlight/erase to swap the action layout post-success.
+            onReopen: () => {
+                this.actionBar.hide();
+                setTimeout(() => {
+                    if (!this.isActive) return;
+                    this.showActionBar();
+                }, 250);
+            },
+        });
     }
 
     public destroy(): void {
