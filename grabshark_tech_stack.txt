@@ -84,6 +84,10 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 └─ Category: Interaction
 └─ Purpose: Uygulama içi sürükle-bırak (Drag & Drop) ve liste/pano sıralama işlemlerinin omurgası.
 
+[react-complex-tree]
+└─ Category: Tree DnD
+└─ Purpose: Sidebar koleksiyon ve etiket ağaçlarının ortak ağaç bileşeni; native HTML5 drag ile reorder/sub/root, expand-collapse, sessionStorage ile expanded state. Hem CollectionListing hem TagListing bunu kullanır (atlaskit/tree'nin yerine).
+
 == Content Parsers & Preview Engines ==
 
 [Himalaya / JSDOM]

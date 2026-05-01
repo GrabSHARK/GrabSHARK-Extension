@@ -30,3 +30,12 @@ dist.pem
 *.sw?
 
 grabshark.zip
+
+# AI assistant working files (kept local, not for public repo)
+CLAUDE.md
+.claude/
+.gemini/
+memory-bank/
+tasks/lessons.md
+tasks/todo.md
+tasks/extension-performance-memory-analysis.md

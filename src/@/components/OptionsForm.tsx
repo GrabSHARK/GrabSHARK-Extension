@@ -114,7 +114,7 @@ const ConnectionFields = ({ control, method }: { control: any; method: string })
           <FormItem>
             <FormLabel>Username or Email</FormLabel>
             <FormDescription>Your GrabSHARK Username or Email.</FormDescription>
-            <FormControl><Input placeholder="johnny" {...field} /></FormControl>
+            <FormControl><Input placeholder="finn" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />

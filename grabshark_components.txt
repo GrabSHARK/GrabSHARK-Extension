@@ -35,7 +35,7 @@ GrabSHARK Main Application Components (Complete List)
 [CollectionListing]
 └─ File: grabshark/apps/web/components/CollectionListing.tsx
 └─ Category: Listing
-└─ Purpose: Ana koleksiyonlar sayfası ve liste yöneticisi.
+└─ Purpose: Sidebar koleksiyon ağacı; react-complex-tree üzerinde native HTML5 drag ile reorder/sub/root, optimistic tempId guards, depth*12px indent, paylaşılan TreeDropIndicator + treeDragStore + useTreePointerTracking pattern'i.
 
 [ConfirmationModal]
 └─ File: grabshark/apps/web/components/ConfirmationModal.tsx
@@ -275,7 +275,7 @@ GrabSHARK Main Application Components (Complete List)
 [TagListing]
 └─ File: grabshark/apps/web/components/TagListing.tsx
 └─ Category: Listing
-└─ Purpose: Etiketler sayfası ana görünümü.
+└─ Purpose: Sidebar etiket ağacı; react-complex-tree üzerinde root seviyede MAX 50 + "show more" sentinel, CollectionListing ile paylaşılan drag pattern (native HTML5, pointer-events:none content + chevron auto, depth*12px indent).
 
 [TextInput]
 └─ File: grabshark/apps/web/components/TextInput.tsx
