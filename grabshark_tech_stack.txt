@@ -98,6 +98,10 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 └─ Category: Media Viewer
 └─ Purpose: Kayıtlı Word (DOCX) ve Excel dosyalarını tarayıcı üzerinde görsel olarak render (preview) edebilmek.
 
+[JSZip]
+└─ Category: Browser Bundler
+└─ Purpose: Content Library panelinde scrape edilmiş görsellerin tarayıcı tarafında ZIP arşivi olarak paketlenip toplu indirilmesi.
+
 [RSS Parser / RSS]
 └─ Category: Content Syndication
 └─ Purpose: Dışarıdaki haber/makale kaynaklarından XML formatlı beslemeleri okuma veya koleksiyonları dışarıya RSS olarak yayınlama.

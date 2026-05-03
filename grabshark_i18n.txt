@@ -120,7 +120,11 @@ GrabSHARK Main Application Internationalization (i18n Reference)
 
 [Section 19 — Browser Settings (Playwright / CloakBrowser / Stealth)]
 └─ Keys: browser_settings, browser_type, playwright_options, cloak_stealth_label, cloak_humanize_label, cloak_human_preset_default, browser_config_error_banner_title …
-└─ Purpose: Worker tarayıcı seçimi ve stealth/proxy/timezone ayarları.
+└─ Purpose: Worker tarayıcı seçimi ve stealth/proxy/timezone ayarları. /settings/archiving sayfasının "Tarayıcı (Chromium)" bölümü altına entegre.
+
+[Section 19b — Archiving Settings (cookie / resource / screenshot / PDF / singlefile)]
+└─ Keys: archiving_settings, archiving_browser_section, archiving_browser_addons, archiving_readable_section, archiving_screenshot_section, archiving_pdf_section, archiving_singlefile_section, dismiss_cookie_banners_label, extra_cookie_accept_phrases_label, enable_resource_blocker_label, screenshot_format_label, screenshot_format_png, screenshot_format_jpeg, screenshot_format_webp, screenshot_quality_label, screenshot_color_scheme_label, color_scheme_auto, color_scheme_light, color_scheme_dark, screenshot_freeze_animations_label, pdf_page_size_label, pdf_page_size_a4, pdf_page_size_letter, pdf_page_size_legal, pdf_page_size_tabloid, pdf_page_size_custom, pdf_orientation_label, pdf_orientation_portrait, pdf_orientation_landscape, pdf_margin_label, pdf_margin_none, pdf_margin_narrow, pdf_margin_normal, pdf_margin_wide, pdf_print_background_label, pdf_header_footer_label, pdf_header_footer_none, pdf_header_footer_title, pdf_header_footer_url, pdf_header_footer_title_url, pdf_header_footer_title_url_page_date, pdf_single_page_label, pdf_scale_label, pdf_color_mode_label, pdf_color_mode_color, pdf_color_mode_grayscale, pdf_strip_js_label, pdf_optimize_label, pdf_optimize_lossless, pdf_optimize_standard, pdf_optimize_aggressive, pdf_generate_toc_label, singlefile_mode_standard, singlefile_mode_enhanced, singlefile_mode_both …
+└─ Purpose: /settings/archiving sayfasının 5 bölümü için tüm etiketler ve açıklamalar (84 yeni key, 15 lokal × 1336 key, EN+TR full + 13 lokal EN fallback Crowdin pickup için).
 
 [Section 20 — Browser Monitor (live screencast)]
 └─ Keys: browser_monitor, browser_monitor_connected, browser_monitor_archiving, browser_monitor_ready, worker
@@ -193,6 +197,10 @@ GrabSHARK Main Application Internationalization (i18n Reference)
 [Section 37 — Misc]
 └─ Keys: email_invalid, username_invalid_guide, deleting_selections, other_settings
 └─ Purpose: Başka kategoriye uymayan tek-tük metinler.
+
+[Section 38 — Notifications (in-app, v1)]
+└─ Keys: notif_bell_label, notif_dropdown_title, notif_modal_title, notif_mark_all_read, notif_see_all, notif_empty, notif_load_error, notif_load_more, notif_loading, notif_bucket_today, notif_bucket_yesterday, notif_bucket_this_week, notif_bucket_older, notif_filter_all, notif_filter_unread, notif_filter_archive, notif_filter_ai, notif_filter_social, notif_filter_security, notif_filter_system, notif_link_archived_{title,body}, notif_link_archived_degraded_{title,body}, notif_link_archive_failed_{title,body}, notif_auto_tag_ready_{title,body}, notif_collection_invite_{title,body}, notif_new_device_login_{title,body}, notif_admin_announcement_{title,body}, notif_admin_form_{title,description,title_placeholder,body_placeholder,send,sending,sent,error,confirm}
+└─ Purpose: Bell + dropdown + modal + admin announcement form. Notification body/title key+args olarak DB'de saklı, render anında `t(payload.titleKey, payload.titleArgs)` çağrılır → kullanıcı locale'i değişince geçmiş bildirimler de yeniden çevrilir. Toplam 43 key. EN+TR full, 13 lokal EN fallback (Crowdin pickup).
 
 == Glossary / Whitelist (Tüm Diller İçin Korunur) ==
 
@@ -290,3 +298,66 @@ GrabSHARK Main Application Internationalization (i18n Reference)
 [i18n Sync Rule]
 └─ Rule: Bu dosya kod tarafında yeni section/key girdiğinde anında güncellenmeli
 └─ Mirror: grabshark-extension/grabshark_i18n.txt (cross-directory sync zorunlu)
+
+================================================================================
+Section 38 — Reminders (added 2026-05-04, ~94 keys)
+================================================================================
+
+[reminders / reminders_subtitle / reminders_section_*]
+└─ Page-level — title, subtitle, 4 section headers (due/upcoming/recurring/archive) + their empty-state strings.
+
+[reminder_modal_create_title / reminder_modal_edit_title / reminder_target_*_default]
+└─ ReminderModal heading + fallback target labels when the entity name is empty.
+
+[reminder_recurrence_label / reminder_mode_* / reminder_oneshot_label / reminder_time_label / reminder_weekday_label / reminder_dayofmonth_label]
+└─ Schedule picker labels.
+
+[reminder_channels_label / reminder_channel_* / reminder_channel_*_unavailable / reminder_channel_*_short]
+└─ 3-channel checkbox labels + tooltips for disabled state + compact badges used in the row schedule line.
+
+[reminder_note_label / reminder_note_placeholder]
+└─ Note textarea.
+
+[reminder_create / reminder_set_action]
+└─ Modal save button + the "Hatırlat" entry in Link/File/Highlight kebab menus.
+
+[reminder_error_*]
+└─ Inline modal validation messages.
+
+[reminder_saved / reminder_persistent_toast_body / reminder_persistent_toast_open_settings]
+└─ Sonner toast surfaces. The persistent variant only shows on the user's first-ever reminder (DB-state-derived, not localStorage — Reminder.count==1 after insert).
+
+[reminder_action_done / reminder_action_snooze / reminder_snooze_* / reminder_snoozed / reminder_dismissed / reminder_paused / reminder_resumed / reminder_deleted / reminder_delete_confirm]
+└─ Action buttons + their result toasts. ReminderSnoozeMenu uses these in both compact (NotificationRow) and full (ReminderRow) variants.
+
+[reminder_status_*]
+└─ Status badges in archived rows.
+
+[reminder_schedule_oneshot / reminder_schedule_recurring / reminder_humanize_*]
+└─ Cron pattern → human-readable string. Recurring rows render "{pattern} · next {next}".
+
+[reminder_race_confirm_*]
+└─ Race-protection confirm dialog (Lesson 44). Surfaces when a different channel snoozed the same reminder between observation and action.
+
+[reminder_archive_purge_*]
+└─ /reminders Archive section "Purge archive" button + confirm + done toast.
+
+[reminder_manage_link]
+└─ NotificationDropdown footer link to /reminders.
+
+[notif_reminder_fired_title / notif_reminder_fired_body / notif_reminder_no_longer_exists]
+└─ REMINDER_FIRED notification payload templates + 404 toast string for orphaned action clicks.
+
+[notif_filter_all / notif_filter_notifications / notif_filter_reminders]
+└─ NotificationDropdown filter tab labels.
+
+[dashboard_reminders_*]
+└─ RemindersSection widget header + empty state + see-all link.
+
+[timezone_label / timezone_help / timezone_auto_detect / timezone_updated / timezone_updated_with_recompute / timezone_update_failed]
+└─ SettingsTimezoneSelect — label, helper text below the dropdown, "Auto detect ({tz}, {offset})" first-option string, action result toasts.
+
+[weekday_sun..weekday_sat]
+└─ Short day-of-week labels (3 chars) used by the weekly preset selector + cron humanizer.
+
+Sync result (run /tmp/insert_reminder_i18n.py): 1499 keys per locale × 15 locales — EN+TR fully translated, 13 fallback locales hold EN strings until Crowdin community translations land.

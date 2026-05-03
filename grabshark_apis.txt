@@ -501,3 +501,103 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/server.ts (custom server interceptor before Next.js)
 └─ Handler: grabshark/apps/web/lib/webhooks/telegramWebhookHandler.ts
 └─ Purpose: Telegram webhook ingress. NOT a Next.js API route — mounted on the custom server's /wh/ namespace so we bypass Next's default bodyParser for raw-body access. Validates X-Telegram-Bot-Api-Secret-Token (timing-safe compare), persists (botId, update_id) for idempotency (P2002 = 200 OK duplicate), pushes envelope to Redis list telegram:updates:queue for the worker to dispatch, returns 200/500. 404 when TELEGRAM_ENABLED=false or no active bot. Max body 2MB.
+
+== Notifications (in-app, v1) ==
+
+[GET] /api/v1/notifications
+└─ File: grabshark/apps/web/pages/api/v1/notifications/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/getNotifications.ts
+└─ Purpose: Cursor-paginated list of the caller's notifications. Query params: take (default 30, max 200), cursor (last id from previous page), unreadOnly=1, type=<NotificationType>. Returns { notifications: NotificationDTO[], nextCursor: number | null }. Each DTO carries { id, type, payload (titleKey/titleArgs/bodyKey/bodyArgs/target?), readAt, createdAt }.
+
+[GET] /api/v1/notifications/unread-count
+└─ File: grabshark/apps/web/pages/api/v1/notifications/unread-count.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/getUnreadCount.ts
+└─ Purpose: Lightweight count for the bell badge. Returns { unread: number, lastSeenAt: ISO | null }. Polled every 60s as a WebSocket fallback; primary push channel is /api/ws/notifications.
+
+[POST] /api/v1/notifications/[id]/read
+└─ File: grabshark/apps/web/pages/api/v1/notifications/[id]/read.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/markAsRead.ts
+└─ Purpose: Idempotent single-row read marker. Ownership-scoped via where:{ id, userId } so cross-user enumeration silently 404s. Re-marking a read row is a no-op (preserves "first read" timestamp).
+
+[POST] /api/v1/notifications/read-all
+└─ File: grabshark/apps/web/pages/api/v1/notifications/read-all.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/markAllRead.ts
+└─ Purpose: Bulk mark-as-read for the caller. Updates only readAt=null rows. Returns { marked: number }.
+
+[POST] /api/v1/notifications/seen
+└─ File: grabshark/apps/web/pages/api/v1/notifications/seen.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/updateLastSeen.ts
+└─ Purpose: Slack/Linear bell-open semantic. Sets User.notificationsLastSeenAt=now() so the badge counter zeroes client-side without flipping any per-row readAt. Rows stay visually unread until clicked.
+
+[POST] /api/v1/admin/announcements
+└─ File: grabshark/apps/web/pages/api/v1/admin/announcements/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/announcements/postAnnouncement.ts
+└─ Purpose: Admin-only broadcast to ALL users. Body { title, body, channels?: { email?, telegram? } }, max 200/2000 chars. Inserts one Notification row per user via createMany + per-user Redis publish. Stored as ADMIN_ANNOUNCEMENT with the literal text in payload.titleArgs/bodyArgs (the i18n keys notif_admin_announcement_{title,body} resolve to "{{text}}"). Optional `channels` overrides each user's NotificationPreference for THIS broadcast (emergency bypass) — recorded in audit log metadata.channels for forensic review. Audit-logged as admin/announcement_sent.
+
+[GET] /api/v1/notifications/preferences
+└─ File: grabshark/apps/web/pages/api/v1/notifications/preferences.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/getPreferences.ts
+└─ Purpose: Returns the full per-type preference matrix `{ preferences: [{type, email, telegram}, ...] }`. DB rows merged with defaults — missing entry = `email:false, telegram:false` except `NEW_DEVICE_LOGIN` which defaults `email:true` (security industry pattern). Settings page consumes this to render the toggle grid.
+
+[PUT] /api/v1/notifications/preferences
+└─ File: grabshark/apps/web/pages/api/v1/notifications/preferences.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/updatePreferences.ts
+└─ Purpose: Bulk upsert per-type preferences. Body `{ preferences: [{type, email, telegram}, ...] }`. Each entry upserted as own row in a single $transaction so partial failure leaves no half-committed state. Unknown type strings dropped silently (forward-compat). UI sends single-element array per toggle for snappier responsiveness.
+
+[GET] /api/v1/notifications/channels
+└─ File: grabshark/apps/web/pages/api/v1/notifications/channels.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/getChannels.ts
+└─ Purpose: Reports availability of each optional channel for THIS user. Returns `{ email: { available, smtpConfigured, hasVerifiedEmail }, telegram: { available, telegramEnabled, botActive, paired } }`. Settings matrix uses these to disable column checkboxes with tooltip pointing to the fix (`/settings/account` for email, `/settings/integrations` for Telegram).
+
+[WS] /api/ws/notifications
+└─ File: grabshark/apps/web/server.ts (custom server WS upgrade handler)
+└─ Purpose: Per-user Redis Pub/Sub relay (channel: notif:<uid>). Same NextAuth cookie auth as /api/ws/screencast (manual cookie parse + getToken — Lesson 21). Pushes JSON NotificationDTOs as they're created so the bell updates without polling. No presence side-effect (mirrors /api/ws/worker-status pattern, not /api/ws/screencast).
+
+================================================================================
+Reminders — feature added 2026-05-04
+================================================================================
+
+[POST] /api/v1/reminders
+└─ File: grabshark/apps/web/pages/api/v1/reminders/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/createReminder.ts
+└─ Purpose: Create a reminder for a Link / File / Highlight (polymorphic XOR target). Validates: target ownership/access, channel availability, cron parse, min 1h interval, one-shot in future. Returns { reminder, isFirst } — isFirst=true triggers the persistent timezone-info toast on the client (DB-state-derived, not localStorage).
+
+[GET] /api/v1/reminders
+└─ File: grabshark/apps/web/pages/api/v1/reminders/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/getReminders.ts
+└─ Purpose: Paginated cursor list with status / targetType / dueOnly filters. Active rows order by upcoming nextFireAt; archived rows (DONE/CANCELED) by id desc.
+
+[PATCH] /api/v1/reminders/[id]
+└─ File: grabshark/apps/web/pages/api/v1/reminders/[id]/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/updateReminder.ts
+└─ Purpose: Partial edit (note / channels / cron / oneShotAt / status ACTIVE↔PAUSED). LWW: schedule change clears dispatcher claim so next tick recomputes.
+
+[DELETE] /api/v1/reminders/[id]
+└─ File: grabshark/apps/web/pages/api/v1/reminders/[id]/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/deleteReminder.ts
+└─ Purpose: Soft-delete (status=CANCELED). Cleans up open REMINDER_FIRED notifications for the reminderId so bell rows don't 404 on action click.
+
+[POST] /api/v1/reminders/[id]/snooze
+└─ File: grabshark/apps/web/pages/api/v1/reminders/[id]/snooze.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/snoozeReminder.ts
+└─ Purpose: Push nextFireAt forward. Body { duration: "1h"|"tomorrow"|"custom", customAt?, expectedNextFireAt?, force? }. Race protection (Lesson 44) — `expectedNextFireAt` mismatch returns 409 + currentState; client surfaces confirm dialog; force=true overrides. Side effect: marks every related unread REMINDER_FIRED notification read.
+
+[POST] /api/v1/reminders/[id]/done
+└─ File: grabshark/apps/web/pages/api/v1/reminders/[id]/done.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/markReminderDone.ts
+└─ Purpose: "Tamam" action. One-shot reminders → status=DONE. Recurring reminders untouched (next cycle still fires); only related unread notifications marked read.
+
+[POST] /api/v1/reminders/archive/purge
+└─ File: grabshark/apps/web/pages/api/v1/reminders/archive/purge.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/purgeArchivedReminders.ts
+└─ Purpose: Hard-delete every DONE/CANCELED reminder of the user + cascade-cleanup their REMINDER_FIRED notifications. Mirror of the 30-day retention worker, on-demand.
+
+[GET] /api/v1/system/notification-channels
+└─ File: grabshark/apps/web/pages/api/v1/system/notification-channels.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/getNotificationChannels.ts
+└─ Purpose: ReminderModal mount probe — returns { email, telegram } booleans so the modal can disable unavailable channel checkboxes with tooltips.
+
+[POST] /api/v1/users/me/redetect-timezone
+└─ File: grabshark/apps/web/pages/api/v1/users/me/redetect-timezone.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/redetectTimezone.ts
+└─ Purpose: Update User.timezone with the IANA tz the browser resolved client-side. Power-user fingerprint protection — this is the ONLY auto-override path; register sets the initial tz and subsequent logins do NOT override unless the user explicitly hits the Settings → Auto detect option which calls this endpoint. Side effect: every recurring active reminder's nextFireAt is bulk-recomputed in the new tz.

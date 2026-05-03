@@ -229,10 +229,20 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ Category: Config
 └─ Purpose: Üçüncü-taraf servis entegrasyonları (şu an sadece Telegram). Sidebar görünürlüğü `enabled && (isAdmin || botConfigured)` — TELEGRAM_ENABLED=false ise tüm kullanıcılardan gizli, token configured değilse sadece admin görür (config help text ile). Direct URL hit'te `/settings/account`'a redirect.
 
+[/settings/archiving]
+└─ File: grabshark/apps/web/pages/settings/archiving.tsx
+└─ Category: Config
+└─ Purpose: Arşiv hattının her ayarını tek sayfada toplar — 5 bölüm. (1) Tarayıcı (Chromium): Playwright/CloakBrowser seçimi, stealth, proxy/timezone/locale, prescroll, archive dark mode, cookie banner auto-dismiss + ek "Kabul" buton metni textarea, Hagezi resource blocker toggle. (2) Okunabilir: placeholder. (3) Ekran Görüntüsü: format (PNG/JPEG/WebP) + kalite slider, renk şeması, freeze animations. (4) PDF: sayfa boyutu (A4/Letter/Legal/Tabloid/Custom), yön, marj preset, print background, header/footer combo, single-page, scale, color mode, strip JS, optimize, generate TOC. (5) Tek Dosya HTML: standart/enhanced/her ikisi mode. Sidebar'da "Arşivleme" olarak gözükür.
+
 [/settings/browser]
 └─ File: grabshark/apps/web/pages/settings/browser.tsx
+└─ Category: Redirect
+└─ Purpose: 301 → /settings/archiving. Eski "Browser settings" sayfası /settings/archiving altına Tarayıcı (Chromium) bölümü olarak taşındı; bookmark'lar ve eski deeplink'ler buradan otomatik yönlendirilir.
+
+[/settings/notifications]
+└─ File: grabshark/apps/web/pages/settings/notifications.tsx
 └─ Category: Config
-└─ Purpose: Kullanıcıya özel browser tercihleri — Playwright vs CloakBrowser seçimi, stealth toggle, CloakBrowser parametreleri (stealthArgs, humanize, preset, proxy, timezone, locale, geoip), son launch hata banner'ı.
+└─ Purpose: Per-tip × per-kanal bildirim tercihleri matrisi. Bell + toast (uygulama içi popup) baseline (mandatory) — bu sayfada görünmezler. Sadece email + telegram opsiyonel kanalları toggle edilir, NotificationPreference tablosuna tek-tek upsert. Channel availability hint'leri (SMTP yok → /settings/account, Telegram bağlı değil → /settings/integrations) disabled state'li checkbox + tooltip ile sunulur. Save button yok — Linear/Notion paterni, her toggle anlık optimistic mutation. NEW_DEVICE_LOGIN.email yeni user'lar için varsayılan açık (security industry standard).
 
 [/settings/rss-subscriptions]
 └─ File: grabshark/apps/web/pages/settings/rss-subscriptions.tsx
@@ -243,3 +253,8 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ File: grabshark/apps/web/pages/settings/worker.tsx
 └─ Category: Config
 └─ Purpose: Arkaplan işlemi, indirme gecikmeleri, otomasyon (Preservation worker) ayarları.
+
+[Page] /reminders
+└─ File: grabshark/apps/web/pages/reminders/index.tsx
+└─ Category: User
+└─ Purpose: Reminders management hub (added 2026-05-04). Four sections: Due (overdue ACTIVE), Upcoming (future ACTIVE), Recurring (cron != null), Archive (DONE/CANCELED). Archive section exposes "Purge archive" button → DELETE all + companion REMINDER_FIRED notification cleanup. Each row offers edit / snooze / pause-resume / delete; Due section also shows the inline ReminderSnoozeMenu.

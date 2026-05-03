@@ -42,6 +42,26 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Modal
 └─ Purpose: Genel "Emin misiniz?" onay penceresi.
 
+[ContentLibraryPanel]
+└─ File: grabshark/apps/web/components/ContentLibrary/ContentLibraryPanel.tsx
+└─ Category: Layout / Sidebar
+└─ Purpose: Link preview modalında sağ sidebar — Görseller / Renkler tabları, lazy in-browser DOM parse ile site varlıklarını çıkartır.
+
+[ContentLibraryImagesTab]
+└─ File: grabshark/apps/web/components/ContentLibrary/ImagesTab.tsx
+└─ Category: Tab Panel
+└─ Purpose: Çıkartılan görsel grid'i, mime-format filter chip'leri, JSZip ile toplu indirme ve lightbox açılışı.
+
+[ContentLibraryColorsTab]
+└─ File: grabshark/apps/web/components/ContentLibrary/ColorsTab.tsx
+└─ Category: Tab Panel
+└─ Purpose: Stylesheet + screenshot dominant renkleri swatch grid'inde gösterir, expand kart HEX/RGB/HSL/OKLCH click-to-copy.
+
+[ContentLibraryImageLightbox]
+└─ File: grabshark/apps/web/components/ContentLibrary/ImageLightbox.tsx
+└─ Category: Modal / Overlay
+└─ Purpose: Tek görsel için tam ekran önizleme; orijinal formatta indir + kaynak URL aç.
+
 [CopyButton]
 └─ File: grabshark/apps/web/components/CopyButton.tsx
 └─ Category: Action
@@ -666,9 +686,78 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Modal
 └─ Purpose: Pair code üretir, deep link (`https://t.me/<bot>?start=pair_<nonce>`) ve kopya-dostu metin gösterir. useTelegramPairStatus hook'u ile 5s aralıklarla `/api/v1/telegram/pair/status` polling yapar; kullanıcı Telegram'da `/start pair_<nonce>` yazdığında otomatik kapanır ve React Query cache invalidate olur.
 
+== Notifications (in-app, v1) ==
+
+[NotificationBell]
+└─ File: grabshark/apps/web/components/NotificationBell.tsx
+└─ Category: Sidebar Dock
+└─ Purpose: Bell ikonu + unread badge (99+ cap). Bell hem desktop hem mobile için `SidebarBottomDock` içinde — collapsed ve expanded mode'larda iki ayrı yerleşim. Desktop (>=1024px) tıklamada Radix DropdownMenu ile NotificationDropdown popover'ı açar; mobile'da direkt NotificationsModal açılır. İlk tık'ta `useUpdateLastSeen` ile `notificationsLastSeenAt` güncellenir → badge anında 0'a iner (Slack/Linear modeli). `useNotificationStream` ile `/api/ws/notifications` aboneliği başlatılır (mount-once).
+
+[NotificationDropdown]
+└─ File: grabshark/apps/web/components/NotificationDropdown.tsx
+└─ Category: Sidebar Dock Popover
+└─ Purpose: Desktop bell popover'ı (380px × max 520px). Header (başlık + "Mark all read"), son 8 satır (NotificationRow compact), footer ("See all → modal"). Tip-bazlı sol kenar şerit (unread satırlarda), dropdown.tsx pattern'i kullanır.
+
+[NotificationsModal]
+└─ File: grabshark/apps/web/components/NotificationsModal.tsx
+└─ Category: Modal
+└─ Purpose: "Tümünü gör" full view. Mevcut Modal.tsx wrap'i (mobile vaul drawer + desktop createPortal). Filter chips (Tümü / Okunmamış / Arşiv / AI / Sosyal / Güvenlik / Sistem), tarihe göre grup başlıkları (Bugün / Dün / Bu hafta / Daha eski — `groupByDate` helper), useInfiniteQuery + Load More.
+
+[NotificationRow]
+└─ File: grabshark/apps/web/components/NotificationRow.tsx
+└─ Category: List Item
+└─ Purpose: Hem dropdown hem modal'ın paylaştığı tek satır. Sol kenar şerit (sadece unread), tip ikonu (NotificationIcon), title + body preview (1-2 satır truncate), relative time (formatRelativeTime). Click → useMarkAsRead + payload.target.kind'a göre `router.push` (link → /preserved/<id>, collection → /collections/<id>, file → /files/<id>, highlight → /highlights). Güvenlik/admin gibi target'sız tipler inline kalır.
+
+[NotificationIcon]
+└─ File: grabshark/apps/web/components/NotificationIcon.tsx
+└─ Category: Visual mapping
+└─ Purpose: NotificationType → bootstrap-icon + accent + bucket mapping'i için tek kaynak. NOTIFICATION_ICON_MAP ve STRIPE_COLOR export eder; dropdown, modal ve gelecekteki preferences UI hep buradan okur.
+
+[AdminAnnouncementCard]
+└─ File: grabshark/apps/web/components/AdminAnnouncementCard.tsx
+└─ Category: Admin Form
+└─ Purpose: `/admin` (users) sayfasına eklenen inline form. Title (200) + body (2000) input'ları, native confirm + sonner toast pattern'i. `POST /api/v1/admin/announcements` çağırır, başarıda kaç kullanıcıya ulaştığını toast'lar.
+
 == UI Primitives (Radix-based) ==
 
 [button] / [checkbox] / [context-menu] / [dropdown-menu] / [icons] / [separator] / [tabs] / [tooltip] / [Loader]
 └─ File: grabshark/apps/web/components/ui/[Component].tsx
 └─ Category: Core UI Primitives
 └─ Purpose: Radix UI temelinde yazılmış, projenin yapıtaşı durumundaki düşük seviyeli (saf) bileşen taslakları.
+
+================================================================================
+Reminders feature components — added 2026-05-04
+================================================================================
+
+[ReminderModal] grabshark/apps/web/components/ModalContent/ReminderModal.tsx
+└─ Purpose: Create or edit a reminder for a Link / File / Highlight. Once / Daily / Weekly / Monthly recurrence picker, datetime-local for one-shot or time + weekday/dayOfMonth for recurring. Channel checkboxes (in-app / Telegram / email) with availability gating from useNotificationChannels(). Note textarea ≤500 chars (schema parity). On first reminder, surfaces a persistent Sonner toast with the user's detected timezone and a click-to-open Settings action.
+
+[ReminderRow] grabshark/apps/web/components/Reminder/ReminderRow.tsx
+└─ Purpose: Single-line view used on /reminders sections. Target preview (icon + name + url), schedule summary (cron humanized → "Every Mon at 09:00 — next Mar 4"), channel badges, action cluster (edit / pause-resume / delete). Due section rows render the inline ReminderSnoozeMenu.
+
+[ReminderSnoozeMenu] grabshark/apps/web/components/Reminder/ReminderSnoozeMenu.tsx
+└─ Purpose: Two-level inline menu — collapsed [Tamam] [Ertele] expands to [1 saat] [Yarın] [Özel]. Özel reveals a date+time input. Used by NotificationRow REMINDER_FIRED branch (compact mode) and ReminderRow on /reminders. Wraps useSnoozeReminder + useMarkReminderDone with race-protection — 409 conflict surfaces a confirm toast that retries with force=true.
+
+[RemindersSection] grabshark/apps/web/components/Dashboard/RemindersSection.tsx
+└─ Purpose: Dashboard widget for the new DashboardSectionType.REMINDERS. Reads useUpcomingReminders({limit:5}) — sorted by nextFireAt ASC. Empty state CTA, no inline action buttons (B10 — actions live on /reminders + the bell). Header has "See all → /reminders".
+
+[SettingsTimezoneSelect] grabshark/apps/web/components/SettingsTimezoneSelect.tsx
+└─ Purpose: Native <select> for IANA timezone. Inserted into /settings/account directly under the Language picker. First option "Auto detect (Europe/Istanbul, GMT+3)" calls the redetect endpoint with the current Intl.DateTimeFormat resolved tz; subsequent <optgroup>'s list every IANA zone grouped by current GMT offset (Intl.supportedValuesOf("timeZone")). #timezone URL fragment triggers scroll-into-view + 1-second highlight ring (Lesson 31 keyframe pattern) — used by the persistent toast's Settings link.
+
+[NotificationRow REMINDER_FIRED branch] grabshark/apps/web/components/NotificationRow.tsx
+└─ Purpose: Renders the inline ReminderSnoozeMenu under the row body when notification.type === "REMINDER_FIRED" and unread. e.stopPropagation on the menu container so clicks don't fire the row's entity-navigation handler. payload.bodyArgs.reminderId / firedAtSnapshot drive snooze + race protection.
+
+[NotificationDropdown filter tabs + footer] grabshark/apps/web/components/NotificationDropdown.tsx
+└─ Purpose: Top filter strip [All | Notifications | Reminders] swaps the underlying useNotifications query (type / excludeType params). Footer renders 1 or 2 buttons based on the active tab — All shows both [See all notifications] and [Manage reminders →]; Notifications shows only the former; Reminders shows only the latter.
+
+[NotificationIcon REMINDER_FIRED entry] grabshark/apps/web/components/NotificationIcon.tsx
+└─ Purpose: Adds the bi-alarm-fill icon + accent color to the NOTIFICATION_ICON_MAP and STRIPE_COLOR registries, plus a new "reminder" bucket name.
+
+[Sidebar Reminders entry] grabshark/apps/web/components/Sidebar.tsx
+└─ Purpose: New SidebarHighlightLink between Highlights and RSS feeds — bi-alarm icon, href /reminders.
+
+[DashboardLayoutDropdown REMINDERS option] grabshark/apps/web/components/DashboardLayoutDropdown.tsx
+└─ Purpose: Adds REMINDERS to the section toggle list + getSectionIcon switch (bi-alarm-fill icon).
+
+[SectionRouter REMINDERS case] grabshark/apps/web/components/Dashboard/SectionRouter.tsx
+└─ Purpose: Routes DashboardSectionType.REMINDERS to <RemindersSection>.
