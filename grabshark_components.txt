@@ -162,6 +162,11 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Banner
 └─ Purpose: PWA web uygulamasının kurulabilir uyarı bandı.
 
+[InviteActions]
+└─ File: grabshark/apps/web/components/InviteActions.tsx
+└─ Category: Action Bar / Inline
+└─ Purpose: COLLECTION_INVITE bildirim satırına gömülü 3-buton barı (Kabul / Red / Engel). NotificationRow'un payload.inviteAction'ı varsa render edilir; outer-click navigasyonunu bloklar. Block confirm dialog ile çift onay; success/error toast + onResolved callback ile parent'a bildirim. ReminderSnoozeMenu paterninin aynısı.
+
 [LinkDetails]
 └─ File: grabshark/apps/web/components/LinkDetails.tsx
 └─ Category: View Component
@@ -260,17 +265,42 @@ GrabSHARK Main Application Components (Complete List)
 [Sidebar]
 └─ File: grabshark/apps/web/components/Sidebar.tsx
 └─ Category: Layout
-└─ Purpose: Desktop için uygulamanın ana sol menüsü.
+└─ Purpose: Desktop için uygulamanın ana sol menüsü; modular sidebar layout entegrasyonu (edit modu, reorder, hide/show, controlled disclosure, hydrate from User.sidebarLayout).
 
 [SidebarBottomDock]
 └─ File: grabshark/apps/web/components/SidebarBottomDock.tsx
 └─ Category: Layout
-└─ Purpose: Sol alt köşedeki (Ayarlar/Kullanıcı) kısmı yöneten menü modülü.
+└─ Purpose: Sol alt köşedeki dock; QuickActionDock + QuickActionDropdown ile modülerleştirildi (eski sabit toggle/gear/dropdown kaldırıldı).
 
 [SidebarHighlightLink]
 └─ File: grabshark/apps/web/components/SidebarHighlightLink.tsx
 └─ Category: Layout
-└─ Purpose: Yan menüde seçili linki vurgulayan bağlantı nesnesi.
+└─ Purpose: Yan menüde seçili linki vurgulayan bağlantı nesnesi; rightActionSlot/disabled/dimmed propları edit-mode ile entegre.
+
+[Sidebar/SidebarEditButton]
+└─ File: grabshark/apps/web/components/Sidebar/SidebarEditButton.tsx
+└─ Category: Layout / Sidebar
+└─ Purpose: Sidebar üst köşesinde pencil↔check toggle; isEditing flip + flushPendingSave on close.
+
+[Sidebar/SortableMenuRow]
+└─ File: grabshark/apps/web/components/Sidebar/SortableMenuRow.tsx
+└─ Category: Layout / Sidebar
+└─ Purpose: Edit modunda her menüyü drag-handle + sağ-slot göz toggle ile sarmalar; @dnd-kit/sortable + Lesson 41 nav-block.
+
+[Sidebar/AppearanceDropdown]
+└─ File: grabshark/apps/web/components/Sidebar/AppearanceDropdown.tsx
+└─ Category: Layout / Sidebar
+└─ Purpose: Theme (light/dark) + gradient toggle birleşik dropdown; eski iki ayrı butonun yerine tek dock ikonu.
+
+[Sidebar/QuickActionDock]
+└─ File: grabshark/apps/web/components/Sidebar/QuickActionDock.tsx
+└─ Category: Layout / Sidebar
+└─ Purpose: Profil avatar'ın sağında 3-slot quick action dock; edit modunda her slot için bi-x-circle-fill kaldır overlay.
+
+[Sidebar/QuickActionDropdown]
+└─ File: grabshark/apps/web/components/Sidebar/QuickActionDropdown.tsx
+└─ Category: Layout / Sidebar
+└─ Purpose: Profil avatar dropdown extension; dock'ta olmayan action'ları listeler, edit modunda her item'in yanında bi-arrow-up-circle dock'a ekle butonu (dock dolu ise disabled).
 
 [Skeletons]
 └─ File: grabshark/apps/web/components/Skeletons.tsx
@@ -530,10 +560,10 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Modal Update
 └─ Purpose: Koleksiyon düzenlemesi ve dışarı paylaşımı açma kapatma eylemleri.
 
-[EmailChangeVerificationModal]
-└─ File: grabshark/apps/web/components/ModalContent/EmailChangeVerificationModal.tsx
-└─ Category: Modal View
-└─ Purpose: E-posta değiştirildiğinde güvenlik amaçlı yeni onay pini formunu barındıran ekran.
+[EmailVerificationCard]
+└─ File: grabshark/apps/web/components/EmailVerificationCard.tsx
+└─ Category: Settings / Inline Card
+└─ Purpose: /settings/account email input'unun altında durum-aware mini blok. State machine: verified (yeşil badge) / unverified (Verify butonu, current email için 6-digit code başlatır) / pending change (localStorage-staged yeni email, 6-digit code input + 60sn resend cooldown). Email değişikliği DB'ye verify başarılı olana kadar yazılmaz (Q&A 3 — sıfır downtime). Refresh / leave → localStorage clear → değişiklik iptal. useSendVerificationCode + useVerifyCode hook'larını tüketir.
 
 [EnableTotpModal]
 └─ File: grabshark/apps/web/components/ModalContent/EnableTotpModal.tsx
@@ -584,11 +614,6 @@ GrabSHARK Main Application Components (Complete List)
 └─ File: grabshark/apps/web/components/ModalContent/ShowRecoveryCodesModal.tsx
 └─ Category: Modal View
 └─ Purpose: Yeni oluşturulan kurtarma kodlarını tek seferlik gösterme; kopyala/indir seçenekli.
-
-[SurveyModal]
-└─ File: grabshark/apps/web/components/ModalContent/SurveyModal.tsx
-└─ Category: Modal View
-└─ Purpose: Uygulama içi memnuniyet anketi amaçlı pop-up.
 
 [UploadFileModal]
 └─ File: grabshark/apps/web/components/ModalContent/UploadFileModal.tsx

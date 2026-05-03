@@ -39,10 +39,10 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ Category: Auth
 └─ Purpose: Şifre sıfırlama talebinden sonra gelen şifre yenileme formu.
 
-[/auth/verify-email]
-└─ File: grabshark/apps/web/pages/auth/verify-email.tsx
+[/auth/force-password-change]
+└─ File: grabshark/apps/web/pages/auth/force-password-change.tsx
 └─ Category: Auth
-└─ Purpose: E-posta adresini doğrulama (callback) ekranı.
+└─ Purpose: Admin'in NewUserModal'dan tek-kullanımlık password verdiği user'ın ilk login'inde geldiği zorunlu password değişim ekranı. Login authorize() PASSWORD_CHANGE_REQUIRED:<token> throw eder, login.tsx URL'ye token + identifier parametreleriyle yönlendirir; sayfa yeni password+confirm alıp /api/v1/auth/force-password-change'i çağırır, başarı sonrası signIn credentials ile auto-sign-in + /dashboard. forgot-password reset endpoint'i de mustChangePassword=false set eder, dolayısıyla self-service akışlar buradan tekrar geçmez.
 
 [/member-onboarding]
 └─ File: grabshark/apps/web/pages/member-onboarding.tsx
@@ -242,7 +242,7 @@ GrabSHARK Main Application Pages (Route Reference)
 [/settings/notifications]
 └─ File: grabshark/apps/web/pages/settings/notifications.tsx
 └─ Category: Config
-└─ Purpose: Per-tip × per-kanal bildirim tercihleri matrisi. Bell + toast (uygulama içi popup) baseline (mandatory) — bu sayfada görünmezler. Sadece email + telegram opsiyonel kanalları toggle edilir, NotificationPreference tablosuna tek-tek upsert. Channel availability hint'leri (SMTP yok → /settings/account, Telegram bağlı değil → /settings/integrations) disabled state'li checkbox + tooltip ile sunulur. Save button yok — Linear/Notion paterni, her toggle anlık optimistic mutation. NEW_DEVICE_LOGIN.email yeni user'lar için varsayılan açık (security industry standard).
+└─ Purpose: Per-tip × per-kanal bildirim tercihleri matrisi. Bell + toast (uygulama içi popup) baseline (mandatory) — bu sayfada görünmezler. Sadece email + telegram opsiyonel kanalları toggle edilir, NotificationPreference tablosuna tek-tek upsert. Channel availability hint'leri (SMTP yok → /settings/account, Telegram bağlı değil → /settings/integrations) disabled state'li checkbox + tooltip ile sunulur. Save button yok — Linear/Notion paterni, her toggle anlık optimistic mutation. NEW_DEVICE_LOGIN.email yeni user'lar için varsayılan açık (security industry standard). MARKETING_EMAIL grubu özel: bell+toast'a hiç düşmez, sadece email kanalı; telegram column tasarım gereği permanent disabled (server-side updatePreferences.ts'de de telegram=false clamp).
 
 [/settings/rss-subscriptions]
 └─ File: grabshark/apps/web/pages/settings/rss-subscriptions.tsx
@@ -253,6 +253,16 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ File: grabshark/apps/web/pages/settings/worker.tsx
 └─ Category: Config
 └─ Purpose: Arkaplan işlemi, indirme gecikmeleri, otomasyon (Preservation worker) ayarları.
+
+[/settings/admin/email]
+└─ File: grabshark/apps/web/pages/settings/admin/email.tsx
+└─ Category: Config (admin-only)
+└─ Purpose: SMTP server config UI for admins. Lives under "Admin Only" separator in SettingsSidebar (visible only when user.isAdmin). Single-source DB-driven config: SystemConfig (id=1) singleton with AES-256-GCM encrypted server URL (TOTP_ENCRYPTION_KEY). Admin saves/clears the row and can send a 5-second-timeout test email to their own address. invalidateTransporterCache() runs on save so live mail pickups happen without a restart.
+
+[/settings/blocks]
+└─ File: grabshark/apps/web/pages/settings/blocks.tsx
+└─ Category: Config (social)
+└─ Purpose: User-to-user blocklist management. Lists everyone the caller has blocked (avatar + name + handle + since-date + reason chip), with per-row "Unblock" button (optimistic mirror — Lesson 41). Empty state with shield icon. POST /api/v1/blocks/[blockedId] is invoked from T5 invite-block flow once that ships; this page is the discovery + revoke surface. Twitter/Instagram pattern — silent block, no feedback to the other side.
 
 [Page] /reminders
 └─ File: grabshark/apps/web/pages/reminders/index.tsx

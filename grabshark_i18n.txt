@@ -361,3 +361,39 @@ Section 38 — Reminders (added 2026-05-04, ~94 keys)
 └─ Short day-of-week labels (3 chars) used by the weekly preset selector + cron humanizer.
 
 Sync result (run /tmp/insert_reminder_i18n.py): 1499 keys per locale × 15 locales — EN+TR fully translated, 13 fallback locales hold EN strings until Crowdin community translations land.
+
+============================================================================
+Section 39 — Modular Sidebar (May 2026)
+============================================================================
+
+15 new keys covering edit-mode UI + Appearance dropdown + Quick action
+dock/dropdown labels.
+
+[edit_sidebar / done_editing]
+└─ Sidebar top-corner pencil↔check toggle button labels.
+
+[hide_menu / show_menu]
+└─ Eye toggle (right-action-slot) on each SortableMenuRow + disclosure heading.
+
+[add_to_dock / remove_from_dock / dock_full_remove_one_first]
+└─ Quick action dock × dropdown move affordances; "remove_one_first" surfaces
+   in dropdown tooltip when dock has 3 slots filled.
+
+[appearance / appearance_theme_light / appearance_theme_dark / appearance_spotlight]
+└─ AppearanceDropdown — replaces the previous inline ToggleGradient +
+   ToggleDarkMode pair with a single dock entry. (Note: `appearance_theme`
+   label removed by user feedback — dropdown shows light/dark rows
+   directly without a section header. `appearance_gradient_background`
+   was renamed to `appearance_spotlight` with the brand-neutral value
+   "Spotlight" across all 15 locales.)
+
+[on / off]
+└─ Generic toggle state labels (used in Appearance dropdown's gradient row).
+
+[notifications]
+└─ Quick-action dropdown row label for the notifications bell action
+   (distinct from `notifications_settings` which is the Settings page header).
+
+Sync result (run /tmp/insert_sidebar_i18n.py): 1591 keys per locale × 15
+locales — EN+TR fully translated, 13 fallback locales hold EN strings until
+Crowdin community translations land.

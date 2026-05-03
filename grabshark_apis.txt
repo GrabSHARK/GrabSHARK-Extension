@@ -28,11 +28,22 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [POST] /api/v1/auth/reset-password
 └─ File: grabshark/apps/web/pages/api/v1/auth/reset-password.ts
-└─ Purpose: Password reset with token.
+└─ Purpose: Password reset with token. Sets mustChangePassword=false on success — user already chose their own password, force-change loop is satisfied.
 
-[POST] /api/v1/auth/verify-email
-└─ File: grabshark/apps/web/pages/api/v1/auth/verify-email.ts
-└─ Purpose: Email verification callback.
+[POST] /api/v1/auth/email/send-code
+└─ File: grabshark/apps/web/pages/api/v1/auth/email/send-code.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/auth/email/sendCode.ts
+└─ Purpose: Generate a 6-digit email verification code for the caller. Body { targetEmail? } — empty defaults to user.email (first-time verify). 60sn Redis cooldown per (user, targetEmail). Code bcrypt-hashed, expires in 10min, prior active codes invalidated. Mail dispatched via DB-driven transporter (getSmtpFrom + getTransporter). 503 if SMTP not configured. Audit category auth.email_verify / code_sent.
+
+[POST] /api/v1/auth/email/verify-code
+└─ File: grabshark/apps/web/pages/api/v1/auth/email/verify-code.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/auth/email/verifyCode.ts
+└─ Purpose: Validate 6-digit code + commit user.email + emailVerified=now() in one transaction. attempts++, 5'inci yanlışta consumedAt set → kod ölür. Match olunca eski kodlar zaten invalidate edilmiş, hedef adres user.email alanına yazılır. Audit auth.email_verify / verified veya code_locked.
+
+[POST] /api/v1/auth/force-password-change
+└─ File: grabshark/apps/web/pages/api/v1/auth/force-password-change.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/auth/forcePasswordChange.ts
+└─ Purpose: Consume PasswordChangeChallenge → update user.password + mustChangePassword:false. Anonymous endpoint (challenge token sole credential), AUTH-tier IP rate limit. Token 5min TTL, single-use. Yeni password admin'in eskisinden farklı olmalı. Audit auth/password_changed (security) + account/password_changed (audit).
 
 == Avatar API ==
 
@@ -474,6 +485,60 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/pages/api/v1/admin/system/dead-letter/discard.ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/discardDeadLetter.ts
 └─ Purpose: Admin-only dead-letter discard. Body: { queue: "log:dead_letter", count: number } (allow-list, max 100). RPOP loop — destructive, items are gone. UI requires explicit confirm modal. Audits via auditLog (admin.system.dead_letter_discarded). Returns { queue, discarded }.
+
+[GET] /api/v1/admin/system/email
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/email/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getEmailConfig.ts
+└─ Purpose: Returns current SMTP config to /settings/admin/email. Single-source DB-driven config (no env fallback). Server URL is masked smtps://***:***@host:port — never returned in plaintext (rotation by re-typing). AES-256-GCM (TOTP_ENCRYPTION_KEY) decryption failure sets decryptOk=false but doesn't crash; UI shows "(decrypt failed)" placeholder.
+
+[PUT] /api/v1/admin/system/email
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/email/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/updateEmailConfig.ts
+└─ Purpose: Upserts SystemConfig (id=1). Body: { smtpServer?: string|null, smtpFrom?: string|null, smtpFromName?: string|null }. undefined=keep, null=clear, string=set. URL must match smtps?://… Encrypts smtpServer via configCrypto.ts. Calls invalidateTransporterCache() so subsequent sendMail picks up the new server immediately. Audited via auditLog (system.config / smtp_updated).
+
+[POST] /api/v1/admin/system/email/test
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/email/test.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/testEmail.ts
+└─ Purpose: Sends a 5-second-timeout test email to the admin's own address (recipient hard-coded to admin.email — can't be repurposed as spam relay). Uses the DB-driven transporter; 400 if SystemConfig isn't filled in. Audited via auditLog (system.config / smtp_test_sent or smtp_test_failed). Returns { sent, recipient } on success or 500 + error message on timeout/failure.
+
+== Collection Invites API ==
+
+[GET] /api/v1/invites
+└─ File: grabshark/apps/web/pages/api/v1/invites/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/invites/getPendingInvites.ts
+└─ Purpose: Lists collection invites the caller has yet to act on (status=PENDING). Joined with collection.owner so the bell row's "Who invited me?" label renders without a second round-trip. Response { invites: [{ collectionId, canCreate, canUpdate, canDelete, invitedAt, collection: { id, name, color, icon, ownerId, inviter } }] }.
+
+[POST] /api/v1/invites/[collectionId]/accept
+└─ File: grabshark/apps/web/pages/api/v1/invites/[collectionId]/accept.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/invites/acceptInvite.ts
+└─ Purpose: Flip UsersAndCollections.status PENDING → ACCEPTED + respondedAt=now(). Idempotent on already-ACCEPTED rows (stale-tab safety). 404 if no row, 409 if state isn't PENDING. Same transaction marks every unread COLLECTION_INVITE notification for (userId, collectionId) as read so cross-tab/cross-device bells stay in sync (Lesson 44). Audit category social.invite / accepted.
+
+[POST] /api/v1/invites/[collectionId]/reject
+└─ File: grabshark/apps/web/pages/api/v1/invites/[collectionId]/reject.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/invites/rejectInvite.ts
+└─ Purpose: Flip status PENDING → REJECTED + respondedAt. Sender NOT notified (Twitter pattern). Row stays so updateCollectionById can detect "previously rejected, owner re-adding" and re-PEND. Idempotent + same notification cleanup as accept. Audit social.invite / rejected.
+
+[POST] /api/v1/invites/[collectionId]/block
+└─ File: grabshark/apps/web/pages/api/v1/invites/[collectionId]/block.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/invites/blockAndRejectInvite.ts
+└─ Purpose: Reject + block in one click. Single transaction: BlockedUser upsert (blockerId=callerId, blockedId=collectionOwnerId), UsersAndCollections.status → REJECTED if PENDING, then mark related Notifications read. Self-block guarded (400). Audit social.invite / block_and_rejected. Returns { collectionId, status: "REJECTED", blockedId }.
+
+== User Blocklist API ==
+
+[GET] /api/v1/blocks
+└─ File: grabshark/apps/web/pages/api/v1/blocks/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/blocks/getBlockedUsers.ts
+└─ Purpose: Lists everyone the caller has blocked. Response { blocks: [{ blockedId, blocked: {id, username, name, image}, reason, createdAt }] }. Joined with User row so /settings/blocks renders avatar + handle without a second round-trip.
+
+[POST] /api/v1/blocks/[blockedId]
+└─ File: grabshark/apps/web/pages/api/v1/blocks/[blockedId].ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/blocks/blockUser.ts
+└─ Purpose: Block a user. Body: { reason?: "spam"|"harassment"|"other"|<free string ≤120 chars> }. Idempotent — re-blocking the same user updates the reason. Self-block guarded (400). Target existence verified (404). Audited via auditLog (social.block / user_blocked). Returns { blockedId, reason }. Side-effect placeholder for T5 invite cleanup (auto-reject pending invites + mark unread COLLECTION_INVITE notifications read) — wired up when invite-status feature lands.
+
+[DELETE] /api/v1/blocks/[blockedId]
+└─ File: grabshark/apps/web/pages/api/v1/blocks/[blockedId].ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/blocks/unblockUser.ts
+└─ Purpose: Idempotent unblock. Returns 200 even when no row exists (race-friendly — two tabs both clicking "Unblock" don't second-tab-fail). Audited via auditLog (social.block / user_unblocked) only when a row was actually removed. Returns { blockedId, removed: boolean }.
 
 == Telegram Integration API ==
 
