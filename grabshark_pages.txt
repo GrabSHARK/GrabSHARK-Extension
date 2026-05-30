@@ -268,3 +268,8 @@ GrabSHARK Main Application Pages (Route Reference)
 └─ File: grabshark/apps/web/pages/reminders/index.tsx
 └─ Category: User
 └─ Purpose: Reminders management hub (added 2026-05-04). Four sections: Due (overdue ACTIVE), Upcoming (future ACTIVE), Recurring (cron != null), Archive (DONE/CANCELED). Archive section exposes "Purge archive" button → DELETE all + companion REMINDER_FIRED notification cleanup. Each row offers edit / snooze / pause-resume / delete; Due section also shows the inline ReminderSnoozeMenu.
+
+[Page] /quick-add
+└─ File: grabshark/apps/web/pages/quick-add.tsx
+└─ Category: User
+└─ Purpose: Bookmarklet popup landing page (added 2026-05-04). Reads ?url= + ?title= query params, runs useAddLink mutation once user query lands, renders idle / saving / success / error / no-url states with a centered card. Auto-closes 1.5s after success via window.close(). Layoutless (no sidebar chrome) — popup is sized ~420×280 by the bookmarklet. Whitelisted as protected in AuthRedirect; unauthenticated users round-trip through /login with `callbackUrl=/quick-add?...` so query params are preserved.

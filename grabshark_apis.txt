@@ -99,11 +99,11 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [GET] /api/v1/files/[id]/highlights
 └─ File: grabshark/apps/web/pages/api/v1/files/[id]/highlights.ts
-└─ Purpose: List highlights associated with a file.
+└─ Purpose: List highlights associated with a file. Authorship: include user (creator) + lastEditedBy (PublicUserSelect shape).
 
 [GET, PUT, DELETE] /api/v1/files/[id]
 └─ File: grabshark/apps/web/pages/api/v1/files/[id]/index.ts
-└─ Purpose: Get, update, or delete a specific file.
+└─ Purpose: Get, update, or delete a specific file. Authorship: include owner + descriptionEditedBy + collection._count.members. PUT compares old/new description → records descriptionEditedBy/At on actual change.
 
 [POST] /api/v1/files/[id]/favorite
 └─ File: grabshark/apps/web/pages/api/v1/files/[id]/favorite.ts
@@ -127,7 +127,7 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [GET] /api/v1/files
 └─ File: grabshark/apps/web/pages/api/v1/files/index.ts
-└─ Purpose: List all files.
+└─ Purpose: List all files. Authorship: select owner + descriptionEditedBy(Id/At) + collection._count.members for shared collection hint surfacing.
 
 [POST] /api/v1/files/upload
 └─ File: grabshark/apps/web/pages/api/v1/files/upload.ts
@@ -157,7 +157,7 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [GET, POST] /api/v1/highlights
 └─ File: grabshark/apps/web/pages/api/v1/highlights/index.ts
-└─ Purpose: List all highlights or create new one.
+└─ Purpose: List all highlights or create new one. Authorship: include user (creator) + lastEditedBy + link/file.collection._count.members + ownerId. POST/PUT branches compare existing comment+color → set lastEditedBy/At on actual change.
 
 == LHC API (Link Health Check) ==
 
@@ -237,11 +237,11 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [GET] /api/v1/links/[id]/highlights
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/highlights/index.ts
-└─ Purpose: List highlights for a specific link.
+└─ Purpose: List highlights for a specific link. Authorship: include user (creator) + lastEditedBy.
 
 [GET, PUT, DELETE] /api/v1/links/[id]
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/index.ts
-└─ Purpose: Get, update, or delete a specific link.
+└─ Purpose: Get, update, or delete a specific link. Authorship: include createdBy + descriptionEditedBy + collection._count.members. PUT compares old/new description → records descriptionEditedBy/At on actual change.
 
 [POST] /api/v1/links/[id]/toggle-archive
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/toggle-archive/index.ts
@@ -253,7 +253,7 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [GET, POST] /api/v1/links
 └─ File: grabshark/apps/web/pages/api/v1/links/index.ts
-└─ Purpose: List all links (GET) or save new link (POST).
+└─ Purpose: List all links (GET) or save new link (POST). Authorship: include createdBy + descriptionEditedBy + collection._count.members for shared collection hint surfacing.
 
 [GET] /api/v1/links/urls
 └─ File: grabshark/apps/web/pages/api/v1/links/urls.ts
@@ -454,7 +454,17 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 [DELETE] /api/v1/admin/users/[id]/2fa
 └─ File: grabshark/apps/web/pages/api/v1/admin/users/[id]/2fa.ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/reset2fa.ts
-└─ Purpose: Admin-only emergency 2FA reset — wipes target user's TOTP secret, recovery codes, pending setup & two-factor challenges in one transaction. For users who lost both authenticator and recovery codes. Requires caller to match ADMIN_ID env var.
+└─ Purpose: SUPER_ADMIN-only emergency 2FA reset — wipes target user's TOTP secret, recovery codes, pending setup & two-factor challenges in one transaction. For users who lost both authenticator and recovery codes. Gated via roleGate.isSuperAdmin (not just env id) — multi-admin sistemde diğer admin'ler 2FA reset yapamaz.
+
+[POST] /api/v1/admin/users/[id]/role
+└─ File: grabshark/apps/web/pages/api/v1/admin/users/[id]/role.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/users/updateRole.ts
+└─ Purpose: SUPER_ADMIN-only role mutation. Body: { role: "MEMBER" | "ADMIN" | "SUPER_ADMIN" }. canManage() simetrisi: OWNER (NEXT_PUBLIC_ADMIN env id) immune, self-management yok. SECURITY audit log [admin.role_changed] {oldRole, newRole}. Returns { id, role }.
+
+[POST] /api/v1/admin/users/[id]/suspend
+└─ File: grabshark/apps/web/pages/api/v1/admin/users/[id]/suspend.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/users/updateSuspension.ts
+└─ Purpose: ADMIN+ user suspension toggle. Body: { suspended: boolean, reason?: string (240 char) }. canManage() yetki simetrisi: OWNER asla, self-suspend yok, ADMIN ADMIN'e dokunamaz, SUPER_ADMIN herkesi (OWNER/self hariç) suspend eder. Suspend → suspendedAt+suspendedById+suspensionReason set + UserSession & AccessToken (isSession) row purge transaction. Unsuspend → hepsi null. SECURITY audit log [admin.user_suspended|user_unsuspended]. Reverse zero veri kaybı.
 
 [GET] /api/v1/admin/logs
 └─ File: grabshark/apps/web/pages/api/v1/admin/logs/index.ts
@@ -500,6 +510,21 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/pages/api/v1/admin/system/email/test.ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/testEmail.ts
 └─ Purpose: Sends a 5-second-timeout test email to the admin's own address (recipient hard-coded to admin.email — can't be repurposed as spam relay). Uses the DB-driven transporter; 400 if SystemConfig isn't filled in. Audited via auditLog (system.config / smtp_test_sent or smtp_test_failed). Returns { sent, recipient } on success or 500 + error message on timeout/failure.
+
+[GET] /api/v1/admin/cloakbrowser/status
+└─ File: grabshark/apps/web/pages/api/v1/admin/cloakbrowser/status.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/cloakbrowser/getStatus.ts
+└─ Purpose: All-authenticated-users read endpoint (despite /admin/ prefix) for the CloakBrowser system-wide gate. Returns { activated, activatedAt, isActivating, activationError, binaryInstalled, version, lastUpdateCheckedAt }. Reads CloakBrowserConfig (id=1) + cloakbrowser:activation:{lock,error} Redis keys + system:process:worker HASH (cloakbrowser-prefixed fields written by worker systemMetrics every 10s). Used by archiving.tsx Browser Type radio gating + CloakBrowserAdminPanel (admin-only sub-block). React Query polls every 5s while isActivating=true, then 60s.
+
+[POST] /api/v1/admin/cloakbrowser/activate
+└─ File: grabshark/apps/web/pages/api/v1/admin/cloakbrowser/activate.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/cloakbrowser/activate.ts
+└─ Purpose: Admin-only. Triggers first-time CloakBrowser Chromium binary download (~150-200MB, blocking) via Redis Pub/Sub `system:job:trigger` channel with job=cloakbrowserActivate. Worker (cloakbrowserOps.runActivateOnce) holds SETNX lock cloakbrowser:activation:lock (600s TTL, refreshed every 60s) so concurrent admin clicks dedupe. Returns { status: "started" | "already_running" | "already_activated", isActivating }. On worker success: CloakBrowserConfig.activated=true + activatedAt=now, audit log admin.cloakbrowser.activated. On failure: cloakbrowser:activation:error key (1h TTL) surfaces to UI for retry.
+
+[POST] /api/v1/admin/cloakbrowser/check-update
+└─ File: grabshark/apps/web/pages/api/v1/admin/cloakbrowser/check-update.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/cloakbrowser/checkUpdate.ts
+└─ Purpose: Admin-only. Publishes job=cloakbrowserUpdateCheck to system:job:trigger; worker calls cloakbrowser.checkForUpdate() (returns new version string or null = up to date), touches `${cacheDir}/.last_update_check` mtime so heartbeat readers surface a fresh "Last checked" timestamp. Audit log admin.cloakbrowser.update_checked + (if new version landed) admin.cloakbrowser.update_installed. 400 if not yet activated. Fire-and-forget — no lock, cloakbrowser internally rate-limits to 1h.
 
 == Collection Invites API ==
 

@@ -90,7 +90,7 @@ GrabSHARK Main Application Components (Complete List)
 [FileDetails]
 └─ File: grabshark/apps/web/components/FileDetails.tsx
 └─ Category: View Component
-└─ Purpose: Detaylı dosya inceleme görünümü.
+└─ Purpose: Detaylı dosya inceleme görünümü. Paylaşımlı collection'larda en altta "Yükleyen X · Sahip" hint + description bloğunun altında "Y düzenledi · 2sa önce" satırı (sadece editor !== owner ise).
 
 [FilePreviewModal]
 └─ File: grabshark/apps/web/components/FilePreviewModal.tsx
@@ -115,7 +115,7 @@ GrabSHARK Main Application Components (Complete List)
 [HighlightExpandModal]
 └─ File: grabshark/apps/web/components/HighlightExpandModal.tsx
 └─ Category: Modal
-└─ Purpose: Gruplanmış highlight'ları modalda genişletme penceresi.
+└─ Purpose: Gruplanmış highlight'ları modalda genişletme penceresi. Paylaşımlı collection'larda her highlight altında "X tarafından · Y düzenledi · 1sa önce" tek-satır authorship hint (editor !== creator durumunda düzenleyen + lastEditedAt görünür).
 
 [HighlightListOptions]
 └─ File: grabshark/apps/web/components/HighlightListOptions.tsx
@@ -125,7 +125,7 @@ GrabSHARK Main Application Components (Complete List)
 [HighlightSingleExpandModal]
 └─ File: grabshark/apps/web/components/HighlightSingleExpandModal.tsx
 └─ Category: Modal
-└─ Purpose: Tek bir vurgunun tüm notları ve içeriğiyle büyütüldüğü ekran.
+└─ Purpose: Tek bir vurgunun tüm notları ve içeriğiyle büyütüldüğü ekran. Paylaşımlı collection'larda header altında "X tarafından · Y düzenledi · 5dk önce" tek-satır authorship hint.
 
 [HighlightViewDropdown]
 └─ File: grabshark/apps/web/components/HighlightViewDropdown.tsx
@@ -170,7 +170,7 @@ GrabSHARK Main Application Components (Complete List)
 [LinkDetails]
 └─ File: grabshark/apps/web/components/LinkDetails.tsx
 └─ Category: View Component
-└─ Purpose: Kayıtlı link hakkında arşiv vb. detay listeleme.
+└─ Purpose: Kayıtlı link hakkında arşiv vb. detay listeleme. Paylaşımlı collection'larda en altta "Eklemiş X · Sahip" hint + description (notes) bloğunun altında "Y düzenledi · 1sa önce" satırı (sadece editor !== creator ise).
 
 [LinkListOptions]
 └─ File: grabshark/apps/web/components/LinkListOptions.tsx
@@ -180,7 +180,7 @@ GrabSHARK Main Application Components (Complete List)
 [LinkPreviewModal]
 └─ File: grabshark/apps/web/components/LinkPreviewModal.tsx
 └─ Category: Modal
-└─ Purpose: Link tıklandığında orjinal içeriği sekme halinde önizleyen ekran.
+└─ Purpose: Link tıklandığında orjinal içeriği sekme halinde önizleyen ekran. Paylaşımlı collection'larda highlights sidebar listesinin her satırında minimal "· Ahmet" creator suffix (full attribution expand modal'a).
 
 [MissingFormatRow]
 └─ File: grabshark/apps/web/components/MissingFormatRow.tsx
@@ -360,7 +360,27 @@ GrabSHARK Main Application Components (Complete List)
 [UserListing]
 └─ File: grabshark/apps/web/components/UserListing.tsx
 └─ Category: Listing
-└─ Purpose: Yönetici ekranında uygulamanın kullanıcılarını listeleme sayfası. Hover-reveal aksiyonlar: "View Logs" (bi-clock-history → /admin/logs?actorUserId=X), "Reset 2FA" (bi-shield-slash, totpEnabledAt'lı kullanıcılarda), "Delete" (bi-trash3).
+└─ Purpose: Yönetici ekranında uygulamanın kullanıcılarını listeleme sayfası. Role badge (MEMBER/ADMIN/SUPER_ADMIN/OWNER), suspended chip + opacity-60 satır hint, 3-nokta dropdown action menü (Change Role — sadece SUPER_ADMIN, Suspend/Unsuspend — ADMIN+, Reset 2FA — sadece SUPER_ADMIN, Delete). canManage() yetki simetrisi inline (OWNER/self yönetilemez, ADMIN ADMIN'e dokunamaz). View Logs hover-reveal kalıyor (bi-clock-history → /admin/logs?actorUserId=X).
+
+[SuspendUserModal]
+└─ File: grabshark/apps/web/components/SuspendUserModal.tsx
+└─ Category: ModalContent
+└─ Purpose: Suspend toggle modal — reason textarea (240 char), warning chip ("Bu kullanıcı uygulamaya giremeyecek, içerikleri donar ama silinmez"), useUpdateUserSuspension mutation (optimistic mirror Lesson 41). Unsuspend modunda reason input gizlenir.
+
+[PromoteUserModal]
+└─ File: grabshark/apps/web/components/PromoteUserModal.tsx
+└─ Category: ModalContent
+└─ Purpose: Role değişikliği modal'ı — 3 radio satır (MEMBER/ADMIN/SUPER_ADMIN) + her satırda kısa açıklama + "current" mevcut rol işareti, SUPER_ADMIN promote için ekstra warning chip. useUpdateUserRole mutation (sadece SUPER_ADMIN actor).
+
+[SuspendedPage]
+└─ File: grabshark/apps/web/components/SuspendedPage.tsx
+└─ Category: Public
+└─ Purpose: Suspended user'ın owner olduğu public collection/link sayfası için Twitter pattern soft-state. Büyük bi-shield-slash ikonu + i18n başlık ("Bu hesap askıya alındı") + "Geri dön" butonu. 404 değil — URL korunur, suspend kalkınca eski davranış geri gelir.
+
+[SuspendedChip]
+└─ File: grabshark/apps/web/components/SuspendedChip.tsx
+└─ Category: Common
+└─ Purpose: Inline "Askıda" chip — paylaşımlı collection authorship satırlarında suspended user'ın yanına eklenir. 5 surface: LinkDetails (creator + descriptionEditedBy), FileDetails (owner + descriptionEditedBy), HighlightExpandModal, HighlightSingleExpandModal, LinkPreviewModal sidebar. PUBLIC_USER_SELECT.suspendedAt: true ile beslenir. Authorship-dışı kart view'larında DOKUNULMAZ (project_authorship_visibility disipliniyle aynı).
 
 [ViewDropdown]
 └─ File: grabshark/apps/web/components/ViewDropdown.tsx
@@ -706,6 +726,11 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Integration Card
 └─ Purpose: Telegram entegrasyonu ana kartı. Üç render branch: (a) `botConfigured: false` + admin → disabled state + BotFather rehber adımları, (b) `paired: false` → "Connect Telegram" butonu → TelegramPairModal, (c) `paired: true` → @username bilgisi + unlink. Ayrıca webhook degraded banner ve re-pair needed banner'ı yönetir.
 
+[CloakBrowserAdminPanel]
+└─ File: grabshark/apps/web/components/Settings/CloakBrowserAdminPanel.tsx
+└─ Category: Admin Sub-Panel
+└─ Purpose: Settings → Archiving sayfasında CloakBrowser options bloğunun altında render edilen admin-only panel. Binary version + son güncelleme kontrolü zamanı (heartbeat'ten gelen `cloakbrowserLastUpdateCheckedAtMs` mtime) gösterir; "Şimdi kontrol et" butonu `useCheckCloakBrowserUpdate` mutation'ı ile worker'a `cloakbrowserUpdateCheck` job'ı publish eder. `binaryInstalled === false` olduğunda kırmızı chip + "yeniden etkinleştir" yönlendirmesi gösterir. Caller (`archiving.tsx`) `isAdmin && cloakActivated && cloakStatus` koşuluyla render gate'ler.
+
 [TelegramPairModal]
 └─ File: grabshark/apps/web/components/ModalContent/TelegramPairModal.tsx
 └─ Category: Modal
@@ -786,3 +811,37 @@ Reminders feature components — added 2026-05-04
 
 [SectionRouter REMINDERS case] grabshark/apps/web/components/Dashboard/SectionRouter.tsx
 └─ Purpose: Routes DashboardSectionType.REMINDERS to <RemindersSection>.
+
+================================================================================
+Download Center components — added 2026-05-04
+================================================================================
+
+[DownloadPanel] grabshark/apps/web/components/DownloadPanel/DownloadPanel.tsx
+└─ Purpose: Sidebar's second slide-in panel mode (mirror of NotificationDropdown's inline-A1 pattern). Triggered by the "Download Center" entry in QuickActionDropdown — store flip drives a 180ms slide-in over the middle nav region. Header back-arrow + title + ESC closes. Body is a single-column vertical stack of four cards: ExtensionCard, BookmarkletCard, then two ComingSoonCard instances (mobile + desktop). No page-level route — panel-only surface.
+
+[ExtensionCard] grabshark/apps/web/components/DownloadPanel/ExtensionCard.tsx
+└─ Purpose: Lists 4 marketplace deeplinks (Chrome / Firefox / Edge / Safari) sourced from EXTENSION_STORES. Calls prioritizeStoresForBrowser(navigator.userAgent) to lift the user's current browser to the top with a "Your browser" highlight chip. Each row is a plain <a target="_blank">; URLs are placeholder example.com strings until real listings ship — patched in apps/web/lib/downloadCenterConfig.ts.
+
+[BookmarkletCard] grabshark/apps/web/components/DownloadPanel/BookmarkletCard.tsx
+└─ Purpose: Draggable <a href="javascript:..."> rendered as a prominent pill ("GrabSHARK Quick Add"). buildBookmarklet() generates the URL at render time from window.location.origin. Clicking the dragged bookmark on any page opens a small same-origin popup at /quick-add?url=...&title=... — top-level navigation lets the SameSite=Lax NextAuth session cookie travel, sidesteps CORS preflight entirely. JSX `href` prop intentionally omitted — React 16.9+ rewrites `javascript:` URLs into a "blocked" shim; we set the attribute via ref + DOM `setAttribute` after mount.
+
+[ComingSoonCard] grabshark/apps/web/components/DownloadPanel/ComingSoonCard.tsx
+└─ Purpose: Greyed-out placeholder used twice — Mobile Apps + Desktop Apps. Shared component takes (icon, titleKey) props and renders a dashed-border card at 60% opacity with a "Coming Soon" pill. Stays in the layout to reserve the slot when those products ship — flip the card body, don't add/remove sections.
+
+[downloadPanelStore] grabshark/apps/web/store/downloadPanelStore.ts
+└─ Purpose: Zustand {isOpen, open, close, toggle}. open() directly closes the notifications panel (atomic). A module-level subscription on useNotificationPanelStore closes this panel when notifications opens — one-way import (download → notif), so circular module init is avoided.
+
+[buildBookmarklet] grabshark/apps/web/lib/client/buildBookmarklet.ts
+└─ Purpose: Returns the `javascript:` URL string for the GrabSHARK Quick Add bookmarklet. Single-line IIFE — encodeURIComponent's location.href + document.title, then `window.open(host + "/quick-add?url=...&title=...", "grabshark_quick_add", "popup,width=420,height=280")`. Fallback `location.href = ...` if popup blocked. Original silent-fetch design (POST /api/v1/links credentials:include) was killed by browser security: CORS preflight 401 + SameSite=Lax cookie omission on cross-origin POST. See tasks/lessons.md Lesson 48.
+
+[QuickAddPage] grabshark/apps/web/pages/quick-add.tsx
+└─ Purpose: Bookmarklet popup landing page (~420×280). Reads ?url= + ?title= query params, runs useAddLink mutation once user query lands, renders idle / saving / success / error / no-url states with a centered card. Auto-closes 1.5s after success via window.close() (only works because the window was script-opened). Layoutless (`getLayout = page => page`) so no sidebar chrome clips the popup. Whitelisted in AuthRedirect → unauthenticated users round-trip through /login with `callbackUrl=/quick-add?url=...&title=...` preserved.
+
+[downloadCenterConfig] grabshark/apps/web/lib/downloadCenterConfig.ts
+└─ Purpose: Static EXTENSION_STORES table (id, labelKey, url, icon, uaMatch). Marketplace URLs are intentionally hardcoded placeholders pointing at example.com — admins of self-host instances do not customize these targets. prioritizeStoresForBrowser(ua) reorders the array so the user's current browser is first.
+
+[QuickActionDropdown Download Center entry] grabshark/apps/web/components/Sidebar/QuickActionDropdown.tsx
+└─ Purpose: Static (non-dockable) row injected right before logout. Edit mode hides the "add to dock" affordance and the click always invokes useDownloadPanelStore.open(). Not a QUICK_ACTION_POOL member — addQuickAction would no-op on it; ActionRow.nonDockable=true short-circuits the dock-add codepath.
+
+[Sidebar Download Center mount slot] grabshark/apps/web/components/Sidebar.tsx
+└─ Purpose: Second slide-in panel slot (mirror of the notifications-panel block). downloadPanelMounted/Leaving state runs the same 180ms two-phase mount, the middle nav region adds Download to its "hidden when active" OR-condition, and DownloadPanel mounts as an absolute overlay inside the existing scroll wrapper.
