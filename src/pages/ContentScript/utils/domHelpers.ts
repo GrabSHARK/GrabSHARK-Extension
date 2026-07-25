@@ -35,18 +35,25 @@ export function getFirstAndLastTextNode(element: Element): { first: Node | null,
 }
 
 /**
- * Hide all Smart Capture overlays for clean screenshot
- * Returns array of hidden elements for later restoration
+ * Hide all Smart Capture overlays for clean screenshot.
+ * Returns array of hidden elements for later restoration.
+ *
+ * `skipActionBar=true` keeps the capture action bar visible — used by clip
+ * when the bar's rect lies outside the crop area, so the user doesn't see
+ * the menu blink off+on for no reason. The full screenshot will contain the
+ * bar, but cropScreenshot drops it because it's outside the captureRect.
  */
-export function hideAllSmartCaptureOverlays(): HTMLElement[] {
+export function hideAllSmartCaptureOverlays(skipActionBar: boolean = false): HTMLElement[] {
     const hiddenClass = 'ext-lw-hidden-for-screenshot';
     const hiddenElements: HTMLElement[] = [];
 
     // All overlay selectors to hide
     const selectors = [
         '#ext-lw-capture-overlay',           // Old capture overlay
-        '#ext-lw-capture-actionbar',         // Action bar (container inside shadow)
-        '#ext-lw-capture-actionbar-host',    // Action bar host (shadow DOM host element)
+        ...(skipActionBar ? [] : [
+            '#ext-lw-capture-actionbar',         // Action bar (container inside shadow)
+            '#ext-lw-capture-actionbar-host',    // Action bar host (shadow DOM host element)
+        ]),
         '#ext-lw-selection-hover',           // Hover overlay
         '#ext-lw-selection-label',           // Type label
         '.ext-lw-selection-selected',        // Selected unit overlays (multiple)

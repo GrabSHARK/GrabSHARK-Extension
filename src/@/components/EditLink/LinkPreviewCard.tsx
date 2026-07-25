@@ -59,7 +59,7 @@ export const LinkPreviewCard: FC<LinkPreviewCardProps> = ({
             <div className="min-w-0 flex flex-col justify-center flex-1">
                 <div className="font-medium text-sm">
                     <input
-                        className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none transition-all truncate font-semibold placeholder:font-normal placeholder:text-zinc-400 text-zinc-700 dark:text-zinc-300 group-hover:text-blue-600"
+                        className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none transition-all truncate font-semibold placeholder:font-normal placeholder:text-zinc-400 text-zinc-700 dark:text-zinc-300 group-hover:text-primary"
                         {...form.register('name')}
                     />
                 </div>

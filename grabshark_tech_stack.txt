@@ -1,0 +1,209 @@
+GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
+
+== Core Frameworks & Runtime ==
+
+[Next.js]
+└─ Category: Framework
+└─ Purpose: Ana React frameworkü. Server Side Rendering (SSR), Static Generation (SSG) ve API rotaları sağlayan iskelet yapı.
+
+[React]
+└─ Category: UI Library
+└─ Purpose: Kullanıcı arayüzünü inşa ettiğimiz temel JavaScript kütüphanesi.
+
+[Node.js]
+└─ Category: Environment
+└─ Purpose: Backend ve server-side işlemlerin üzerinde koştuğu çalışma zamanı ortamı.
+
+[TypeScript]
+└─ Category: Language
+└─ Purpose: Proje genelinde statik tip güvenliği (type-safety) sağlayan dil.
+
+== Database, Auth & Security ==
+
+[PostgreSQL]
+└─ Category: Database
+└─ Purpose: Sistemin ana ilişkisel veri tabanı motoru.
+
+[Prisma]
+└─ Category: ORM
+└─ Purpose: PostgreSQL ile sunucu arasındaki veritabanı sorgularının yazılmasını sağlayan soyutlama katmanı.
+
+[NextAuth.js]
+└─ Category: Authentication
+└─ Purpose: Oturum yönetimi, token kontrolü ve kimlik doğrulama çerçevesi.
+
+[Bcrypt]
+└─ Category: Cryptography
+└─ Purpose: Veritabanına kaydedilen şifrelerin güvenli biçimde hashlenmesi.
+
+[DOMPurify]
+└─ Category: Security
+└─ Purpose: HTML formatındaki okuma modunda XSS gibi güvenlik açıklarını engelleyen entegre sanitasyon aracı.
+
+== State Management & Data Fetching ==
+
+[React Query / @tanstack/react-query]
+└─ Category: Server State
+└─ Purpose: API'den çekilen verilerin önbelleklenmesi (caching), yönetim ve anlık senkronizasyonu.
+
+[Zustand]
+└─ Category: Client State
+└─ Purpose: Hafif, basit ve hızlı global istemci (client-side) durum (state) yöneticisi.
+
+[Axios / Node-fetch]
+└─ Category: HTTP Client
+└─ Purpose: Dış veya iç API'lerle haberleşmeyi sağlayan ağ istemcileri.
+
+== UI, Styling & Headless Components ==
+
+[Tailwind CSS]
+└─ Category: Styling Framework
+└─ Purpose: Sayfa ve bileşenlerin utility-class (yardımcı sınıflar) ile hızlıca biçimlendirilmesi.
+
+[Radix UI]
+└─ Category: Headless Components
+└─ Purpose: Erişilebilirliği yüksek (A11y), stilsiz ancak işlevsel alt seviye temel yapılar (Dropdown, Dialog, Context Menu vs.).
+
+[DaisyUI]
+└─ Category: UI Component Kit
+└─ Purpose: Tailwind üzerinde Semantic (Anlamsal) renk sınıflandırması ve hazır yapı taşları.
+
+[Class Variance Authority (CVA) / clsx / tailwind-merge]
+└─ Category: Styling Utility
+└─ Purpose: Dinamik sınıfları kolayca birleştiren ve çakışan Tailwind sınıflarını profesyonelce ezen takım çantası.
+
+[Lucide React / Phosphor / Bootstrap Icons]
+└─ Category: Asset Library
+└─ Purpose: Uygulamanın ihtiyacı olan görsel ikon ve sembollerin kaynağı.
+
+[Sonner]
+└─ Category: Notification
+└─ Purpose: Modern, şık ve düşük performans maliyetli tost (toast) bildirimleri fırlatıcı.
+
+[@dnd-kit]
+└─ Category: Interaction
+└─ Purpose: Uygulama içi sürükle-bırak (Drag & Drop) ve liste/pano sıralama işlemlerinin omurgası.
+
+[react-complex-tree]
+└─ Category: Tree DnD
+└─ Purpose: Sidebar koleksiyon ve etiket ağaçlarının ortak ağaç bileşeni; native HTML5 drag ile reorder/sub/root, expand-collapse, sessionStorage ile expanded state. Hem CollectionListing hem TagListing bunu kullanır (atlaskit/tree'nin yerine).
+
+== Content Parsers & Preview Engines ==
+
+[Himalaya / JSDOM]
+└─ Category: DOM Manipulation
+└─ Purpose: Reader View ve Preservation botlarının indirdiği web sayfalarındaki HTML içeriği sunucu tarafında işlemek ve parse etmek.
+
+[Docx-Preview / xlsx]
+└─ Category: Media Viewer
+└─ Purpose: Kayıtlı Word (DOCX) ve Excel dosyalarını tarayıcı üzerinde görsel olarak render (preview) edebilmek.
+
+[JSZip]
+└─ Category: Browser Bundler
+└─ Purpose: Content Library panelinde scrape edilmiş görsellerin tarayıcı tarafında ZIP arşivi olarak paketlenip toplu indirilmesi.
+
+[RSS Parser / RSS]
+└─ Category: Content Syndication
+└─ Purpose: Dışarıdaki haber/makale kaynaklarından XML formatlı beslemeleri okuma veya koleksiyonları dışarıya RSS olarak yayınlama.
+
+[Papaparse]
+└─ Category: Data Parser
+└─ Purpose: CSV veya tablo formatındaki dosyaları içe/dışa aktarırken veriyi JavaScript objelerine çeviren ayrıştırıcı.
+
+== Logic, Networking & Utility ==
+
+[Zod]
+└─ Category: Validation
+└─ Purpose: Veri ve API giriş şemalarının son derece katı, type-safe (tür güvenli) doğrulaması.
+
+[https-proxy-agent / socks-proxy-agent]
+└─ Category: Network Tool
+└─ Purpose: Arkaplandaki botların çeşitli IP engellerine takılmaması için gerektiğinde proxy tünellerinden geçmesine olanak tanıyan araç.
+
+[Fuse.js]
+└─ Category: Search
+└─ Purpose: Uygulama içerisinde yapılan harf bazlı ve hoşgörülü (Fuzzy Search) aramaları çalıştıran yerel arama motoru.
+
+[i18next / next-i18next]
+└─ Category: Localization
+└─ Purpose: Uygulamanın farklı dillere çeviri altyapısını kuran çoklu-dil (i18n) motoru.
+
+[Date-fns]
+└─ Category: Date Tool
+└─ Purpose: Native JavaScript tarihleri üzerinde güçlü saat/bölge manipülasyon imkanı veren kütüphane.
+
+== Infrastructure, Workspaces & Testing ==
+
+[Turborepo / Yarn Workspaces]
+└─ Category: Monorepo Management
+└─ Purpose: Kodu tek depoda (packages, apps) yönetebilmek, build sürelerini önbellek (cache) ile ciddi oranda düşürmek.
+
+[Docker]
+└─ Category: Containerization
+└─ Purpose: Veritabanı, arka plan botları ve uygulamanın kendisinin her sunucuda "aynı" çalışabilmesi için kapalı izolasyon ortamı.
+
+[Playwright]
+└─ Category: Browser Automation & E2E Testing
+└─ Purpose: Web sayfalarını arşivlemek için headless browser (screenshot, PDF, monolith HTML), ayrıca E2E test altyapısı. Worker'da primary browser olarak kullanılır. BrowserManager per-user `user.browserType='playwright'` + opsiyonel `useStealth` toggle ile seçilir.
+
+[playwright-extra + puppeteer-extra-plugin-stealth]
+└─ Category: Stealth Plugin Layer
+└─ Purpose: Playwright'in üstüne geçirilen stealth wrapper. `navigator.webdriver`, `chrome.runtime`, WebGL vendor gibi otomasyon izlerini gizler. `user.useStealth=true` ile etkinleştirilir. browser.ts'te `stealthChromium` olarak import edilir, plain `rawChromium` ile paralel kullanılır.
+
+[CloakBrowser]
+└─ Category: Stealth Browser (Opsiyonel)
+└─ Purpose: 33 C++ source-level patch ile bot tespitine dayanıklı Chromium. Kullanıcı `user.browserType='cloakbrowser'` ile seçer. Per-user opsiyonlar: cloakStealth, cloakHumanize, cloakHumanPreset, cloakProxy, cloakTimezone, cloakLocale, cloakGeoip (hepsi DB'de User model'de). Library-level: CLOAKBROWSER_AUTO_UPDATE ve CLOAKBROWSER_CACHE_DIR env var'larıyla kontrol edilir.
+
+[BrowserManager]
+└─ Category: Worker Browser Lifecycle
+└─ Purpose: `apps/worker/lib/browser.ts` modülü — 2-slot cache (Playwright + CloakBrowser) lazy mode için, per-link mode'da config-compare-reuse ile tek browser. Lifecycle env var BROWSER_LIFECYCLE=lazy|per-link ile kontrol edilir (default lazy). Config değişikliğinde slot kill & relaunch. Launch hatası → user.browserConfigError yaz + per-type defaults'a fallback. Eski 30-dakika rotation silindi.
+
+[FlareSolverr (PR-1300)]
+└─ Category: Anti-Bot Cookie Extraction
+└─ Purpose: Cloudflare JS Challenge (eski tarz, iframe'siz) icin cookie extraction servisi. Sadece CLOUDFLARE_JS ResolutionStrategy'sinde kullanilir. Docker servisi: alexfozor/flaresolverr:pr-1300-experimental (port 8191).
+
+[Challenge Detector (Refactored)]
+└─ Category: Anti-Bot Detection
+└─ Purpose: Live page state bazli challenge tespit sistemi. `apps/worker/lib/challengeDetector.ts` (~200 satir). 4 ChallengeType (NONE, CLOUDFLARE_TURNSTILE, CLOUDFLARE_JS, RECAPTCHA) + 5 ResolutionStrategy (NONE, WAIT, CLICK, FLARESOLVERR_COOKIE, UNSOLVABLE). Dil-bagımsız tespit: `window._cf_chl_opt` JS globals + HTTP 403/503 + page size <50KB. Hardcoded title pattern YOK (CF localized titles). HTML regex yerine `page.frames()` kullanir. Eski 10-sinyalli tier sistemi kaldirildi. hCaptcha/Arkose/CUSTOM_HOLD detection yok.
+
+[Cross-Origin Image Handling]
+└─ Category: Archive Quality
+└─ Purpose: SingleFile fetch() CORS kısıtlamasını bypass eder. İki katmanlı çözüm: (1) `page.route()` image proxy — Playwright network seviyesinde image request'leri yakalayıp Node.js HTTP ile proxy'ler (CORS yok). (2) Cross-origin image inliner — server-side fetch + base64 data URI injection DOM'a SingleFile öncesi. Browser `<img>` tag'leri CORS'a tabi değil (görseller browser'da görünür), ama JS `fetch()` tabi — bu yüzden SingleFile embed edemiyor.
+
+[Challenge Click Resolver]
+└─ Category: Anti-Bot Resolution
+└─ Purpose: Cloudflare Turnstile + reCAPTCHA v2 checkbox challenge'lari icin generic click resolver (`apps/worker/lib/fallback/challengeClickResolver.ts`). Iframe bounding box alip human-like mouse movement ile checkbox'a tiklar. CloakBrowser source-level stealth ile birlesip moneysavingexpert.com gibi managed Turnstile siteleri ~3 saniyede geciyor. cf_clearance cookie polling ile dogrulama yapar. ENV: `CHALLENGE_DETECT_MOUNT_WAIT_MS` (3000), `CHALLENGE_RESOLVE_POLL_TIMEOUT_MS` (15000).
+
+[ws]
+└─ Category: WebSocket Server (web)
+└─ Purpose: Live browser screencast WebSocket endpoint (`/api/ws/screencast`). `apps/web/server.ts` custom server port 3000 üzerinde NextAuth cookie ile auth eder, Redis Pub/Sub'tan frame/status dinleyip client'a iletir.
+
+[ioredis]
+└─ Category: Redis Client
+└─ Purpose: Redis Pub/Sub ve presence tracking. Worker `screencastRelay.ts` publisher; web `server.ts` subscriber + command client. `worker:status:<uid>` key persistent status, `screencast:viewers:<uid>` sorted set presence tutar.
+
+[redis]
+└─ Category: Infrastructure (Docker service)
+└─ Purpose: Redis 7 Alpine. Screencast Pub/Sub + worker status persistence için. Port 6379 internal. Healthcheck: `redis-cli ping`.
+
+== Custom (Internal) Monorepo Packages ==
+
+[@grabshark/prisma]
+└─ Category: Shared Module
+└─ Purpose: Tüm veritabanı tip, model ve `PrismaClient` tablolarının ortak paket havuzu.
+
+[@grabshark/lib]
+└─ Category: Shared Module
+└─ Purpose: Genel proje fonksiyonları, formatter'lar ve Zod şemalarının barındığı modüler merkez.
+
+[@grabshark/types]
+└─ Category: Shared Module
+└─ Purpose: Uygulamanın (Web/Ext/Api) her yerinde kullanılan TypeScript interfacelerinin birleştirildiği kütüphane.
+
+[@grabshark/router]
+└─ Category: Shared Module
+└─ Purpose: React Query custom hook'larının oluşturulup tüm uygulamaya güvenli şekilde dağıtıldığı iletişim paketi.
+
+[@grabshark/filesystem]
+└─ Category: Shared Module
+└─ Purpose: S3, Local veya üçüncü parti dosya sistemi soyutlaması üzerinden fiziksel medya/disk ile haberleşme aracı.

@@ -2,17 +2,41 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-/**
- * Vite config for the Embedded UI layer.
- * 
- * This builds the heavy React UI (EmbeddedApp + all dependencies) as a
- * separate IIFE file (embeddedUI.js) that is lazy-loaded by the content
- * script only when the user opens the popup.
- * 
- * This keeps contentScript.js lightweight (~200-400KB) while deferring
- * the ~6MB React ecosystem until it's actually needed.
- */
+function getEmbeddedChunk(id: string) {
+    const normalizedId = id.replace(/\\/g, '/');
+
+    if (normalizedId.includes('/src/@/components/PreferencesView.tsx') ||
+        normalizedId.includes('/src/@/components/Preferences/') ||
+        normalizedId.includes('/src/@/components/CollectionPickerModal.tsx')) {
+        return 'embedded-preferences';
+    }
+
+    if (normalizedId.includes('/src/@/components/EditLinkView.tsx') ||
+        normalizedId.includes('/src/@/components/EditLink/')) {
+        return 'embedded-edit';
+    }
+
+    if (normalizedId.includes('/src/@/components/AlreadySavedView.tsx') ||
+        normalizedId.includes('/src/@/components/SavedLinkCard.tsx') ||
+        normalizedId.includes('/src/@/components/ExtensionSettings.tsx')) {
+        return 'embedded-saved';
+    }
+
+    if (normalizedId.includes('/src/@/components/SaveLinkCard.tsx') ||
+        normalizedId.includes('/src/@/components/SaveLink/')) {
+        return 'embedded-save';
+    }
+
+    if (normalizedId.includes('/src/@/components/Modal.tsx') ||
+        normalizedId.includes('/src/@/components/OptionsForm.tsx')) {
+        return 'embedded-auth';
+    }
+
+    return undefined;
+}
+
 export default defineConfig({
+    base: './',
     plugins: [react()],
     resolve: {
         alias: {
@@ -23,22 +47,25 @@ export default defineConfig({
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     },
     build: {
-        emptyOutDir: false, // Don't wipe dist (main + content builds run first)
+        emptyOutDir: false,
         outDir: 'dist',
         minify: process.env.NODE_ENV === 'development' ? false : 'esbuild',
-        lib: {
-            entry: path.resolve(__dirname, 'src/pages/ContentScript/embeddedUI.ts'),
-            name: 'GrabSHARKEmbeddedUI',
-            formats: ['es'],
-            fileName: () => 'embeddedUI.js',
-        },
         rollupOptions: {
+            input: {
+                embeddedUI: path.resolve(__dirname, 'src/pages/ContentScript/embeddedEntries/embeddedApp.ts'),
+                captureDock: path.resolve(__dirname, 'src/pages/ContentScript/embeddedEntries/captureDock.ts'),
+                saveNotificationToast: path.resolve(__dirname, 'src/pages/ContentScript/embeddedEntries/saveNotificationToast.ts'),
+            },
             output: {
-                inlineDynamicImports: true, // Single file output, no chunk splitting
-                // Don't emit CSS — embedded.css is already handled inline by EmbeddedMenuManager
+                format: 'es',
+                entryFileNames: '[name].js',
+                chunkFileNames: 'assets/[name]-[hash].js',
                 assetFileNames: (assetInfo) => {
                     if (assetInfo.name === 'style.css') return 'embeddedUI.css';
-                    return assetInfo.name as string;
+                    return 'assets/[name]-[hash][extname]';
+                },
+                manualChunks(id) {
+                    return getEmbeddedChunk(id);
                 },
             },
         },

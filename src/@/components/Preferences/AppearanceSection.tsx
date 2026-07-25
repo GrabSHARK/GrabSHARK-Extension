@@ -44,7 +44,7 @@ export const AppearanceSection: FC<AppearanceSectionProps> = ({
                         className={cn(
                             "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
                             selectedTheme === 'dark'
-                                ? "bg-blue-600 text-white shadow-sm"
+                                ? "bg-primary text-primary-foreground shadow-sm"
                                 : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                         )}
                     >
@@ -56,7 +56,7 @@ export const AppearanceSection: FC<AppearanceSectionProps> = ({
                         className={cn(
                             "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
                             selectedTheme === 'light'
-                                ? "bg-blue-600 text-white shadow-sm"
+                                ? "bg-primary text-primary-foreground shadow-sm"
                                 : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                         )}
                     >
@@ -68,7 +68,7 @@ export const AppearanceSection: FC<AppearanceSectionProps> = ({
                         className={cn(
                             "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
                             selectedTheme === 'system'
-                                ? "bg-blue-600 text-white shadow-sm"
+                                ? "bg-primary text-primary-foreground shadow-sm"
                                 : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                         )}
                     >
@@ -80,7 +80,7 @@ export const AppearanceSection: FC<AppearanceSectionProps> = ({
                         className={cn(
                             "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
                             selectedTheme === 'website'
-                                ? "bg-blue-600 text-white shadow-sm"
+                                ? "bg-primary text-primary-foreground shadow-sm"
                                 : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                         )}
                     >
@@ -144,7 +144,7 @@ export const AppearanceSection: FC<AppearanceSectionProps> = ({
                         className={cn(
                             "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
                             selectedLanguage === 'system'
-                                ? "bg-blue-600 text-white shadow-sm"
+                                ? "bg-primary text-primary-foreground shadow-sm"
                                 : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                         )}
                     >

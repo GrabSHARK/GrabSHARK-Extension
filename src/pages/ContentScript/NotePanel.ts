@@ -4,6 +4,7 @@
  */
 
 import { HighlightColor } from '../../@/lib/types/highlight';
+import { ThemeManager } from './shared/ThemeManager';
 import {
     NotePanelState,
     renderNotePanelHTML,
@@ -186,11 +187,9 @@ export class NotePanel {
 
     private updateTheme(): void {
         if (!this.container) return;
-        import('./shared/ThemeManager').then(({ ThemeManager }) => {
-            const isDark = ThemeManager.isDarkMode();
-            this.container?.classList.toggle('ext-lw-dark', isDark);
-            this.container?.classList.toggle('ext-lw-light', !isDark);
-        });
+        const isDark = ThemeManager.isDarkMode();
+        this.container.classList.toggle('ext-lw-dark', isDark);
+        this.container.classList.toggle('ext-lw-light', !isDark);
     }
 
     public destroy(): void {
@@ -204,3 +203,4 @@ export class NotePanel {
         if (this.host) { this.host.remove(); this.host = null; }
     }
 }
+

@@ -1,0 +1,69 @@
+GrabSHARK Browser Extension Design System & Isolation Protocol
+
+== 1. Theming Architecture & Tailwind ==
+
+[Tailwind CSS & HSL Vars]
+└─ Category: Framework
+└─ Purpose: Eklentinin Pop-up ve Sayfa-içi bileşenlerini (Shadow DOM dahil) yöneten temel renk motoru. Dark Mode, `class=".dark"` mekanizması üzerinden yürütülür.
+
+[Color Palette (HSL. vars)]
+└─ Category: Design Tokens
+└─ Purpose: Sistem geneli `background`, `foreground`, `muted` ve `primary` gibi ana renklerin `:root` HSL değerleri olarak tanımlanıp (örn: `210 40% 96.1%`) Tailwind (`hsl(var(--param))`) tarafından tüketilmesi olgusu. Işık/Karanlık hissini belirler.
+
+[VOID Tokens (Stone & GitHub Dark)]
+└─ Category: Component Tokens
+└─ Purpose: "VOID Dock" adı verilen şık/yarı saydam panelin (Akıllı Alıntı ve Vurgulayıcı Alt Panelleri) kendine has renklerini barındırır. Açık temada krem/taş rengi (Stone 50), Karanlık temada yoğunlaştırılmış siyah (GitHub Dark) kullanılır ve `rgb(var(--void-xx))` olarak işlenir.
+
+== 2. CSS Files & Asset Injection ==
+
+[index.css]
+└─ Category: Entry Stylesheet
+└─ Purpose: Kullanıcının eklenti ikonuna tıklayarak açtığı o "Kayıt/Tercihler (Pop-up/Options)" penceresinin bağımsız, saf ana stillendirmesi.
+
+[embedded.css & components.css]
+└─ Category: Shadow DOM Temsilcileri
+└─ Purpose: Dış bir WordPress veya React sitesine gidildiğinde enjekte edilecek Toast bildirimlerinin (`embedded.css`) ve "VOID Dock" panelinin (`components.css`) `:host` bazlı soyutlanmış (kapsüllenmiş) css dosyalarıdır. Shadow Root içerisinde çalışır ki site bunu bozmasın.
+
+[ARMOR Protocol (content-armor.css)]
+└─ Category: CSS Reset
+└─ Purpose: Gidilen sitenin `p, div, span` resetlerine veya grid ayarlarına takılmamak adına kullanılan "Agresif CSS Sıfırlama" kalkanı. Bütün `.ext-lw-*` ön-ekli bileşenler (Örn: `margin: 0 !important`) üzerinden güvenceye alınır. Layout etkisini %0'a indirmeyi hedefler.
+
+== 3. Component Design & Vibe ==
+
+[VOID Dock Design]
+└─ Category: UI Pattern
+└─ Purpose: Ekrandaki Seçim Kutusu veya Kırpıcı Alt Panellerinin "Apple / Premium" hissiyatı veren tasarımı. İki katmandan oluşur: 
+   - Dış Konteynır Yuvarsı (Outer shadow 0 12px 40px)
+   - İç Panel (Border ve inset iç-ışık efekti `rgba(255,255,255,0.8)`). 
+
+[Smart Capture Overlay]
+└─ Category: Select UI
+└─ Purpose: Ekranda bölge kırpmaya çalışırken farenin asıl okuyucu (Custom crosshair svg) olmasını ve hedefin altının ince saydam mavi (`rgba(59,130,246,0.15)`) ve sınırlarının belirgin taranmış (gradient stripe) desenli yanmasını sağlar.
+
+[Toast Notifications]
+└─ Category: Alert UI
+└─ Purpose: Sağ alttan `20px` boşlukla kayarak `(slide-in 0.3s)` gelen, beyaz yazılı ve belirgin zeminli (Yeşil=başarı, Kırmızı=hata) anormallik algılayıcıları.
+
+[Highlight Markers]
+└─ Category: Text Highlighting
+└─ Purpose: Seçilen metnin altına `rgba(renk, 0.6)` saydamlığında eklenen Fosforlu Kalem efekti paleti. (Sarı, Kırmızı, Mavi, Yeşil). 
+
+== 4. Animations & Micro-Interactions ==
+
+[Dock Spring Animations]
+└─ Category: Interactions
+└─ Purpose: Gömülü kutuların ekrana zıplayarak var olması (Yay/Spring efekti). `cubic-bezier(0.34, 1.56, 0.64, 1)` formülüyle `scale(0.92)` olan kutunun esneyerek açılmasını sağlar.
+
+[Content Script & Pop-in]
+└─ Category: Reveal FX
+└─ Purpose: Ekrandan anlık çıkan araçların (`Actionbar`, `Dropdown`) saydamlıktan çıkıp çok kısa sürede (0.2s) var olması durumu.
+
+== 5. Typography & Z-Index Limits ==
+
+[Font Stacks (Mac/iOS Vibe)]
+└─ Category: Typography
+└─ Purpose: Özel importlar olmadan temiz Native Rendering kullanır. `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto...` font zincirini baz alır (Kullanıcı cihazının en iyi varsayılan UI tipografisi).
+
+[Z-Index Hierarchy]
+└─ Category: Architecture Logic
+└─ Purpose: Sayfaya fırlayan UI (Bilhassa Akıllı Kırpıcı ve Toast uyarılar) parçalarının sitedeki en inatçı sabit (sticky/fixed) menünün bile üstüne çıkması için max integer limiti olan `2147483647` Z-Index değerinin standart kabul edilmesi.

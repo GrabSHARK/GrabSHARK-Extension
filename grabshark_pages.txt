@@ -1,0 +1,280 @@
+GrabSHARK Main Application Pages (Route Reference)
+
+== App Shell & Core Rotalar ==
+
+[/_app]
+└─ File: grabshark/apps/web/pages/_app.tsx
+└─ Category: Next.js Core
+└─ Purpose: Uygulamanın kök bileşeni. Tema sağlayıcıları, Oturum (Session) Provider, Locale kontrolü gibi evrensel sarmalayıcıları içerir.
+
+[/_document]
+└─ File: grabshark/apps/web/pages/_document.tsx
+└─ Category: Next.js Core
+└─ Purpose: Temel HTML iskeleti, Google Font yüklemeleri ve `html/body` özel meta etiketleri.
+
+[/]
+└─ File: grabshark/apps/web/pages/index.tsx
+└─ Category: Root
+└─ Purpose: Uygulamanın ana kapısı. Genellikle auth durumuna göre Dashboard'a veya Login'e yönlendirme yapar.
+
+== Authentication & Onboarding ==
+
+[/login]
+└─ File: grabshark/apps/web/pages/login.tsx
+└─ Category: Auth
+└─ Purpose: Üye giriş (Login) ekranı.
+
+[/register]
+└─ File: grabshark/apps/web/pages/register.tsx
+└─ Category: Auth
+└─ Purpose: Yeni kullanıcı kayıt ekranı.
+
+[/forgot]
+└─ File: grabshark/apps/web/pages/forgot.tsx
+└─ Category: Auth
+└─ Purpose: Şifremi unuttum talep formu.
+
+[/auth/reset-password]
+└─ File: grabshark/apps/web/pages/auth/reset-password.tsx
+└─ Category: Auth
+└─ Purpose: Şifre sıfırlama talebinden sonra gelen şifre yenileme formu.
+
+[/auth/force-password-change]
+└─ File: grabshark/apps/web/pages/auth/force-password-change.tsx
+└─ Category: Auth
+└─ Purpose: Admin'in NewUserModal'dan tek-kullanımlık password verdiği user'ın ilk login'inde geldiği zorunlu password değişim ekranı. Login authorize() PASSWORD_CHANGE_REQUIRED:<token> throw eder, login.tsx URL'ye token + identifier parametreleriyle yönlendirir; sayfa yeni password+confirm alıp /api/v1/auth/force-password-change'i çağırır, başarı sonrası signIn credentials ile auto-sign-in + /dashboard. forgot-password reset endpoint'i de mustChangePassword=false set eder, dolayısıyla self-service akışlar buradan tekrar geçmez.
+
+[/member-onboarding]
+└─ File: grabshark/apps/web/pages/member-onboarding.tsx
+└─ Category: Onboarding
+└─ Purpose: Kayıt sonrası "Hoş geldin" asistanı ve temel kurulum sihirbazı.
+
+== Dashboard & Data Views ==
+
+[/dashboard]
+└─ File: grabshark/apps/web/pages/dashboard.tsx
+└─ Category: Dashboard
+└─ Purpose: İstatistikler, son bağlantılar ve vurguların modüller halinde (sürükle-bırak destekli) sunulduğu ana yönetim panosu.
+
+[/collections]
+└─ File: grabshark/apps/web/pages/collections/index.tsx
+└─ Category: Listing View
+└─ Purpose: Kullanıcıya ait tüm koleksiyonların (klasörlerin) listelendiği genel görünüm.
+
+[/collections/[id]]
+└─ File: grabshark/apps/web/pages/collections/[id].tsx
+└─ Category: Detail View
+└─ Purpose: Belirli bir koleksiyonun içine girme; o klasör altındaki dosyalar ve linklerin gösterimi.
+
+[/links]
+└─ File: grabshark/apps/web/pages/links/index.tsx
+└─ Category: Listing View
+└─ Purpose: Sistemi üzerindeki kayıtlı tüm bağlantıların/URL'lerin global listesi.
+
+[/links/[id]]
+└─ File: grabshark/apps/web/pages/links/[id].tsx
+└─ Category: Detail View
+└─ Purpose: Arşivlenen bağlantı hakkında tekil teknik detay ve bilgi okuma ekranı.
+
+[/files (uploads)]
+└─ File: grabshark/apps/web/pages/uploads/index.tsx
+└─ Category: Listing View
+└─ Purpose: Yüklenen tüm medya, resim, pdf veya word belgelerinin yönetildiği dijital depo.
+
+[/tags]
+└─ File: grabshark/apps/web/pages/tags/index.tsx
+└─ Category: Listing View
+└─ Purpose: Tüm sistem etiketlerinin (tags) genel kart formatında görüntülenmesi.
+
+[/tags/[id]]
+└─ File: grabshark/apps/web/pages/tags/[id].tsx
+└─ Category: Detail View
+└─ Purpose: Belirli bir etiket adıyla işaretlenmiş tüm kaynakları daraltılmış halde listeleme.
+
+[/highlights]
+└─ File: grabshark/apps/web/pages/highlights/index.tsx
+└─ Category: Listing View
+└─ Purpose: Üzeri sarı/kırmızı vs. ile çizilmiş tüm makale metin notlarının sergilendiği arşiv.
+
+[/captures]
+└─ File: grabshark/apps/web/pages/captures/index.tsx
+└─ Category: Listing View
+└─ Purpose: Yakalanan ekran görüntüsü (screenshot) ve diğer capture dosyalarının havuzu.
+
+[/archived]
+└─ File: grabshark/apps/web/pages/archived.tsx
+└─ Category: Listing View
+└─ Purpose: Kaynakların gizlendiği/soft-delete edildiği çöp kutusu (Geri Getirme/Arşiv) merkezi.
+
+[/favorites]
+└─ File: grabshark/apps/web/pages/favorites.tsx
+└─ Category: Listing View
+└─ Purpose: Yıldız ile favoriye alınmış kaynakların hızlı erişim panosu.
+
+[/search]
+└─ File: grabshark/apps/web/pages/search.tsx
+└─ Category: Discovery
+└─ Purpose: Tüm uygulamada yapılan arama komutlarının detaylı metin sonuç sayfası.
+
+== Preservation & Reader ==
+
+[/preserved/[id]]
+└─ File: grabshark/apps/web/pages/preserved/[id].tsx
+└─ Category: Reader View
+└─ Purpose: Kayıt altına alınmış bir makalenin "Okuma Modu" dahilinde reklam/çöp veriden arındırılmış temiz görünümü.
+
+[/preserved/file/[id]]
+└─ File: grabshark/apps/web/pages/preserved/file/[id].tsx
+└─ Category: Reader View
+└─ Purpose: Uzak veya indirilmiş dosyaların önizleyicisi (Örn: SVG veya PDF tarzı görüntüleyici).
+
+== Public / Shareable Pages ==
+
+[/public/collections/[id]]
+└─ File: grabshark/apps/web/pages/public/collections/[id]/index.tsx
+└─ Category: Public View
+└─ Purpose: Dış dünyaya (misafirlere) paylaşımı açılmış Koleksiyonun salt-okunur yayın sayfası.
+
+[/public/collections/[id]/rss]
+└─ File: grabshark/apps/web/pages/public/collections/[id]/rss.tsx
+└─ Category: Public Feed
+└─ Purpose: Paylaşılan klasörün yeni içerik eklendikçe otomatik yenilenen RSS XML kanalı.
+
+[/public/links/[id]]
+└─ File: grabshark/apps/web/pages/public/links/[id].tsx
+└─ Category: Public View
+└─ Purpose: Dışarı ile paylaşılan tekil bağlantı kartının detay sayfası.
+
+[/public/preserved/[id]]
+└─ File: grabshark/apps/web/pages/public/preserved/[id].tsx
+└─ Category: Public Reader
+└─ Purpose: Temiz arşivlenmiş makalenin misafirlerin erişimine açık hali.
+
+== Maintenance & Utils ==
+
+[/health-check]
+└─ File: grabshark/apps/web/pages/health-check/index.tsx
+└─ Category: System Tool
+└─ Purpose: LHC (Link Health Check). Linklerin ölü veya erişilmez (404 vs.) olup olmadığını analiz eden rapor arayüzü.
+
+[/admin]
+└─ File: grabshark/apps/web/pages/admin/index.tsx
+└─ Category: Admin Console
+└─ Purpose: Sistem kullanıcılarını ve davet kodlarını vs idare eden Süper Yönetici ekranı. Üst nav strip 3 link (Users / Logs / System); user row hover'larında "View Logs" butonu actorUserId pre-filter ile log sayfasına yönlendirir.
+
+[/admin/logs]
+└─ File: grabshark/apps/web/pages/admin/logs.tsx
+└─ Category: Admin Console
+└─ Purpose: Multi-type log viewer (AUDIT/SECURITY/SYSTEM/HTTP/WORKER/INTEGRATION). 7 type chip filter + 7 input filter (category, action, actorId, targetId, level, from-to date range, page size 50/100/250/500/1000/unlimited). Cursor-based pagination via "Load More". Click row → expand metadata JSON. Inline purge panel (admin-only, type + olderThanDays, audit-of-the-audit). URL state ile sync — deeplink desteği (?actorUserId=X). 3-link admin nav strip (Users / Logs / System).
+
+[/admin/system]
+└─ File: grabshark/apps/web/pages/admin/system.tsx
+└─ Category: Admin Console
+└─ Purpose: Operations cockpit — read-only observability + minimum-blast-radius maintenance. 4 traffic light status strip (Postgres / Redis / Web / Worker) + 4 grid cards (Resources web+worker+host RSS/heap/CPU/event-loop-lag, Storage disk/DB/files-folder/top-tables, Redis memory+keys+queues+dead-letters, Workers heartbeat per-id). Maintenance accordion: Run logRetention now, Run telegramHealthMonitor now, Replay/Discard dead-letter (allow-list log:dead_letter, max 100, discard requires confirm modal), Purge logs link. Auto-refresh 5s; server-side cache 5s. State Redis-only (system:process:*, worker:heartbeat:*, system:storage:files_size). 3-link admin nav strip.
+
+[/confirmation]
+└─ File: grabshark/apps/web/pages/confirmation.tsx
+└─ Category: Utility
+└─ Purpose: Kritik işlemler sonrası beliren jenerik uyarı/onay geri bildirim sayfası.
+
+[/rss]
+└─ File: grabshark/apps/web/pages/rss.tsx
+└─ Category: Utility
+└─ Purpose: Projenin/Kullanıcının global RSS yayın adresi oluşturucusu.
+
+[/subscribe]
+└─ File: grabshark/apps/web/pages/subscribe.tsx
+└─ Category: Sales / Upgrade
+└─ Purpose: Ödeme yaparak üst plana (Premium) geçen kullanıcılar için upgrade sipariş ekranı.
+
+== Settings Module ==
+
+[/settings]
+└─ File: grabshark/apps/web/pages/settings/index.tsx
+└─ Category: Config
+└─ Purpose: Ayarlar ana sayfa yönlendirici kökü.
+
+[/settings/account]
+└─ File: grabshark/apps/web/pages/settings/account.tsx
+└─ Category: Config
+└─ Purpose: Kullanıcı profili, İsim, Fotoğraf ve e-posta değiştirme sayfası.
+
+[/settings/access-tokens]
+└─ File: grabshark/apps/web/pages/settings/access-tokens.tsx
+└─ Category: Config
+└─ Purpose: Geliştirici APi'si için kişisel erişim belirteçleri (Bearer Tokens) üretme/iptal etme.
+
+[/settings/billing]
+└─ File: grabshark/apps/web/pages/settings/billing.tsx
+└─ Category: Config
+└─ Purpose: Fatura geçimişi ve abonelik periyodu yönetimi (Stripe vs).
+
+[/settings/delete]
+└─ File: grabshark/apps/web/pages/settings/delete.tsx
+└─ Category: Config
+└─ Purpose: Hesap kurtarması olmadan "Kalıcı Silme (Danger Zone)" menüsü.
+
+[/settings/password]
+└─ File: grabshark/apps/web/pages/settings/password.tsx
+└─ Category: Config
+└─ Purpose: Güvenlik, login ve şifre modifikasyonları.
+
+[/settings/preference]
+└─ File: grabshark/apps/web/pages/settings/preference.tsx
+└─ Category: Config
+└─ Purpose: Açık/Koyu Tema seçimi, Çoklu Dil (i18n) ayarı ve Grid/List varsayılan görüntülenme tercihleri.
+
+[/settings/integrations]
+└─ File: grabshark/apps/web/pages/settings/integrations.tsx
+└─ Category: Config
+└─ Purpose: Üçüncü-taraf servis entegrasyonları (şu an sadece Telegram). Sidebar görünürlüğü `enabled && (isAdmin || botConfigured)` — TELEGRAM_ENABLED=false ise tüm kullanıcılardan gizli, token configured değilse sadece admin görür (config help text ile). Direct URL hit'te `/settings/account`'a redirect.
+
+[/settings/archiving]
+└─ File: grabshark/apps/web/pages/settings/archiving.tsx
+└─ Category: Config
+└─ Purpose: Arşiv hattının her ayarını tek sayfada toplar — 5 bölüm. (1) Tarayıcı (Chromium): Playwright/CloakBrowser seçimi, stealth, proxy/timezone/locale, prescroll, archive dark mode, cookie banner auto-dismiss + ek "Kabul" buton metni textarea, Hagezi resource blocker toggle. (2) Okunabilir: placeholder. (3) Ekran Görüntüsü: format (PNG/JPEG/WebP) + kalite slider, renk şeması, freeze animations. (4) PDF: sayfa boyutu (A4/Letter/Legal/Tabloid/Custom), yön, marj preset, print background, header/footer combo, single-page, scale, color mode, strip JS, optimize, generate TOC. (5) Tek Dosya HTML: standart/enhanced/her ikisi mode. Sidebar'da "Arşivleme" olarak gözükür.
+
+[/settings/browser]
+└─ File: grabshark/apps/web/pages/settings/browser.tsx
+└─ Category: Redirect
+└─ Purpose: 301 → /settings/archiving. Eski "Browser settings" sayfası /settings/archiving altına Tarayıcı (Chromium) bölümü olarak taşındı; bookmark'lar ve eski deeplink'ler buradan otomatik yönlendirilir.
+
+[/settings/notifications]
+└─ File: grabshark/apps/web/pages/settings/notifications.tsx
+└─ Category: Config
+└─ Purpose: Per-tip × per-kanal bildirim tercihleri matrisi. Bell + toast (uygulama içi popup) baseline (mandatory) — bu sayfada görünmezler. Sadece email + telegram opsiyonel kanalları toggle edilir, NotificationPreference tablosuna tek-tek upsert. Channel availability hint'leri (SMTP yok → /settings/account, Telegram bağlı değil → /settings/integrations) disabled state'li checkbox + tooltip ile sunulur. Save button yok — Linear/Notion paterni, her toggle anlık optimistic mutation. NEW_DEVICE_LOGIN.email yeni user'lar için varsayılan açık (security industry standard). MARKETING_EMAIL grubu özel: bell+toast'a hiç düşmez, sadece email kanalı; telegram column tasarım gereği permanent disabled (server-side updatePreferences.ts'de de telegram=false clamp).
+
+[/settings/rss-subscriptions]
+└─ File: grabshark/apps/web/pages/settings/rss-subscriptions.tsx
+└─ Category: Config
+└─ Purpose: Uygulama içine kaydedilmek üzere dışarıdan alınan RSS blog servislerinin takibi.
+
+[/settings/worker]
+└─ File: grabshark/apps/web/pages/settings/worker.tsx
+└─ Category: Config
+└─ Purpose: Arkaplan işlemi, indirme gecikmeleri, otomasyon (Preservation worker) ayarları.
+
+[/settings/admin/email]
+└─ File: grabshark/apps/web/pages/settings/admin/email.tsx
+└─ Category: Config (admin-only)
+└─ Purpose: SMTP server config UI for admins. Lives under "Admin Only" separator in SettingsSidebar (visible only when user.isAdmin). Structured form (raw URL alanı kaldırıldı): "Hızlı kurulum" provider preset chip'leri (Gmail / Outlook / Yandex — apps/web/lib/smtpPresets.ts statik tablosu, downloadCenterConfig kalıbı) host/port/şifrelemeyi prefill eder; aktif chip host değerinden DERIVE edilir (provider id saklanmaz). Chip seçiliyken app-password rehberi + From-eşleşme notu + resmi rehber dış linki içeren info kutusu render edilir; username blur'unda boş From alanı username ile seed'lenir. Alanlar: Host + Port + Şifreleme dropdown'ı (STARTTLS 587 / SSL-TLS 465 / None 25) + Username + write-only Password. Boş port seçili modun varsayılanı sayılır (placeholder = efektif değer). Dropdown değişince port otomatik dolar (custom port ezilmez); SSL/TLS↔port uyumsuzluğunda inline "wrong version number" uyarısı. Form GET response'un `server` view'i ile prefill olur; password boş bırakılırsa mevcut şifre korunur. URL compose sunucu tarafında (updateEmailConfig). Single-source DB-driven config: SystemConfig (id=1) singleton, AES-256-GCM encrypted URL (TOTP_ENCRYPTION_KEY). Admin saves/clears the row and can send a 5-second-timeout test email to their own address. invalidateTransporterCache() runs on save so live mail pickups happen without a restart.
+
+[/settings/admin/screencast]
+└─ File: grabshark/apps/web/pages/settings/admin/screencast.tsx
+└─ Category: Config (admin-only)
+└─ Purpose: Canlı screencast yönetim sayfası (Admin Only separator altında, email.tsx'in yapısal klonu — client redirect gate + SettingsLayout). Bölümler: (1) master kill switch — instant-save checkbox (worker CDP attach + viewer WS reddedilir; status dot yaşar), (2) erişim kapsamı radio ALL/ADMINS — instant-save, (3) yayın kalitesi: ağ hızı preset chip'leri (Düşük bant 20/854×480/nth4 · Dengeli 30/1280×720/nth3 = eski hardcoded defaults · Yüksek 50/1600×900/nth2 — apps/web/lib/screencastPresets.ts, aktif chip 4-alan tam eşleşmeden türetilir) + 4 editlenebilir numeric alan, (4) izleyici oturum limiti dk (0=sınırsız; server.ts heartbeat 4408 ile kapatır), (5) Kaydet (3-4 için, SCREENCAST_RANGES client-side check), (6) canlı kart: useScreencastLiveStatus 5s poll — aktif izleyici sayısı + capture listesi (username/url/viewerCount) + redisOk uyarısı. Hydrate effect !dirty guard'lı (email.tsx clobber wart'ı düzeltilmiş).
+
+[/settings/blocks]
+└─ File: grabshark/apps/web/pages/settings/blocks.tsx
+└─ Category: Config (social)
+└─ Purpose: User-to-user blocklist management. Lists everyone the caller has blocked (avatar + name + handle + since-date + reason chip), with per-row "Unblock" button (optimistic mirror — Lesson 41). Empty state with shield icon. POST /api/v1/blocks/[blockedId] is invoked from T5 invite-block flow once that ships; this page is the discovery + revoke surface. Twitter/Instagram pattern — silent block, no feedback to the other side.
+
+[Page] /reminders
+└─ File: grabshark/apps/web/pages/reminders/index.tsx
+└─ Category: User
+└─ Purpose: Reminders management hub (added 2026-05-04). Four sections: Due (overdue ACTIVE), Upcoming (future ACTIVE), Recurring (cron != null), Archive (DONE/CANCELED). Archive section exposes "Purge archive" button → DELETE all + companion REMINDER_FIRED notification cleanup. Each row offers edit / snooze / pause-resume / delete; Due section also shows the inline ReminderSnoozeMenu.
+
+[Page] /quick-add
+└─ File: grabshark/apps/web/pages/quick-add.tsx
+└─ Category: User
+└─ Purpose: Bookmarklet popup landing page (added 2026-05-04). Reads ?url= + ?title= query params, runs useAddLink mutation once user query lands, renders idle / saving / success / error / no-url states with a centered card. Auto-closes 1.5s after success via window.close(). Layoutless (no sidebar chrome) — popup is sized ~420×280 by the bookmarklet. Whitelisted as protected in AuthRedirect; unauthenticated users round-trip through /login with `callbackUrl=/quick-add?...` so query params are preserved.

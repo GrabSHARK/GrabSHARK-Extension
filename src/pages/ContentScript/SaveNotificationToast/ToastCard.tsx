@@ -3,55 +3,36 @@
  * Matches SavedLinkCard.tsx structure
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FolderSimple } from '@phosphor-icons/react';
-import { format } from 'date-fns';
-import { enUS, tr } from 'date-fns/locale';
-import { useTranslation } from 'react-i18next';
-import Icon from '../../../@/components/Icon';
-import { getThumbnail } from '../../../@/lib/thumbnailCache';
 import { getToastStyles, useIsDark } from './toastStyles';
-import type { ToastLinkData } from './types';
+import type { PreparedToastLink, ToastLabels } from './types';
 
 export const ToastCard = ({
     link,
+    labels,
     isMain = false,
     isExpanded = false,
     onClick,
     onEdit,
     onShow,
 }: {
-    link: ToastLinkData;
+    link: PreparedToastLink;
+    labels: ToastLabels;
     isMain?: boolean;
     isExpanded?: boolean;
     onClick?: () => void;
-    onEdit?: (link: ToastLinkData) => void;
-    onShow?: (link: ToastLinkData) => void;
+    onEdit?: (link: PreparedToastLink) => void;
+    onShow?: (link: PreparedToastLink) => void;
 }) => {
-    const { t, i18n } = useTranslation();
     const isDark = useIsDark();
     const styles = getToastStyles(isDark);
 
-    const [imgSrc, setImgSrc] = useState<string>('');
     const [hoveredBtn, setHoveredBtn] = useState<string | null>(null);
 
-    const faviconUrl = link.url ? `https://www.google.com/s2/favicons?sz=64&domain_url=${link.url}` : '';
-    const formattedDate = link.createdAt
-        ? format(new Date(link.createdAt), 'MMM d', { locale: i18n.language === 'tr' ? tr : enUS })
-        : t('savedLink.justNow');
-    const collectionName = link.collection?.name || t('bookmark.unorganized');
-
-    useEffect(() => {
-        const loadImage = async () => {
-            const cached = await getThumbnail(link.url);
-            if (cached) {
-                setImgSrc(cached);
-                return;
-            }
-            setImgSrc(faviconUrl);
-        };
-        loadImage();
-    }, [link.url, faviconUrl]);
+    const faviconUrl = link.url ? 'https://www.google.com/s2/favicons?sz=64&domain_url=' + link.url : '';
+    const displayImage = link.thumbnailSrc || faviconUrl;
+    const hasPreviewImage = Boolean(link.thumbnailSrc && link.thumbnailSrc !== faviconUrl);
 
     return (
         <div
@@ -62,21 +43,20 @@ export const ToastCard = ({
             onClick={!isMain ? onClick : undefined}
         >
             <div style={styles.cardContent}>
-                {/* Thumbnail */}
                 <div style={styles.thumbnail}>
                     <img
-                        src={imgSrc || faviconUrl}
+                        src={displayImage}
                         alt=""
                         style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: imgSrc && imgSrc !== faviconUrl ? 'cover' : 'contain',
-                            padding: imgSrc && imgSrc !== faviconUrl ? 0 : '8px',
+                            objectFit: hasPreviewImage ? 'cover' : 'contain',
+                            padding: hasPreviewImage ? 0 : '8px',
                             borderRadius: '12px',
                         }}
                         onError={(e) => {
-                            if (faviconUrl && (e.target as HTMLImageElement).src !== faviconUrl) {
-                                (e.target as HTMLImageElement).src = faviconUrl;
+                            if (faviconUrl && e.currentTarget.src !== faviconUrl) {
+                                e.currentTarget.src = faviconUrl;
                             }
                         }}
                     />
@@ -89,29 +69,36 @@ export const ToastCard = ({
                     }} />
                 </div>
 
-                {/* Content */}
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, flex: 1 }}>
                     <h3 style={styles.title} title={link.name}>
                         {link.name}
                     </h3>
                     <div style={styles.meta}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {link.collection?.icon ? (
-                                <Icon icon={link.collection.icon} style={{ width: 14, height: 14, flexShrink: 0 }} color={link.collection.color} />
+                            {link.fallbackIconColor ? (
+                                <span
+                                    style={{
+                                        width: 12,
+                                        height: 12,
+                                        borderRadius: 4,
+                                        flexShrink: 0,
+                                        backgroundColor: link.fallbackIconColor,
+                                        display: 'inline-block',
+                                    }}
+                                />
                             ) : link.collection?.color ? (
                                 <FolderSimple style={{ width: 14, height: 14, flexShrink: 0, color: link.collection.color }} weight="fill" />
                             ) : (
                                 <FolderSimple style={{ width: 14, height: 14, flexShrink: 0, color: '#a1a1aa' }} weight="fill" />
                             )}
-                            {collectionName}
+                            {link.collectionLabel || labels.unorganized}
                         </span>
                         <span style={styles.dot}>•</span>
-                        <span>{formattedDate}</span>
+                        <span>{link.formattedDate}</span>
                     </div>
                 </div>
             </div>
 
-            {/* Actions - only for main card or expanded */}
             {(isMain || isExpanded) && (
                 <>
                     <div style={styles.divider} />
@@ -128,7 +115,7 @@ export const ToastCard = ({
                             onMouseEnter={() => setHoveredBtn('edit')}
                             onMouseLeave={() => setHoveredBtn(null)}
                         >
-                            {t('savedLink.edit')}
+                            {labels.edit}
                         </button>
                         <div style={{
                             width: '1px',
@@ -147,7 +134,7 @@ export const ToastCard = ({
                             onMouseEnter={() => setHoveredBtn('show')}
                             onMouseLeave={() => setHoveredBtn(null)}
                         >
-                            Show
+                            {labels.show}
                         </button>
                     </div>
                 </>

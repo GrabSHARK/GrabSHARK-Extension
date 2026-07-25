@@ -114,10 +114,50 @@ export function showToolboxForNewSelection(
 
     const highlightsInSelection = getHighlightsInSelection();
 
+    // After creating a highlight from a new selection, the auto-reopen mechanism (selection
+    // change / mutation observer) re-shows the toolbox in new-selection mode again — so
+    // subsequent dropdown clicks still hit createHighlight (with all its side-effects)
+    // instead of updateHighlight, and our existing-highlight reopen path never fires.
+    // Fix: after createHighlight resolves, find the just-created highlight in the cache and
+    // explicitly reopen the toolbox in existing-highlight mode (eraser visible, updateHighlight
+    // path used for subsequent color changes).
+    const reopenAsExistingAfterCreate = () => {
+        setTimeout(() => {
+            const newHl = HighlightManager.getHighlights().find(h =>
+                h.text === selectionInfo.text &&
+                h.startOffset === selectionInfo.startOffset &&
+                h.endOffset === selectionInfo.endOffset
+            );
+            if (!newHl) return;
+            const span = document.querySelector(`[data-ext-lw-highlight-id="${newHl.id}"]`) as HTMLElement | null;
+            if (!span) return;
+            const rect = span.getBoundingClientRect();
+            const fakeEvent = new MouseEvent('mouseover', {
+                bubbles: true,
+                composed: true,
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.top + rect.height / 2,
+            });
+            showToolboxForExistingHighlight(ctx, newHl, fakeEvent);
+        }, 250);
+    };
+
     ctx.toolbox.show(position, {
-        onColorSelect: async (color: HighlightColor) => HighlightManager.createHighlight(selectionInfo, color),
-        onCommentSave: async (comment: string, color?: HighlightColor) =>
-            HighlightManager.createHighlight(selectionInfo, color || ctx.defaultHighlightColor, comment),
+        onColorSelect: async (color: HighlightColor) => {
+            // Clear selection BEFORE the backend call. Otherwise InteractionManager's
+            // 80ms selectionchange debounce sees the still-active selection and re-opens
+            // the toolbox in new-selection mode (showing the highlight icon) right before
+            // our 250ms reopenAsExistingAfterCreate kicks in — that's the flash the user
+            // reported. With selection cleared, maybeShowSelectionToolbox short-circuits.
+            window.getSelection()?.removeAllRanges();
+            await HighlightManager.createHighlight(selectionInfo, color);
+            reopenAsExistingAfterCreate();
+        },
+        onCommentSave: async (comment: string, color?: HighlightColor) => {
+            window.getSelection()?.removeAllRanges();
+            await HighlightManager.createHighlight(selectionInfo, color || ctx.defaultHighlightColor, comment);
+            reopenAsExistingAfterCreate();
+        },
         onDelete: async () => {
             if (highlightsInSelection.length > 0 && confirm(`Delete ${highlightsInSelection.length} highlight${highlightsInSelection.length > 1 ? 's' : ''}?`)) {
                 for (const id of highlightsInSelection) await HighlightManager.deleteHighlight(id);
@@ -178,9 +218,42 @@ export function showToolboxForExistingHighlight(
 
     const highlightLinks = extractLinksFromHighlight(highlight.id);
 
+    // After a color/comment update, the highlight stays in DOM (only CSS classes change),
+    // so the "applyHighlight → mouseover → InteractionManager.handleMouseOver → reopen" path
+    // that triggers automatically for createHighlight does NOT fire for updates.
+    // Use direct show() — most explicit, doesn't rely on event propagation through document.
+    const reopenAfterUpdate = (newColor: HighlightColor) => {
+        // 250ms = close anim (200ms) + small grace so close anim is visible before reopen.
+        setTimeout(() => {
+            // Re-query highlight span position from current DOM (may have reflowed)
+            const span = document.querySelector(`[data-ext-lw-highlight-id="${highlight.id}"]`) as HTMLElement | null;
+            if (!span) {
+                console.warn('[GrabSHARK] reopenAfterUpdate: highlight span not found in DOM', highlight.id);
+                return;
+            }
+            const rect = span.getBoundingClientRect();
+            const fakeEvent = new MouseEvent('mouseover', {
+                bubbles: true,
+                composed: true,
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.top + rect.height / 2,
+            });
+            const updated: Highlight = { ...highlight, color: newColor };
+            // Direct call — bypasses event dispatch entirely.
+            showToolboxForExistingHighlight(ctx, updated, fakeEvent);
+        }, 250);
+    };
+
     ctx.toolbox.show(position, {
-        onColorSelect: async (color) => HighlightManager.updateHighlight(highlight, color),
-        onCommentSave: async (comment, color) => HighlightManager.updateHighlight(highlight, color || highlight.color as HighlightColor, comment),
+        onColorSelect: async (color) => {
+            await HighlightManager.updateHighlight(highlight, color);
+            reopenAfterUpdate(color);
+        },
+        onCommentSave: async (comment, color) => {
+            const finalColor = color || highlight.color as HighlightColor;
+            await HighlightManager.updateHighlight(highlight, finalColor, comment);
+            reopenAfterUpdate(finalColor);
+        },
         onDelete: async () => HighlightManager.deleteHighlight(highlight.id),
         onClip: () => {
             SmartCaptureHandlers.handleClip({

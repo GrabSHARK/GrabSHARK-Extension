@@ -1,16 +1,14 @@
 /**
  * Capture Action Bar - Unified action menu for Smart Capture
  * Uses React CaptureDock component rendered in Shadow DOM
- * 
+ *
  * Delegates positioning to viewportLayout.ts
  */
 
 import { CaptureTarget, SmartCaptureCallbacks } from './types';
 import { ThemeDetector } from './ThemeDetector';
-import { loadReactModule, type GrabSHARKReactModule } from '../utils/reactLoader';
+import { loadCaptureDockModule, type CaptureDockReactModule } from '../utils/reactLoader';
 import { positionFloatingBar } from './viewportLayout';
-
-type Root = import('react-dom/client').Root;
 
 export class CaptureActionBar {
     private container: HTMLDivElement | null = null;
@@ -25,8 +23,8 @@ export class CaptureActionBar {
     private containerElement: Element;
     private resizeObserver: ResizeObserver | null = null;
     private clickOutsideHandler: ((e: MouseEvent) => void) | null = null;
-    private reactRoot: Root | null = null;
-    private reactModule: GrabSHARKReactModule | null = null;
+    private reactRoot: any = null;
+    private reactModule: CaptureDockReactModule | null = null;
 
     constructor(containerElement?: Element) {
         this.containerElement = containerElement || document.body;
@@ -37,7 +35,7 @@ export class CaptureActionBar {
     private async ensureContainer(): Promise<void> {
         if (this.container) return;
 
-        if (!this.reactModule) this.reactModule = await loadReactModule();
+        if (!this.reactModule) this.reactModule = await loadCaptureDockModule();
 
         this.host = document.createElement('div');
         this.host.id = 'ext-lw-capture-actionbar-host';
@@ -143,6 +141,9 @@ export class CaptureActionBar {
             positionFloatingBar(this.host, this.container, target);
             this.updateTheme();
         } else {
+            // Fresh-show after hide. flushSync in render() guarantees the React
+            // tree is committed before this point, so positionFloatingBar can
+            // measure the final container width on the first try.
             this.host.style.setProperty('transition', 'none', 'important');
             this.container.classList.remove('ext-lw-capture-actionbar-hidden', 'ext-lw-closing');
             this.container.style.setProperty('display', 'flex', 'important');
@@ -178,19 +179,30 @@ export class CaptureActionBar {
     public isShowing(): boolean { return this.isVisible; }
 
     private render(): void {
-        if (!this.container || !this.currentTarget || !this.callbacks) return;
-        if (!this.reactRoot && this.container && this.reactModule) {
+        if (!this.container || !this.currentTarget || !this.callbacks || !this.reactModule) return;
+        if (!this.reactRoot && this.container) {
             this.reactRoot = this.reactModule.createRoot(this.container);
         }
-        if (this.reactRoot && this.reactModule) {
-            this.reactRoot.render(
-                this.reactModule.React.createElement(this.reactModule.CaptureDock, {
+        if (this.reactRoot) {
+            // flushSync forces React 18 to commit synchronously so the very next
+            // getBoundingClientRect() (positionFloatingBar) sees the fully-mounted
+            // DOM with final width — otherwise it captures the bare container at
+            // its 160px min-width, places the host accordingly, then ResizeObserver
+            // fires after commit and shifts everything left. That mid-paint jump
+            // is the "settle" the user reported on every reshow.
+            const reactModule = this.reactModule;
+            const reactRoot = this.reactRoot;
+            const flushSync = reactModule.flushSync;
+            const doRender = () => reactRoot.render(
+                reactModule.React.createElement(reactModule.CaptureDock, {
                     target: this.currentTarget,
                     isDark: this.themeDetector.isDarkMode(),
                     callbacks: this.callbacks,
                     faviconUrl: chrome.runtime.getURL('16.png'),
                 })
             );
+            if (typeof flushSync === 'function') flushSync(doRender);
+            else doRender();
         }
     }
 

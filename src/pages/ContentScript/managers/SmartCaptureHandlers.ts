@@ -128,56 +128,70 @@ export const SmartCaptureHandlers = {
      */
     async handleClip(target: CaptureTarget): Promise<void> {
 
+        // Compute captureRect BEFORE deciding what to hide. If the action bar
+        // ends up outside the crop area (the common below/above placement), we
+        // can keep it visible — no menu blink, just the inline tick on the
+        // button. Only hide it when its rect actually overlaps the crop.
+        let captureRect: DOMRect | undefined;
 
-        const overlaysHidden = hideAllSmartCaptureOverlays();
-        await waitForRepaint();
+        if (target.elementRef) {
+            captureRect = target.elementRef.getBoundingClientRect();
+            const padding = 12;
+            captureRect = new DOMRect(
+                captureRect.x - padding,
+                captureRect.y - padding,
+                captureRect.width + (padding * 2),
+                captureRect.height + (padding * 2)
+            );
+        } else if (target.selectedTargets && target.selectedTargets.length > 0) {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            let hasValidRef = false;
 
-        try {
-            let captureRect: DOMRect | undefined;
+            for (const subTarget of target.selectedTargets) {
+                if (subTarget.elementRef) {
+                    const rect = subTarget.elementRef.getBoundingClientRect();
+                    minX = Math.min(minX, rect.left);
+                    minY = Math.min(minY, rect.top);
+                    maxX = Math.max(maxX, rect.right);
+                    maxY = Math.max(maxY, rect.bottom);
+                    hasValidRef = true;
+                }
+            }
 
-            if (target.elementRef) {
-                captureRect = target.elementRef.getBoundingClientRect();
+            if (hasValidRef) {
                 const padding = 12;
                 captureRect = new DOMRect(
-                    captureRect.x - padding,
-                    captureRect.y - padding,
-                    captureRect.width + (padding * 2),
-                    captureRect.height + (padding * 2)
+                    minX - padding,
+                    minY - padding,
+                    (maxX - minX) + (padding * 2),
+                    (maxY - minY) + (padding * 2)
                 );
-            } else if (target.selectedTargets && target.selectedTargets.length > 0) {
-                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-                let hasValidRef = false;
-
-                for (const subTarget of target.selectedTargets) {
-                    if (subTarget.elementRef) {
-                        const rect = subTarget.elementRef.getBoundingClientRect();
-                        minX = Math.min(minX, rect.left);
-                        minY = Math.min(minY, rect.top);
-                        maxX = Math.max(maxX, rect.right);
-                        maxY = Math.max(maxY, rect.bottom);
-                        hasValidRef = true;
-                    }
-                }
-
-                if (hasValidRef) {
-                    const padding = 12;
-                    captureRect = new DOMRect(
-                        minX - padding,
-                        minY - padding,
-                        (maxX - minX) + (padding * 2),
-                        (maxY - minY) + (padding * 2)
-                    );
-                } else {
-                    captureRect = target.rect;
-                }
             } else {
                 captureRect = target.rect;
             }
+        } else {
+            captureRect = target.rect;
+        }
 
-            if (!captureRect) {
-                showToast('Invalid capture area', 'error');
-                return;
-            }
+        if (!captureRect) {
+            showToast('Invalid capture area', 'error');
+            return;
+        }
+
+        // Action bar overlap check — if it sits outside the crop, leave it visible.
+        const actionBarHost = document.getElementById('ext-lw-capture-actionbar-host');
+        const barRect = actionBarHost?.getBoundingClientRect();
+        const barOverlapsCrop = !!barRect && !(
+            barRect.right <= captureRect.left ||
+            barRect.left >= captureRect.right ||
+            barRect.bottom <= captureRect.top ||
+            barRect.top >= captureRect.bottom
+        );
+
+        const overlaysHidden = hideAllSmartCaptureOverlays(!barOverlapsCrop);
+        await waitForRepaint();
+
+        try {
 
             // Add iframe offset if running inside an iframe
             const isInIframe = window !== window.top;

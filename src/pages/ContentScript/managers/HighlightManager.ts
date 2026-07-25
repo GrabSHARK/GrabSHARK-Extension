@@ -9,6 +9,7 @@ import {
 import { showToast } from '../HighlightToolbox';
 import { sendMessage } from '../utils/messaging';
 import { getPreferences } from '../../../@/lib/settings';
+import { readLinkSessionCache, writeLinkSessionCache } from '../../../@/lib/runtime/sessionCache';
 
 interface LinkData {
     id: number;
@@ -31,34 +32,37 @@ export const HighlightManager = {
     setLinkId: (id: number | null) => { currentPageLinkId = id; },
     setFileId: (id: number | null) => { currentPageFileId = id; },
 
-    /** Load highlights for the current page by URL */
+    /** Load highlights for the current page by URL (cache-first) */
     async loadHighlightsForPage(): Promise<void> {
         const pageUrl = window.location.href;
 
-        const response = await sendMessage<{ link: LinkData | null; highlights: Highlight[] }>(
-            'GET_LINK_WITH_HIGHLIGHTS',
+        // 1. Local-only lookup — no network request
+        const lookupResponse = await sendMessage<{ linkId: number | null }>(
+            'LOOKUP_LINK_ID',
             { url: pageUrl }
         );
 
+        const linkId = lookupResponse.success ? lookupResponse.data?.linkId ?? null : null;
+
+        if (!linkId) {
+            // Page is not in the system — nothing to load, zero API calls
+            return;
+        }
+
+        // 2. Page is known — set linkId and fetch highlights (single API call)
+        currentPageLinkId = linkId;
+        writeLinkSessionCache(pageUrl, { id: linkId, url: pageUrl, name: '' });
+
+        const response = await sendMessage<{ highlights: Highlight[] }>(
+            'GET_HIGHLIGHTS_BY_LINK_ID',
+            { linkId }
+        );
+
         if (response.success && response.data) {
-            // Cache the result for Optimistic UI in EmbeddedApp
-            try {
-                const cacheKey = `lw_cache_${pageUrl}`;
-                sessionStorage.setItem(cacheKey, JSON.stringify({
-                    timestamp: Date.now(),
-                    link: response.data.link
-                }));
-            } catch (e) {
-                // Ignore storage errors
-            }
+            currentHighlights = response.data.highlights || [];
 
-            if (response.data.link) {
-                currentPageLinkId = response.data.link.id;
-                currentHighlights = response.data.highlights || [];
-
-                if (currentHighlights.length > 0) {
-                    applyHighlights(currentHighlights);
-                }
+            if (currentHighlights.length > 0) {
+                applyHighlights(currentHighlights);
             }
         }
     },
@@ -112,7 +116,7 @@ export const HighlightManager = {
         }
     },
 
-    /** Create a new highlight (and auto-save link if needed) */
+        /** Create a new highlight (and auto-save link if needed) */
     async createHighlight(
         selectionInfo: NonNullable<ReturnType<typeof getSelectionInfo>>,
         color: HighlightColor,
@@ -150,25 +154,34 @@ export const HighlightManager = {
             return;
         }
 
+        if (!currentPageLinkId) {
+            const cachedLink = readLinkSessionCache<LinkData>(window.location.href);
+            const cachedLinkId = cachedLink?.id;
+            if (typeof cachedLinkId === 'number' && cachedLinkId > 0) {
+                currentPageLinkId = cachedLinkId;
+            }
+        }
+
         // If page not saved yet, save it first
         if (!currentPageLinkId) {
-            // Check if user wants to save the full page or just create a lightweight anchor
             let shouldSavePage = true;
             try {
                 const prefs = await getPreferences();
                 shouldSavePage = prefs.savePageOnHighlight ?? true;
-            } catch (e) {
+            } catch {
                 // Fallback to default (save page)
             }
 
-            showToast('Saving page to GrabSHARK...', 'success');
+            showToast(
+                shouldSavePage ? 'Saving page to GrabSHARK...' : 'Saving highlight...',
+                'success',
+            );
 
             const linkPayload: Record<string, any> = {
                 url: window.location.href,
                 title: document.title,
             };
 
-            // If user disabled page saving, create a hidden "highlight" type link with no archiving
             if (!shouldSavePage) {
                 linkPayload.type = 'highlight';
                 linkPayload.preservationConfig = {
@@ -184,11 +197,32 @@ export const HighlightManager = {
             const linkResponse = await sendMessage<{ link: LinkData }>('CREATE_LINK', linkPayload);
 
             if (!linkResponse.success || !linkResponse.data?.link) {
-                showToast('Failed to save page', 'error');
-                return;
-            }
+                // Fallback: check if the link already exists via local cache
+                const lookupResp = await sendMessage<{ linkId: number | null }>(
+                    'LOOKUP_LINK_ID',
+                    { url: window.location.href }
+                );
 
-            currentPageLinkId = linkResponse.data.link.id;
+                if (!lookupResp.success || !lookupResp.data?.linkId) {
+                    showToast('Failed to save page', 'error');
+                    return;
+                }
+
+                currentPageLinkId = lookupResp.data.linkId;
+                writeLinkSessionCache(window.location.href, { id: currentPageLinkId, url: window.location.href, name: '' });
+
+                // Fetch existing highlights for this link
+                const hlResp = await sendMessage<{ highlights: Highlight[] }>(
+                    'GET_HIGHLIGHTS_BY_LINK_ID',
+                    { linkId: currentPageLinkId }
+                );
+                if (hlResp.success && hlResp.data) {
+                    currentHighlights = hlResp.data.highlights || currentHighlights;
+                }
+            } else {
+                currentPageLinkId = linkResponse.data.link.id;
+                writeLinkSessionCache(window.location.href, linkResponse.data.link);
+            }
         }
 
         const highlightData: HighlightCreateData = {
@@ -220,7 +254,6 @@ export const HighlightManager = {
             showToast(response.error || 'Failed to create highlight', 'error');
         }
     },
-
     /** Update an existing highlight (color or comment) */
     async updateHighlight(
         highlight: Highlight,
@@ -273,15 +306,16 @@ export const HighlightManager = {
     async deleteHighlight(highlightId: number): Promise<void> {
         const response = await sendMessage<{ linkId?: number }>('DELETE_HIGHLIGHT', { highlightId, linkId: currentPageLinkId });
 
+        // Always clean up local state + DOM, regardless of backend outcome.
+        // Rationale: a failed DELETE here shouldn't strand a visible-but-stale highlight
+        // span in the page (the prior bug: 500 from backend → response.success=false →
+        // span never unwrapped → silik tint kalıyordu). Treating delete as idempotent on
+        // the client matches REST best practice; if DB and client drift, next reload
+        // re-applies any surviving highlights.
+        currentHighlights = currentHighlights.filter(h => h.id !== highlightId);
+        removeHighlight(highlightId);
+
         if (response.success) {
-            // Remove from local state
-            currentHighlights = currentHighlights.filter(h => h.id !== highlightId);
-
-            // Remove from DOM
-            removeHighlight(highlightId);
-
-
-            // Notify web app to invalidate cache
             const message = currentPageFileId
                 ? {
                     type: 'LW_FILE_HIGHLIGHT_DELETED',
@@ -298,3 +332,6 @@ export const HighlightManager = {
         }
     }
 };
+
+
+

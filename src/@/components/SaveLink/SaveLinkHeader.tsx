@@ -18,7 +18,7 @@ export const SaveLinkHeader: FC<SaveLinkHeaderProps> = ({ onClose }) => {
     return (
         <div className="flex items-center justify-between mb-3 px-1">
             <div className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 font-medium">
-                <div className="bg-blue-600 rounded-full p-1.5 shadow-[0_0_12px_rgba(59,130,246,0.5)]">
+                <div className="bg-primary rounded-full p-1.5 shadow-[0_0_12px_hsl(var(--primary)/0.5)]">
                     <BookmarkFill className="w-3.5 h-3.5 text-white" />
                 </div>
                 <span>{t('saveLink.title') || "Save Link"}</span>

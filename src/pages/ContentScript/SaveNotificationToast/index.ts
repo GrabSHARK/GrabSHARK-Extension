@@ -3,4 +3,4 @@
  */
 export { SaveNotificationToast } from './SaveNotificationToast';
 export { default } from './SaveNotificationToast';
-export type { ToastLinkData, SaveNotificationToastProps } from './types';
+export type { ToastLinkData, PreparedToastLink, ToastLabels, SaveNotificationToastProps } from './types';

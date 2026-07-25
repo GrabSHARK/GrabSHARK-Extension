@@ -1,0 +1,708 @@
+GrabSHARK Main Application Backend API Routes (Complete List)
+
+== AI API ==
+
+[POST] /api/v1/ai/suggest-tags
+└─ File: grabshark/apps/web/pages/api/v1/ai/suggest-tags.ts
+└─ Purpose: AI-powered tag suggestion endpoint.
+
+== Archives API ==
+
+[GET, POST, DELETE] /api/v1/archives/[linkId]
+└─ File: grabshark/apps/web/pages/api/v1/archives/[linkId].ts
+└─ Purpose: Archive management for a specific link.
+
+[GET, POST] /api/v1/archives
+└─ File: grabshark/apps/web/pages/api/v1/archives/index.ts
+└─ Purpose: Archive listing and creation.
+
+== Auth API ==
+
+[GET, POST] /api/v1/auth/* (NextAuth)
+└─ File: grabshark/apps/web/pages/api/v1/auth/[...nextauth].ts
+└─ Purpose: Authentication handling (Login, Logout, Session, OAuth providers).
+
+[POST] /api/v1/auth/forgot-password
+└─ File: grabshark/apps/web/pages/api/v1/auth/forgot-password.ts
+└─ Purpose: Password reset request.
+
+[POST] /api/v1/auth/reset-password
+└─ File: grabshark/apps/web/pages/api/v1/auth/reset-password.ts
+└─ Purpose: Password reset with token. Sets mustChangePassword=false on success — user already chose their own password, force-change loop is satisfied.
+
+[POST] /api/v1/auth/email/send-code
+└─ File: grabshark/apps/web/pages/api/v1/auth/email/send-code.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/auth/email/sendCode.ts
+└─ Purpose: Generate a 6-digit email verification code for the caller. Body { targetEmail? } — empty defaults to user.email (first-time verify). 60sn Redis cooldown per (user, targetEmail). Code bcrypt-hashed, expires in 10min, prior active codes invalidated. Mail dispatched via DB-driven transporter (getSmtpFrom + getTransporter). 503 if SMTP not configured. Audit category auth.email_verify / code_sent.
+
+[POST] /api/v1/auth/email/verify-code
+└─ File: grabshark/apps/web/pages/api/v1/auth/email/verify-code.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/auth/email/verifyCode.ts
+└─ Purpose: Validate 6-digit code + commit user.email + emailVerified=now() in one transaction. attempts++, 5'inci yanlışta consumedAt set → kod ölür. Match olunca eski kodlar zaten invalidate edilmiş, hedef adres user.email alanına yazılır. Audit auth.email_verify / verified veya code_locked.
+
+[POST] /api/v1/auth/force-password-change
+└─ File: grabshark/apps/web/pages/api/v1/auth/force-password-change.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/auth/forcePasswordChange.ts
+└─ Purpose: Consume PasswordChangeChallenge → update user.password + mustChangePassword:false. Anonymous endpoint (challenge token sole credential), AUTH-tier IP rate limit. Token 5min TTL, single-use. Yeni password admin'in eskisinden farklı olmalı. Audit auth/password_changed (security) + account/password_changed (audit).
+
+== Avatar API ==
+
+[GET] /api/v1/avatar/[id]
+└─ File: grabshark/apps/web/pages/api/v1/avatar/[id].ts
+└─ Purpose: User avatar retrieval.
+
+== Collections API ==
+
+[GET, PUT, DELETE] /api/v1/collections/[id]
+└─ File: grabshark/apps/web/pages/api/v1/collections/[id].ts
+└─ Purpose: Get, update, or delete a specific collection.
+
+[GET, POST] /api/v1/collections
+└─ File: grabshark/apps/web/pages/api/v1/collections/index.ts
+└─ Purpose: List all collections or create new one.
+
+== Config API ==
+
+[GET] /api/v1/config
+└─ File: grabshark/apps/web/pages/api/v1/config/index.ts
+└─ Purpose: Server configuration and feature flags.
+
+== Dashboard API ==
+
+[GET] /api/v1/dashboard
+└─ File: grabshark/apps/web/pages/api/v1/dashboard/index.ts
+└─ Purpose: Aggregated statistics for the dashboard view (v1).
+
+[GET] /api/v2/dashboard
+└─ File: grabshark/apps/web/pages/api/v2/dashboard/index.ts
+└─ Purpose: Aggregated statistics for the dashboard view (v2).
+
+== Domain Preferences API ==
+
+[GET, PUT] /api/v1/domain-preferences/[domain]
+└─ File: grabshark/apps/web/pages/api/v1/domain-preferences/[domain].ts
+└─ Purpose: Get or update preferences for a specific domain.
+
+[GET, POST] /api/v1/domain-preferences
+└─ File: grabshark/apps/web/pages/api/v1/domain-preferences/index.ts
+└─ Purpose: List all domain preferences or create new one.
+
+== Files API ==
+
+[GET] /api/v1/files/[id]/content
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/content.ts
+└─ Purpose: Retrieve file content/body.
+
+[GET] /api/v1/files/[id]/file
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/file.ts
+└─ Purpose: Download file binary.
+
+[GET] /api/v1/files/[id]/highlights
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/highlights.ts
+└─ Purpose: List highlights associated with a file. Authorship: include user (creator) + lastEditedBy (PublicUserSelect shape).
+
+[GET, PUT, DELETE] /api/v1/files/[id]
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/index.ts
+└─ Purpose: Get, update, or delete a specific file. Authorship: include owner + descriptionEditedBy + collection._count.members. PUT compares old/new description → records descriptionEditedBy/At on actual change.
+
+[POST] /api/v1/files/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/favorite.ts
+└─ Purpose: Add a file to the user's favorites.
+
+[DELETE] /api/v1/files/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/favorite.ts
+└─ Purpose: Remove a file from the user's favorites.
+
+[GET] /api/v1/files/[id]/preview
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/preview.ts
+└─ Purpose: Retrieve file thumbnail preview.
+
+[POST] /api/v1/files/[id]/toggle-archive
+└─ File: grabshark/apps/web/pages/api/v1/files/[id]/toggle-archive/index.ts
+└─ Purpose: Archive/unarchive a file.
+
+[POST] /api/v1/files/bulk
+└─ File: grabshark/apps/web/pages/api/v1/files/bulk.ts
+└─ Purpose: Bulk file operations.
+
+[GET] /api/v1/files
+└─ File: grabshark/apps/web/pages/api/v1/files/index.ts
+└─ Purpose: List all files. Authorship: select owner + descriptionEditedBy(Id/At) + collection._count.members for shared collection hint surfacing.
+
+[POST] /api/v1/files/upload
+└─ File: grabshark/apps/web/pages/api/v1/files/upload.ts
+└─ Purpose: File upload handler.
+
+== Highlights API ==
+
+[GET, PUT, DELETE] /api/v1/highlights/[id]
+└─ File: grabshark/apps/web/pages/api/v1/highlights/[id].ts
+└─ Purpose: Get, update, or delete a specific highlight.
+
+[POST] /api/v1/highlights/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/highlights/[id]/favorite.ts
+└─ Purpose: Add a highlight to the user's favorites.
+
+[DELETE] /api/v1/highlights/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/highlights/[id]/favorite.ts
+└─ Purpose: Remove a highlight from the user's favorites.
+
+[POST] /api/v1/links/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/favorite.ts
+└─ Purpose: Add a link to the user's favorites (also resets preservation if never preserved + demotes RSS link).
+
+[DELETE] /api/v1/links/[id]/favorite
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/favorite.ts
+└─ Purpose: Remove a link from the user's favorites.
+
+[GET, POST] /api/v1/highlights
+└─ File: grabshark/apps/web/pages/api/v1/highlights/index.ts
+└─ Purpose: List all highlights or create new one. Authorship: include user (creator) + lastEditedBy + link/file.collection._count.members + ownerId. POST/PUT branches compare existing comment+color → set lastEditedBy/At on actual change.
+
+== LHC API (Link Health Check) ==
+
+[POST] /api/v1/lhc/actions/apply
+└─ File: grabshark/apps/web/pages/api/v1/lhc/actions/apply.ts
+└─ Purpose: Apply LHC action results.
+
+[POST] /api/v1/lhc/actions/preview
+└─ File: grabshark/apps/web/pages/api/v1/lhc/actions/preview.ts
+└─ Purpose: Preview LHC action before applying.
+
+[GET] /api/v1/lhc/results
+└─ File: grabshark/apps/web/pages/api/v1/lhc/results.ts
+└─ Purpose: Retrieve LHC analysis results.
+
+[GET] /api/v1/lhc/runs/[id]
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/[id].ts
+└─ Purpose: Get details of a specific LHC run.
+
+[POST] /api/v1/lhc/runs/[id]/stop
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/[id]/stop.ts
+└─ Purpose: Stop a running LHC analysis.
+
+[DELETE] /api/v1/lhc/runs/clear
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/clear.ts
+└─ Purpose: Clear completed LHC runs.
+
+[GET, POST] /api/v1/lhc/runs
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/index.ts
+└─ Purpose: List all LHC runs or start new one.
+
+[DELETE] /api/v1/lhc/runs/purge
+└─ File: grabshark/apps/web/pages/api/v1/lhc/runs/purge.ts
+└─ Purpose: Purge old LHC run data.
+
+[GET, PUT] /api/v1/lhc/schedules/[id]
+└─ File: grabshark/apps/web/pages/api/v1/lhc/schedules/[id].ts
+└─ Purpose: Get or update a specific LHC schedule.
+
+[GET, POST] /api/v1/lhc/schedules
+└─ File: grabshark/apps/web/pages/api/v1/lhc/schedules/index.ts
+└─ Purpose: List all LHC schedules or create new one.
+
+[GET] /api/v1/lhc/stats
+└─ File: grabshark/apps/web/pages/api/v1/lhc/stats.ts
+└─ Purpose: LHC statistics and counters.
+
+[POST] /api/v1/lhc/tick
+└─ File: grabshark/apps/web/pages/api/v1/lhc/tick.ts
+└─ Purpose: LHC processing tick trigger.
+
+== Links API ==
+
+[GET] /api/v1/links/[id]/archive/[format]
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/[format].ts
+└─ Purpose: Get specific archive format for a link.
+
+[POST] /api/v1/links/[id]/archive
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/index.ts
+└─ Purpose: Trigger preservation for a link.
+
+[POST] /api/v1/links/[id]/archive/refresh
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/refresh.ts
+└─ Purpose: Re-archive/refresh a link's archived content (her şeyi sıfırla, worker yeniden archive eder).
+
+[POST] /api/v1/links/[id]/archive/enhance
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/enhance.ts
+└─ Purpose: Queue an enhanced (JS-included) parallel monolith capture. Default `link.monolith` ASLA touch edilmez; worker yeni `link.enhancedMonolith` field'ına yazar.
+
+[GET] /api/v1/links/[id]/archive/enhance
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/enhance.ts
+└─ Purpose: Status (none/pending/ready) sorgu — UI polling kullanır.
+
+[DELETE] /api/v1/links/[id]/archive/enhance
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/enhance.ts
+└─ Purpose: Enhanced sürümü sil (file + DB field) — opsiyonel cleanup.
+
+[GET] /api/v1/links/[id]/highlights
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/highlights/index.ts
+└─ Purpose: List highlights for a specific link. Authorship: include user (creator) + lastEditedBy.
+
+[GET, PUT, DELETE] /api/v1/links/[id]
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/index.ts
+└─ Purpose: Get, update, or delete a specific link. Authorship: include createdBy + descriptionEditedBy + collection._count.members. PUT compares old/new description → records descriptionEditedBy/At on actual change.
+
+[POST] /api/v1/links/[id]/toggle-archive
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/toggle-archive/index.ts
+└─ Purpose: Archive/unarchive a link.
+
+[POST] /api/v1/links/archive
+└─ File: grabshark/apps/web/pages/api/v1/links/archive/index.ts
+└─ Purpose: Bulk archive operations.
+
+[GET, POST] /api/v1/links
+└─ File: grabshark/apps/web/pages/api/v1/links/index.ts
+└─ Purpose: List all links (GET) or save new link (POST). Authorship: include createdBy + descriptionEditedBy + collection._count.members for shared collection hint surfacing.
+
+[GET] /api/v1/links/urls
+└─ File: grabshark/apps/web/pages/api/v1/links/urls.ts
+└─ Purpose: Lightweight endpoint returning only saved URL→linkId map. Supports ?since={ISO8601} for delta sync. Used by browser extension to maintain local URL index for badge (✓) display.
+
+== Logins API ==
+
+[GET] /api/v1/logins
+└─ File: grabshark/apps/web/pages/api/v1/logins/index.ts
+└─ Purpose: Available login methods configuration.
+
+== Migration API ==
+
+[POST] /api/v1/migration/export
+└─ File: grabshark/apps/web/pages/api/v1/migration/export.ts
+└─ Purpose: Export user data as archive.
+
+[POST] /api/v1/migration/import-zip
+└─ File: grabshark/apps/web/pages/api/v1/migration/import-zip.ts
+└─ Purpose: Import data from ZIP file.
+
+[POST] /api/v1/migration
+└─ File: grabshark/apps/web/pages/api/v1/migration/index.ts
+└─ Purpose: Legacy migration endpoint.
+
+== Payment API ==
+
+[POST] /api/v1/payment
+└─ File: grabshark/apps/web/pages/api/v1/payment/index.ts
+└─ Purpose: Stripe payment processing endpoint.
+
+== Public API ==
+
+[GET] /api/v1/public/collections/[id]
+└─ File: grabshark/apps/web/pages/api/v1/public/collections/[id].ts
+└─ Purpose: Get a public collection by ID.
+
+[GET] /api/v1/public/collections/links
+└─ File: grabshark/apps/web/pages/api/v1/public/collections/links/index.ts
+└─ Purpose: Get links for a public collection.
+
+[GET] /api/v1/public/collections/tags
+└─ File: grabshark/apps/web/pages/api/v1/public/collections/tags/index.ts
+└─ Purpose: Get tags used within a public collection.
+
+[GET] /api/v1/public/links/[id]
+└─ File: grabshark/apps/web/pages/api/v1/public/links/[id].ts
+└─ Purpose: Get a specific public link by ID.
+
+[GET] /api/v1/public/users/[id]
+└─ File: grabshark/apps/web/pages/api/v1/public/users/[id].ts
+└─ Purpose: Get a public user profile.
+
+== RSS API ==
+
+[GET] /api/v1/rss/[id]
+└─ File: grabshark/apps/web/pages/api/v1/rss/[id].ts
+└─ Purpose: Get RSS feed for a particular ID/Collection.
+
+[GET] /api/v1/rss
+└─ File: grabshark/apps/web/pages/api/v1/rss/index.ts
+└─ Purpose: General RSS endpoint.
+
+[POST] /api/v1/rss/reorder
+└─ File: grabshark/apps/web/pages/api/v1/rss/reorder.ts
+└─ Purpose: Reorder or manage RSS feed priorities.
+
+== Search API ==
+
+[GET] /api/v1/search
+└─ File: grabshark/apps/web/pages/api/v1/search/index.ts
+└─ Purpose: Global search functionality.
+
+== Session API ==
+
+[GET] /api/v1/session
+└─ File: grabshark/apps/web/pages/api/v1/session/index.ts
+└─ Purpose: Session metadata and status.
+
+== Tags API ==
+
+[GET, PUT, DELETE] /api/v1/tags/[id]
+└─ File: grabshark/apps/web/pages/api/v1/tags/[id].ts
+└─ Purpose: Get, update, or delete a specific tag.
+
+[GET, POST] /api/v1/tags
+└─ File: grabshark/apps/web/pages/api/v1/tags/index.ts
+└─ Purpose: List all tags (GET), create new tag (POST).
+
+[POST] /api/v1/tags/merge
+└─ File: grabshark/apps/web/pages/api/v1/tags/merge.ts
+└─ Purpose: Merge multiple tags together.
+
+== Tokens API ==
+
+[GET, DELETE] /api/v1/tokens/[id]
+└─ File: grabshark/apps/web/pages/api/v1/tokens/[id].ts
+└─ Purpose: Get or delete a specific API token.
+
+[GET, POST] /api/v1/tokens
+└─ File: grabshark/apps/web/pages/api/v1/tokens/index.ts
+└─ Purpose: List tokens (GET) or generate a new one (POST).
+
+== Uploads API ==
+
+[GET] /api/v1/uploads/[id]/download
+└─ File: grabshark/apps/web/pages/api/v1/uploads/[id]/download.ts
+└─ Purpose: Download a specific upload.
+
+== Users API ==
+
+[GET, PUT] /api/v1/users/[id]
+└─ File: grabshark/apps/web/pages/api/v1/users/[id]/index.ts
+└─ Purpose: Get or update a specific user. Route hem GET hem PUT response'una `isAdmin` VE `screencastAccess` (ScreencastConfig kill switch + scope'un bu caller için sonucu, 10s TTL cache'li read) bayraklarını enjekte eder — sidebar dock ekstra istek atmadan monitor girişini gizler/gösterir. Client default-open okur (`!== false`); gerçek enforcement server.ts WS gate'inde.
+
+[GET, POST] /api/v1/users
+└─ File: grabshark/apps/web/pages/api/v1/users/index.ts
+└─ Purpose: List users (GET) or create new one (POST).
+
+[GET] /api/v1/users/me
+└─ File: grabshark/apps/web/pages/api/v1/users/me.ts
+└─ Purpose: Get current user profile and preferences.
+
+== Webhook API ==
+
+[POST] /api/v1/webhook
+└─ File: grabshark/apps/web/pages/api/v1/webhook/index.ts
+└─ Purpose: Webhook trigger handler.
+
+== Other API ==
+
+[GET] /api/v1/check-embeddable
+└─ File: grabshark/apps/web/pages/api/v1/check-embeddable.ts
+└─ Purpose: Check if a URL can be embedded in an iframe.
+
+[GET] /api/v1/proxy
+└─ File: grabshark/apps/web/pages/api/v1/proxy.ts
+└─ Purpose: General request proxy for bypassing CORS or specific origin issues.
+
+[GET] /api/v1/worker
+└─ File: grabshark/apps/web/pages/api/v1/worker/index.ts
+└─ Purpose: Admin-only worker stats endpoint (link/file/AI queue sizes).
+
+[GET] /api/v1/worker/status
+└─ File: grabshark/apps/web/pages/api/v1/worker/status.ts
+└─ Purpose: Per-user archiving state (idle/archiving + url/linkId). Reads `worker:status:<userId>` from Redis. Polled by SidebarBottomDock status dot every 5s — lightweight alternative to WS presence.
+
+[WS] /api/ws/screencast
+└─ File: grabshark/apps/web/server.ts (custom Next.js server)
+└─ Purpose: Live browser screencast stream. NextAuth cookie auth, Redis Pub/Sub bridge. Each viewer SUBSCRIBE's `screencast:<uid>` (frames) + `screencast:<uid>:status`. Presence tracked via sorted set `screencast:viewers:<uid>` (heartbeat-refreshed) — opening this WS causes the worker to start CDP capture.
+
+[WS] /api/ws/worker-status
+└─ File: grabshark/apps/web/server.ts (custom Next.js server)
+└─ Purpose: Status-only push channel for the sidebar worker status dot. Auth via NextAuth cookie. Subscribes to `screencast:<uid>:status` ONLY; does NOT register in the viewers sorted set, so this endpoint never triggers CDP capture. Replays `worker:status:<uid>` on connect for instant correct state. Used by SidebarBottomDock — replaces the previous 5s REST polling against /api/v1/worker/status.
+
+== Security API (2FA / Active Sessions / Recovery Codes) ==
+
+[GET] /api/v1/security/sessions
+└─ File: grabshark/apps/web/pages/api/v1/security/sessions/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/sessions/listSessions.ts
+└─ Purpose: Unified list of browser (UserSession) + mobile (AccessToken.isSession=true) sessions for the authenticated user. Marks the current session via token.sid.
+
+[DELETE] /api/v1/security/sessions/[id]?kind=browser|mobile
+└─ File: grabshark/apps/web/pages/api/v1/security/sessions/[id].ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/sessions/revokeSession.ts
+└─ Purpose: Revoke a single session. Browser → prisma.userSession.delete; Mobile → accessToken.update({revoked:true}). Current session revoke rejected (400) — use sign-out.
+
+[POST] /api/v1/security/sessions/revoke-others
+└─ File: grabshark/apps/web/pages/api/v1/security/sessions/revoke-others.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/sessions/revokeOtherSessions.ts
+└─ Purpose: Revoke all browser + mobile sessions except the current one (token.sid preserved).
+
+[POST] /api/v1/security/totp/init
+└─ File: grabshark/apps/web/pages/api/v1/security/totp/init.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/totp/initTotp.ts
+└─ Purpose: Start TOTP enrollment — generate base32 secret, build otpauth URL, render QR SVG, store AES-GCM-encrypted pending secret in TotpSetupChallenge (15 min TTL). Rejects if user lacks a password or TOTP is already enabled. Rate-limited (AUTH preset).
+
+[POST] /api/v1/security/totp/enable
+└─ File: grabshark/apps/web/pages/api/v1/security/totp/enable.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/totp/enableTotp.ts
+└─ Purpose: Finish TOTP enrollment. Requires password re-auth + valid 6-digit code. Decrypts pending secret from TotpSetupChallenge, persists to User.totpSecret, generates + hashes 10 recovery codes, returns plaintext codes (one-time display).
+
+[POST] /api/v1/security/totp/disable
+└─ File: grabshark/apps/web/pages/api/v1/security/totp/disable.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/totp/disableTotp.ts
+└─ Purpose: Turn off TOTP. Requires password + (TOTP code OR recovery code). Wipes User.totpSecret/totpEnabledAt/recoveryCodeSalt + related challenge/code rows atomically.
+
+[POST] /api/v1/security/recovery-codes/regenerate
+└─ File: grabshark/apps/web/pages/api/v1/security/recovery-codes/regenerate.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/recoveryCodes/regenerateCodes.ts
+└─ Purpose: Rotate recovery codes. Requires password + current TOTP code. Fresh salt + 10 new codes; old set deleted atomically. Returns plaintext codes (one-time display).
+
+[GET] /api/v1/security/recovery-codes/status
+└─ File: grabshark/apps/web/pages/api/v1/security/recovery-codes/status.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/security/recoveryCodes/getCodesStatus.ts
+└─ Purpose: Returns { totpEnabled, total, remaining } for UI display of recovery code inventory.
+
+[DELETE] /api/v1/admin/users/[id]/2fa
+└─ File: grabshark/apps/web/pages/api/v1/admin/users/[id]/2fa.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/reset2fa.ts
+└─ Purpose: SUPER_ADMIN-only emergency 2FA reset — wipes target user's TOTP secret, recovery codes, pending setup & two-factor challenges in one transaction. For users who lost both authenticator and recovery codes. Gated via roleGate.isSuperAdmin (not just env id) — multi-admin sistemde diğer admin'ler 2FA reset yapamaz.
+
+[POST] /api/v1/admin/users/[id]/role
+└─ File: grabshark/apps/web/pages/api/v1/admin/users/[id]/role.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/users/updateRole.ts
+└─ Purpose: SUPER_ADMIN-only role mutation. Body: { role: "MEMBER" | "ADMIN" | "SUPER_ADMIN" }. canManage() simetrisi: OWNER (NEXT_PUBLIC_ADMIN env id) immune, self-management yok. SECURITY audit log [admin.role_changed] {oldRole, newRole}. Returns { id, role }.
+
+[POST] /api/v1/admin/users/[id]/suspend
+└─ File: grabshark/apps/web/pages/api/v1/admin/users/[id]/suspend.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/users/updateSuspension.ts
+└─ Purpose: ADMIN+ user suspension toggle. Body: { suspended: boolean, reason?: string (240 char) }. canManage() yetki simetrisi: OWNER asla, self-suspend yok, ADMIN ADMIN'e dokunamaz, SUPER_ADMIN herkesi (OWNER/self hariç) suspend eder. Suspend → suspendedAt+suspendedById+suspensionReason set + UserSession & AccessToken (isSession) row purge transaction. Unsuspend → hepsi null. SECURITY audit log [admin.user_suspended|user_unsuspended]. Reverse zero veri kaybı.
+
+[GET] /api/v1/admin/logs
+└─ File: grabshark/apps/web/pages/api/v1/admin/logs/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/logs/listLogs.ts
+└─ Purpose: Admin-only multi-type log query. Query params: type (AUDIT|SECURITY|SYSTEM|HTTP|WORKER|INTEGRATION|ALL), category, action, actorUserId, targetUserId, level (DEBUG|INFO|WARN|ERROR), from, to (ISO datetime), cursor (BigInt id desc pagination), take (1-100000, default 50). Returns { items: LogRow[], nextCursor: string|null, hasMore: boolean }. Cursor-based — id < cursor desc. BigInt ids serialized as strings.
+
+[DELETE] /api/v1/admin/logs/purge
+└─ File: grabshark/apps/web/pages/api/v1/admin/logs/purge.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/logs/purgeLogs.ts
+└─ Purpose: Admin-only retention purge — deletes Log rows of a given type older than N days. Body: { type: LogType, olderThanDays: number }. Audits itself via SECURITY log (admin.logs_purged) so the act of wiping audit history is itself forensic. Returns { deleted: number }.
+
+[GET] /api/v1/admin/system/metrics
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/metrics.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getMetrics.ts
+└─ Purpose: Admin-only operations cockpit aggregator. Reads Redis hashes (system:process:web|worker, worker:heartbeat:*), Postgres metadata (pg_database_size, pg_stat_user_tables top 5, pg_stat_activity, _prisma_migrations), Redis info (memory, dbsize, queue depths log:queue/log:dead_letter/telegram:updates:queue), and disk (fs.statfs over STORAGE_FOLDER). Server-side in-memory cache 5s TTL — UI polls every 5s. Returns SystemMetrics: { health, processes, host, storage, database, redis, workers, build }.
+
+[POST] /api/v1/admin/system/jobs/run
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/jobs/run.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/runJob.ts
+└─ Purpose: Admin-only "Run X now" trigger. Body: { job: "logRetention" | "telegramHealthMonitor" } (allow-list). Publishes JSON to Redis Pub/Sub channel system:job:trigger; worker (apps/worker/lib/jobTrigger.ts) subscribes and dispatches to the matching exported runOnce(). Audits via auditLog (admin.system.job_triggered). Returns { job, subscribers, requestedAt }.
+
+[POST] /api/v1/admin/system/dead-letter/replay
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/dead-letter/replay.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/replayDeadLetter.ts
+└─ Purpose: Admin-only dead-letter replay. Body: { queue: "log:dead_letter", count: number } (allow-list, max 100). Atomically LMOVE entries from dead-letter list back to main queue (log:queue) so the drainer picks them up. Reversible operation — no confirm modal. Audits via auditLog (admin.system.dead_letter_replayed). Returns { queue, target, replayed }.
+
+[POST] /api/v1/admin/system/dead-letter/discard
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/dead-letter/discard.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/discardDeadLetter.ts
+└─ Purpose: Admin-only dead-letter discard. Body: { queue: "log:dead_letter", count: number } (allow-list, max 100). RPOP loop — destructive, items are gone. UI requires explicit confirm modal. Audits via auditLog (admin.system.dead_letter_discarded). Returns { queue, discarded }.
+
+[GET] /api/v1/admin/system/email
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/email/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getEmailConfig.ts
+└─ Purpose: Returns current SMTP config to /settings/admin/email. Single-source DB-driven config (no env fallback). Response includes `server: { host, port, security (starttls|tls|none), username, hasPassword } | null` — the non-secret parsed view that prefills the structured admin form. Password NEVER returned (only hasPassword boolean); serverMasked (smtps://***:***@host:port) kept for backward compat. AES-256-GCM (TOTP_ENCRYPTION_KEY) decryption failure sets decryptOk=false but doesn't crash; UI shows "(decrypt failed)" placeholder.
+
+[PUT] /api/v1/admin/system/email
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/email/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/updateEmailConfig.ts
+└─ Purpose: Upserts SystemConfig (id=1). Body: { smtp?: {host, port, security, username?, password?}, smtpServer?: string|null, smtpFrom?: string|null, smtpFromName?: string|null }. Structured `smtp` is what the admin UI sends — server composes the nodemailer URL itself (scheme from security, credentials encodeURIComponent'lı; starttls → ?requireTLS=true, none → ?ignoreTLS=true pin'lenir) so admins never hand-write connection strings. Empty password + unchanged username → stored password preserved (host/port edit without secret re-type); auth'u kaldırmak için username boşaltılır. Legacy raw smtpServer string hâlâ kabul edilir (smtp varsa smtp kazanır). undefined=keep, null=clear. Encrypts via configCrypto.ts. Calls invalidateTransporterCache() so subsequent sendMail picks up the new server immediately. Audited via auditLog (system.config / smtp_updated).
+
+[POST] /api/v1/admin/system/email/test
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/email/test.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/testEmail.ts
+└─ Purpose: Sends a 5-second-timeout test email to the admin's own address (recipient hard-coded to admin.email — can't be repurposed as spam relay). Uses the DB-driven transporter; 400 if SystemConfig isn't filled in. Audited via auditLog (system.config / smtp_test_sent or smtp_test_failed). Returns { sent, recipient } on success or 500 + error message on timeout/failure.
+
+[GET] /api/v1/admin/system/screencast
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/screencast/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getScreencastConfig.ts
+└─ Purpose: ScreencastConfig singleton'ını (id=1) /settings/admin/screencast formuna döner: { enabled, accessScope (ALL|ADMINS), quality, maxWidth, maxHeight, everyNthFrame, viewerSessionMaxMinutes, updatedAt }. Cache'siz taze read (form stale render etmemeli); satır yoksa SCREENCAST_DEFAULTS (eski hardcoded değerler) merge edilir. Admin-only (verifyUser + roleGate.isAdmin).
+
+[PUT] /api/v1/admin/system/screencast
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/screencast/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/updateScreencastConfig.ts
+└─ Purpose: Patch semantiği (undefined=keep, hiçbir alan clearable değil). Numerik alanlar SCREENCAST_RANGES'e (packages/lib/screencastConfig.ts) valide edilir. Upsert + web config cache invalidate; server.ts kendi 10s TTL'i, worker 5s TTL + 2s presence tick ile yakınsar (≤15s, pub/sub invalidation bilinçli olarak YOK — ayrı modül instance'ları). Audit: system.config / screencast_updated {fieldsChanged}.
+
+[GET] /api/v1/admin/system/screencast/status
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/screencast/status.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getScreencastStatus.ts
+└─ Purpose: Canlı gözlem kartı — Redis SCAN screencast:viewers:* (taze ZCOUNT, prune ETMEZ) + worker:status:* archiving kayıtları + username decorate. 5s TTL modül cache. Redis hatası 500 değil { redisOk:false, activeViewers:0, activeCaptures:[] }. Admin-only (cloakbrowser/status'un aksine — non-admin erişim bilgisi users/[id] DTO'daki screencastAccess bayrağından gelir).
+
+[GET] /api/v1/admin/cloakbrowser/status
+└─ File: grabshark/apps/web/pages/api/v1/admin/cloakbrowser/status.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/cloakbrowser/getStatus.ts
+└─ Purpose: All-authenticated-users read endpoint (despite /admin/ prefix) for the CloakBrowser system-wide gate. Returns { activated, activatedAt, isActivating, activationError, binaryInstalled, version, lastUpdateCheckedAt }. Reads CloakBrowserConfig (id=1) + cloakbrowser:activation:{lock,error} Redis keys + system:process:worker HASH (cloakbrowser-prefixed fields written by worker systemMetrics every 10s). Used by archiving.tsx Browser Type radio gating + CloakBrowserAdminPanel (admin-only sub-block). React Query polls every 5s while isActivating=true, then 60s.
+
+[POST] /api/v1/admin/cloakbrowser/activate
+└─ File: grabshark/apps/web/pages/api/v1/admin/cloakbrowser/activate.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/cloakbrowser/activate.ts
+└─ Purpose: Admin-only. Triggers first-time CloakBrowser Chromium binary download (~150-200MB, blocking) via Redis Pub/Sub `system:job:trigger` channel with job=cloakbrowserActivate. Worker (cloakbrowserOps.runActivateOnce) holds SETNX lock cloakbrowser:activation:lock (600s TTL, refreshed every 60s) so concurrent admin clicks dedupe. Returns { status: "started" | "already_running" | "already_activated", isActivating }. On worker success: CloakBrowserConfig.activated=true + activatedAt=now, audit log admin.cloakbrowser.activated. On failure: cloakbrowser:activation:error key (1h TTL) surfaces to UI for retry.
+
+[POST] /api/v1/admin/cloakbrowser/check-update
+└─ File: grabshark/apps/web/pages/api/v1/admin/cloakbrowser/check-update.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/cloakbrowser/checkUpdate.ts
+└─ Purpose: Admin-only. Publishes job=cloakbrowserUpdateCheck to system:job:trigger; worker calls cloakbrowser.checkForUpdate() (returns new version string or null = up to date), touches `${cacheDir}/.last_update_check` mtime so heartbeat readers surface a fresh "Last checked" timestamp. Audit log admin.cloakbrowser.update_checked + (if new version landed) admin.cloakbrowser.update_installed. 400 if not yet activated. Fire-and-forget — no lock, cloakbrowser internally rate-limits to 1h.
+
+== Collection Invites API ==
+
+[GET] /api/v1/invites
+└─ File: grabshark/apps/web/pages/api/v1/invites/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/invites/getPendingInvites.ts
+└─ Purpose: Lists collection invites the caller has yet to act on (status=PENDING). Joined with collection.owner so the bell row's "Who invited me?" label renders without a second round-trip. Response { invites: [{ collectionId, canCreate, canUpdate, canDelete, invitedAt, collection: { id, name, color, icon, ownerId, inviter } }] }.
+
+[POST] /api/v1/invites/[collectionId]/accept
+└─ File: grabshark/apps/web/pages/api/v1/invites/[collectionId]/accept.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/invites/acceptInvite.ts
+└─ Purpose: Flip UsersAndCollections.status PENDING → ACCEPTED + respondedAt=now(). Idempotent on already-ACCEPTED rows (stale-tab safety). 404 if no row, 409 if state isn't PENDING. Same transaction marks every unread COLLECTION_INVITE notification for (userId, collectionId) as read so cross-tab/cross-device bells stay in sync (Lesson 44). Audit category social.invite / accepted.
+
+[POST] /api/v1/invites/[collectionId]/reject
+└─ File: grabshark/apps/web/pages/api/v1/invites/[collectionId]/reject.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/invites/rejectInvite.ts
+└─ Purpose: Flip status PENDING → REJECTED + respondedAt. Sender NOT notified (Twitter pattern). Row stays so updateCollectionById can detect "previously rejected, owner re-adding" and re-PEND. Idempotent + same notification cleanup as accept. Audit social.invite / rejected.
+
+[POST] /api/v1/invites/[collectionId]/block
+└─ File: grabshark/apps/web/pages/api/v1/invites/[collectionId]/block.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/invites/blockAndRejectInvite.ts
+└─ Purpose: Reject + block in one click. Single transaction: BlockedUser upsert (blockerId=callerId, blockedId=collectionOwnerId), UsersAndCollections.status → REJECTED if PENDING, then mark related Notifications read. Self-block guarded (400). Audit social.invite / block_and_rejected. Returns { collectionId, status: "REJECTED", blockedId }.
+
+== User Blocklist API ==
+
+[GET] /api/v1/blocks
+└─ File: grabshark/apps/web/pages/api/v1/blocks/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/blocks/getBlockedUsers.ts
+└─ Purpose: Lists everyone the caller has blocked. Response { blocks: [{ blockedId, blocked: {id, username, name, image}, reason, createdAt }] }. Joined with User row so /settings/blocks renders avatar + handle without a second round-trip.
+
+[POST] /api/v1/blocks/[blockedId]
+└─ File: grabshark/apps/web/pages/api/v1/blocks/[blockedId].ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/blocks/blockUser.ts
+└─ Purpose: Block a user. Body: { reason?: "spam"|"harassment"|"other"|<free string ≤120 chars> }. Idempotent — re-blocking the same user updates the reason. Self-block guarded (400). Target existence verified (404). Audited via auditLog (social.block / user_blocked). Returns { blockedId, reason }. Side-effect placeholder for T5 invite cleanup (auto-reject pending invites + mark unread COLLECTION_INVITE notifications read) — wired up when invite-status feature lands.
+
+[DELETE] /api/v1/blocks/[blockedId]
+└─ File: grabshark/apps/web/pages/api/v1/blocks/[blockedId].ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/blocks/unblockUser.ts
+└─ Purpose: Idempotent unblock. Returns 200 even when no row exists (race-friendly — two tabs both clicking "Unblock" don't second-tab-fail). Audited via auditLog (social.block / user_unblocked) only when a row was actually removed. Returns { blockedId, removed: boolean }.
+
+== Telegram Integration API ==
+
+[GET] /api/v1/telegram/bot
+└─ File: grabshark/apps/web/pages/api/v1/telegram/bot.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/telegram/getBotStatus.ts
+└─ Purpose: Central status probe for the Integrations UI. Returns { enabled, botConfigured, bot: {username, userId, transport, webhookUrl, pendingUpdates, lastErrorAt, lastErrorMsg, degraded}, pairing: {paired, telegramUsername, firstName, linkedAt, repairNeeded}, isAdmin }. Drives sidebar nav visibility (enabled && (isAdmin || botConfigured)) and all card render branches. Master kill switch (TELEGRAM_ENABLED=false) collapses everything to enabled:false.
+
+[POST] /api/v1/telegram/pair
+└─ File: grabshark/apps/web/pages/api/v1/telegram/pair.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/telegram/generatePairCode.ts
+└─ Purpose: Generate a one-time pairing nonce (12-byte base64url) for linking a Telegram account. Persists SHA-256(nonce) with 10-min TTL; returns { nonce, deepLink: "https://t.me/<bot>?start=pair_<nonce>", botUsername, expiresAt }. Invalidates any prior unused codes for this user. Rate-limited (AUTH preset). 503 when TELEGRAM_ENABLED=false.
+
+[GET] /api/v1/telegram/pair/status
+└─ File: grabshark/apps/web/pages/api/v1/telegram/pair/status.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/telegram/getPairStatus.ts
+└─ Purpose: Polled by the pair modal (~5s interval) to detect when the user completed /start pair_<nonce> in Telegram. Returns { paired: false } or { paired: true, telegramUserId, chatId, username, firstName, linkedAt, botUsername, botActive }.
+
+[DELETE] /api/v1/telegram/account
+└─ File: grabshark/apps/web/pages/api/v1/telegram/account.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/telegram/unlinkAccount.ts
+└─ Purpose: Delete the user's TelegramAccount row + any pending unused pair codes atomically. User can re-pair afterwards by generating a new code.
+
+[POST] /wh/telegram
+└─ File: grabshark/apps/web/server.ts (custom server interceptor before Next.js)
+└─ Handler: grabshark/apps/web/lib/webhooks/telegramWebhookHandler.ts
+└─ Purpose: Telegram webhook ingress. NOT a Next.js API route — mounted on the custom server's /wh/ namespace so we bypass Next's default bodyParser for raw-body access. Validates X-Telegram-Bot-Api-Secret-Token (timing-safe compare), persists (botId, update_id) for idempotency (P2002 = 200 OK duplicate), pushes envelope to Redis list telegram:updates:queue for the worker to dispatch, returns 200/500. 404 when TELEGRAM_ENABLED=false or no active bot. Max body 2MB.
+
+== Notifications (in-app, v1) ==
+
+[GET] /api/v1/notifications
+└─ File: grabshark/apps/web/pages/api/v1/notifications/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/getNotifications.ts
+└─ Purpose: Cursor-paginated list of the caller's notifications. Query params: take (default 30, max 200), cursor (last id from previous page), unreadOnly=1, type=<NotificationType>. Returns { notifications: NotificationDTO[], nextCursor: number | null }. Each DTO carries { id, type, payload (titleKey/titleArgs/bodyKey/bodyArgs/target?), readAt, createdAt }.
+
+[GET] /api/v1/notifications/unread-count
+└─ File: grabshark/apps/web/pages/api/v1/notifications/unread-count.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/getUnreadCount.ts
+└─ Purpose: Lightweight count for the bell badge. Returns { unread: number, lastSeenAt: ISO | null }. Polled every 60s as a WebSocket fallback; primary push channel is /api/ws/notifications.
+
+[POST] /api/v1/notifications/[id]/read
+└─ File: grabshark/apps/web/pages/api/v1/notifications/[id]/read.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/markAsRead.ts
+└─ Purpose: Idempotent single-row read marker. Ownership-scoped via where:{ id, userId } so cross-user enumeration silently 404s. Re-marking a read row is a no-op (preserves "first read" timestamp).
+
+[POST] /api/v1/notifications/read-all
+└─ File: grabshark/apps/web/pages/api/v1/notifications/read-all.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/markAllRead.ts
+└─ Purpose: Bulk mark-as-read for the caller. Updates only readAt=null rows. Returns { marked: number }.
+
+[POST] /api/v1/notifications/seen
+└─ File: grabshark/apps/web/pages/api/v1/notifications/seen.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/updateLastSeen.ts
+└─ Purpose: Slack/Linear bell-open semantic. Sets User.notificationsLastSeenAt=now() so the badge counter zeroes client-side without flipping any per-row readAt. Rows stay visually unread until clicked.
+
+[POST] /api/v1/admin/announcements
+└─ File: grabshark/apps/web/pages/api/v1/admin/announcements/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/announcements/postAnnouncement.ts
+└─ Purpose: Admin-only broadcast to ALL users. Body { title, body, channels?: { email?, telegram? } }, max 200/2000 chars. Inserts one Notification row per user via createMany + per-user Redis publish. Stored as ADMIN_ANNOUNCEMENT with the literal text in payload.titleArgs/bodyArgs (the i18n keys notif_admin_announcement_{title,body} resolve to "{{text}}"). Optional `channels` overrides each user's NotificationPreference for THIS broadcast (emergency bypass) — recorded in audit log metadata.channels for forensic review. Audit-logged as admin/announcement_sent.
+
+[GET] /api/v1/notifications/preferences
+└─ File: grabshark/apps/web/pages/api/v1/notifications/preferences.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/getPreferences.ts
+└─ Purpose: Returns the full per-type preference matrix `{ preferences: [{type, email, telegram}, ...] }`. DB rows merged with defaults — missing entry = `email:false, telegram:false` except `NEW_DEVICE_LOGIN` which defaults `email:true` (security industry pattern). Settings page consumes this to render the toggle grid.
+
+[PUT] /api/v1/notifications/preferences
+└─ File: grabshark/apps/web/pages/api/v1/notifications/preferences.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/updatePreferences.ts
+└─ Purpose: Bulk upsert per-type preferences. Body `{ preferences: [{type, email, telegram}, ...] }`. Each entry upserted as own row in a single $transaction so partial failure leaves no half-committed state. Unknown type strings dropped silently (forward-compat). UI sends single-element array per toggle for snappier responsiveness.
+
+[GET] /api/v1/notifications/channels
+└─ File: grabshark/apps/web/pages/api/v1/notifications/channels.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/notifications/getChannels.ts
+└─ Purpose: Reports availability of each optional channel for THIS user. Returns `{ email: { available, smtpConfigured, hasVerifiedEmail }, telegram: { available, telegramEnabled, botActive, paired } }`. Settings matrix uses these to disable column checkboxes with tooltip pointing to the fix (`/settings/account` for email, `/settings/integrations` for Telegram).
+
+[WS] /api/ws/notifications
+└─ File: grabshark/apps/web/server.ts (custom server WS upgrade handler)
+└─ Purpose: Per-user Redis Pub/Sub relay (channel: notif:<uid>). Same NextAuth cookie auth as /api/ws/screencast (manual cookie parse + getToken — Lesson 21). Pushes JSON NotificationDTOs as they're created so the bell updates without polling. No presence side-effect (mirrors /api/ws/worker-status pattern, not /api/ws/screencast).
+
+================================================================================
+Reminders — feature added 2026-05-04
+================================================================================
+
+[POST] /api/v1/reminders
+└─ File: grabshark/apps/web/pages/api/v1/reminders/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/createReminder.ts
+└─ Purpose: Create a reminder for a Link / File / Highlight (polymorphic XOR target). Validates: target ownership/access, channel availability, cron parse, min 1h interval, one-shot in future. Returns { reminder, isFirst } — isFirst=true triggers the persistent timezone-info toast on the client (DB-state-derived, not localStorage).
+
+[GET] /api/v1/reminders
+└─ File: grabshark/apps/web/pages/api/v1/reminders/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/getReminders.ts
+└─ Purpose: Paginated cursor list with status / targetType / dueOnly filters. Active rows order by upcoming nextFireAt; archived rows (DONE/CANCELED) by id desc.
+
+[PATCH] /api/v1/reminders/[id]
+└─ File: grabshark/apps/web/pages/api/v1/reminders/[id]/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/updateReminder.ts
+└─ Purpose: Partial edit (note / channels / cron / oneShotAt / status ACTIVE↔PAUSED). LWW: schedule change clears dispatcher claim so next tick recomputes.
+
+[DELETE] /api/v1/reminders/[id]
+└─ File: grabshark/apps/web/pages/api/v1/reminders/[id]/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/deleteReminder.ts
+└─ Purpose: Soft-delete (status=CANCELED). Cleans up open REMINDER_FIRED notifications for the reminderId so bell rows don't 404 on action click.
+
+[POST] /api/v1/reminders/[id]/snooze
+└─ File: grabshark/apps/web/pages/api/v1/reminders/[id]/snooze.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/snoozeReminder.ts
+└─ Purpose: Push nextFireAt forward. Body { duration: "1h"|"tomorrow"|"custom", customAt?, expectedNextFireAt?, force? }. Race protection (Lesson 44) — `expectedNextFireAt` mismatch returns 409 + currentState; client surfaces confirm dialog; force=true overrides. Side effect: marks every related unread REMINDER_FIRED notification read.
+
+[POST] /api/v1/reminders/[id]/done
+└─ File: grabshark/apps/web/pages/api/v1/reminders/[id]/done.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/markReminderDone.ts
+└─ Purpose: "Tamam" action. One-shot reminders → status=DONE. Recurring reminders untouched (next cycle still fires); only related unread notifications marked read.
+
+[POST] /api/v1/reminders/archive/purge
+└─ File: grabshark/apps/web/pages/api/v1/reminders/archive/purge.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/purgeArchivedReminders.ts
+└─ Purpose: Hard-delete every DONE/CANCELED reminder of the user + cascade-cleanup their REMINDER_FIRED notifications. Mirror of the 30-day retention worker, on-demand.
+
+[GET] /api/v1/system/notification-channels
+└─ File: grabshark/apps/web/pages/api/v1/system/notification-channels.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/getNotificationChannels.ts
+└─ Purpose: ReminderModal mount probe — returns { email, telegram } booleans so the modal can disable unavailable channel checkboxes with tooltips.
+
+[POST] /api/v1/users/me/redetect-timezone
+└─ File: grabshark/apps/web/pages/api/v1/users/me/redetect-timezone.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/reminders/redetectTimezone.ts
+└─ Purpose: Update User.timezone with the IANA tz the browser resolved client-side. Power-user fingerprint protection — this is the ONLY auto-override path; register sets the initial tz and subsequent logins do NOT override unless the user explicitly hits the Settings → Auto detect option which calls this endpoint. Side effect: every recurring active reminder's nextFireAt is bulk-recomputed in the new tz.

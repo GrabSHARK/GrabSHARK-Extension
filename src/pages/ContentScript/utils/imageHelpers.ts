@@ -28,7 +28,11 @@ export async function cropScreenshot(
                 0, 0, width, height   // destination rect (canvas)
             );
 
-            resolve(canvas.toDataURL('image/jpeg', 0.92));
+            // Encode at max JPEG quality (1.0) so the unavoidable crop re-encode
+            // doesn't compound on top of captureVisibleTab's already-lossy q=92.
+            // PNG would be lossless but balloons screenshot size 3-10× with no
+            // transparency benefit (captureVisibleTab output is opaque).
+            resolve(canvas.toDataURL('image/jpeg', 1.0));
         };
         img.onerror = () => {
 

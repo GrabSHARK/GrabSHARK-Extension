@@ -10,6 +10,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getThumbnail, saveThumbnail, hasThumbnail } from '../lib/thumbnailCache';
 import { processOgImage, blobToBase64 } from '../lib/imageProcessor';
+import { fetchAuthorizedImageUrl } from '../lib/authorizedImageUrl';
+import { subscribeToArchivePreviewImage } from '../lib/linkPollers';
 
 interface UseThumbnailOptions {
     linkId?: number;
@@ -43,17 +45,7 @@ export function useThumbnail({
 
         try {
             const url = `${baseUrl.replace(/\/$/, '')}/api/v1/archives/${linkId}?format=1&preview=true`;
-
-            const response = await new Promise<{ success: boolean; data?: { base64Data: string } }>((resolve) => {
-                chrome.runtime.sendMessage({
-                    type: 'FETCH_IMAGE_BLOB',
-                    data: { url }
-                }, resolve);
-            });
-
-            if (response?.success && response?.data?.base64Data) {
-                return response.data.base64Data;
-            }
+            return await fetchAuthorizedImageUrl(url);
         } catch (error) {
 
         }
@@ -131,22 +123,20 @@ export function useThumbnail({
         };
     }, [linkUrl, linkPreviewPath, ogImageUrl, fetchFromApi]);
 
-    // Poll for backend preview if still loading
+            // Poll for backend preview if still loading
     useEffect(() => {
         if (!isLoading || imgSrc || !linkId || !baseUrl) return;
 
-        const pollInterval = setInterval(async () => {
-            const apiImage = await fetchFromApi();
-            if (apiImage) {
-                setImgSrc(apiImage);
+        return subscribeToArchivePreviewImage(linkId, baseUrl, {
+            onValue: (previewUrl) => {
+                setImgSrc(previewUrl);
                 setIsLoading(false);
-                clearInterval(pollInterval);
-            }
-        }, 3000);
-
-        return () => clearInterval(pollInterval);
-    }, [isLoading, imgSrc, linkId, baseUrl, fetchFromApi]);
-
+            },
+            onTimeout: () => {
+                setIsLoading(false);
+            },
+        });
+    }, [isLoading, imgSrc, linkId, baseUrl]);
     return {
         imgSrc,
         isLoading,
@@ -161,3 +151,7 @@ export function useThumbnail({
 export async function isThumbnailCached(url: string): Promise<boolean> {
     return hasThumbnail(url);
 }
+
+
+
+

@@ -1,0 +1,183 @@
+GrabSHARK Design System & UI Architecture (Complete Reference)
+
+== Theming Architecture ==
+
+[Framework Strategy]
+└─ Framework: DaisyUI (on Tailwind CSS) + data-theme attribute
+└─ Dark Mode Switch: [data-theme="dark"] class-based switching
+└─ Theming Engine: OKLCH semantic models mapped to UI primitive tokens
+└─ Key Configuration: globals.css (Base/Overrides), tailwind.config.ts (Theme definitions)
+
+== Color Palette & Themes ==
+
+[Light Theme: "Warm Sand Light"]
+└─ Concept: Cozy & Easy on Eyes
+└─ Primary: #2563eb (Blue 600) / Content: #ffffff
+└─ Secondary: #16a34a (Green 600) / Content: #ffffff
+└─ Accent: #7c3aed (Violet 600) / Content: #ffffff
+└─ Neutral: #78716c (Stone 500) / Content: #a8a29e (Stone 400 - darker for gradients)
+└─ Base-100: #fafaf9 (Stone 50)
+└─ Base-200: #e7e5e4 (Stone 200)
+└─ Base-300: #d6d3d1 (Stone 300)
+└─ Base-Content: #1c1917 (Stone 900)
+└─ Status: Info(#0ea5e9), Success(#16a34a), Warning(#d97706), Error(#dc2626)
+
+[Dark Theme: "Obsidian"]
+└─ Concept: GitHub Dark Style
+└─ Primary: #58a6ff (GitHub Blue) / Content: #0d1117
+└─ Secondary: #3fb950 (GitHub Green) / Content: #0d1117
+└─ Accent: #a371f7 (GitHub Purple) / Content: #0d1117
+└─ Neutral: #6e7681 (GitHub Gray) / Content: #30363d
+└─ Base-100: #09090b (Near Black)
+└─ Base-200: #161b22 (GitHub Dark BG)
+└─ Base-300: #21262d (GitHub Dark Surface)
+└─ Base-Content: #e6edf3 (GitHub Light Text)
+└─ Status: Info(#58a6ff), Success(#3fb950), Warning(#d29922), Error(#f85149)
+
+== OKLCH Semantic Color Variables (data-theme) ==
+
+[Dark Variables]
+└─ --default: 82.76% 0.101277 230.317893
+└─ --red: 69.73% 0.168 22.43
+└─ --rose: 75% 0.2 340
+└─ --yellow: 90% 0.1 90
+└─ --green: 88.58% 0.2465 140
+└─ --orange: 80% 0.18 60
+└─ --zinc: 88.45% 0.05 220
+
+[Light Variables]
+└─ --default: 50% 0.1193 242.75
+└─ --red: 49.7% 0.2026 22.43
+└─ --rose: 55% 0.25 340
+└─ --yellow: 69.58% 0.2 90
+└─ --green: 60% 0.2 140
+└─ --orange: 70% 0.22 60
+└─ --zinc: 50% 0.07 220
+
+== Tailwind Extended Color Mapping ==
+
+[Base Layout Colors]
+└─ border: DaisyUI neutral-content
+└─ input: DaisyUI base-content
+└─ ring: DaisyUI base-content
+└─ background: DaisyUI base-100
+└─ foreground: DaisyUI base-content
+
+[Component Colors]
+└─ primary/secondary/accent/destructive: Birebir DaisyUI renkleri ve içeriği.
+└─ popover: DaisyUI base-200 / base-content (Dropdown/Toolbox zeminleri)
+└─ card: DaisyUI base-100 / base-content (Kart zeminleri)
+└─ muted: DaisyUI base-300 / base-content (Pasif alanlar)
+
+== Typography ==
+
+[Fonts (Google Fonts)]
+└─ Body: Hanken Grotesk (--font-hanken) → font-sans
+└─ Headings: Sora (--font-sora) → font-heading
+
+[Type Scale]
+└─ display: 32px / 1.2lh / -0.02em / 800w
+└─ h1: 22px / 1.3lh / -0.015em / 700w
+└─ h2: 18px / 1.4lh / -0.01em / 700w
+└─ h3: 15px / 1.5lh / -0.005em / 600w
+└─ body: 15px / 1.6lh / -0.01em / 450w
+└─ label: 12px / 1.4lh / 0.04em / 600w
+└─ caption: 10px / 1.3lh / 0.06em / 500w
+
+[Base Layer Rules]
+└─ body: font-sans antialiased text-body bg-base-100
+└─ h1, h2, h3-h6: İlgili `text-*` boyutlandırması ve her zaman `font-heading`
+└─ Other text classes: text-display, text-label, text-caption her zaman `font-heading`
+
+== UI Primitives & Generic Elements ==
+
+[Border Radius]
+└─ lg: var(--rounded-btn) (DaisyUI standard)
+└─ md: calc(var(--rounded-btn) - 2px)
+└─ sm: calc(var(--rounded-btn) - 4px)
+
+[Scrollbar Styling (Premium "VOID" Scrollbar)]
+└─ Global Rule: body overflow hidden (prevent elastic overbounce)
+└─ Width/Height: thin / 8px (webkit)
+└─ Track: transparent
+└─ Thumb Default: oklch(var(--n) / 0.15), hover: oklch(var(--n) / 0.3)
+└─ Rounded: 20px, 2px border transparent, content-box clip
+└─ Hover Scrollbar (.hover-scrollbar): hidden by default, shows gray-400/50% on hover
+
+[Animations & Keyframes]
+└─ Fade: fade-in (200ms opacity 0→1), fade-out (200ms opacity 1→0)
+└─ Slide: slide-up (5%→0), slide-down (-15%→0), slide-right, slide-left
+└─ Spin: spin (2s linear infinite)
+└─ Radix Dropdown: accordion-down/up (0.2s ease-out)
+
+[React Select / Form Elements]
+└─ React Select Control: bg-base-200, hover border-neutral-content, focus border-primary
+└─ React Select Menu: bg-popover/80 backdrop-blur-md border-border rounded-xl
+
+== Reader View Styling (Makale Okuma Modu) ==
+
+[Base Reader Strategy]
+└─ Container Class: .reader-view
+└─ Font/Flow: `font-sans` ve tüm child nesneler natural `inherit` alır.
+└─ Paragraph (p): 18px, 1.8 line-height, 16px üst/alt margin
+└─ Headings: H1 (text-display), H2 (text-h1), H3 (text-h2), H4 (text-h3), H5 (text-body bold)
+
+[Reader Elements]
+└─ Highlight Marks: Mark zemin rengi `oklch(var(--p) / 0.5)` ve radius 5px
+└─ Lists (li): inside stili, sol boşluk 2rem
+└─ Quotes (blockquote): %50 opacity, sol padding 1.5rem, köşeli 3px solid sol sınır
+└─ Images: Ortalanmış (auto center), üst-alt margin 2rem ve rounded-10px
+
+[Code & Pre]
+└─ Font: Monospace stack (ui-monospace, Consolas vs.)
+└─ Color Base: (Dark) rgb(49,49,49), (Light) rgb(230,230,230)
+└─ Shape: pre, code iç-dış paddingli ve rounded-8px/10px
+
+== The "VOID Dock" & Highlight Styling ==
+
+[Highlight Marker Colors]
+└─ Yellow: rgb(253, 224, 71) / Hover %80 opacity
+└─ Red: rgb(239, 68, 68) / Hover %80 opacity
+└─ Blue: rgb(59, 130, 246) / Hover %80 opacity
+└─ Green: rgb(34, 197, 94) / Hover %80 opacity
+
+[Dock Animations (globals.css)]
+└─ Spring Entrance (.lw-toolbox-animate-in / lw-dock-spring): 0.25s cubic-bezier
+└─ Spring Exit (.lw-toolbox-animate-out / lw-dock-spring-reverse): 0.2s cubic-bezier
+└─ Pop-in (.lw-pop-in): scale(0.5)→1 + opacity
+└─ Dropdown Appear: translateY(-4px)→0 + opacity
+└─ Tooltip Fallback: Mobil sürümde her zaman yatay zemin ortası (top: 70px, left: 50%)
+
+[Base Toolbox Structure]
+└─ Outer Dock (.lw-void-dock-outer): Background #09090b, rounded-18px, shadow(0 12px 40px -8px).
+└─ Inner Glass (.lw-void-dock): Background #1e2020, border opacity(15%), rounded-12px.
+└─ Divider (.lw-dock-divider): 1px width çizgiler %12 beyazlık.
+└─ Icon Buttons (.lw-dock-btn): 30x30 şeffaf, hover olduğunda oklch opacity efekti.
+└─ Color Buttons (.lw-doc-color): 20x20 tam yuvarlak fırça topları + shadow pop-out animasyonu.
+
+[Note Panel Overrides]
+└─ Dark default: Panel background #1f1f1f, textarea #2a2a2a, focus border-blue + ring.
+└─ Light (.lw-light): Panel background #ffffff, textarea #f5f5f5.
+
+== Card System & Visual Rules (lib/client/cardStyle.ts) ==
+
+[Shared Base Design Elements]
+└─ Border Radius: rounded-2xl (1rem)
+└─ Shadow Config (Resting): 0 4px 10px rgba(0,0,0,0.20)
+└─ Shadow Config (Hover/Active): 0 12px 40px rgba(0,0,0,0.08) / Dark Mode: rgba(0,0,0,0.3)
+└─ Uplift Hover: -translate-y-1.5 (Hover edildiğinde y-ekseninde 6px yukarı kalkma)
+└─ Status Borders: hover:border-primary/30
+
+[Card Container Variants]
+└─ Link / File Card: border-base-200/100, bg-base-100/40.
+└─ Highlight Card: border-base-200/100, bg-base-100/10 (Çok daha şeffaf highlight kartları).
+└─ Collection / Tag Card: Aynı zemin ancak radial gradiant efektleri bulunmaz.
+└─ HC (Health Check) Stat Card: Normal card yapısı ile aynı, Dashboard tarzı elementler.
+└─ HC Broken Links Card: border-red-500/20, bg-base-100/40, hover: border-red-500/40
+└─ HC Restricted Card: border-yellow-500/20 zeminli güvenlik uyarısı formatı
+└─ HC Auto Scan Card: border-primary/20 bg-primary/5, hover sınır rengi artışı
+└─ HC Table Container: bg-base-100/70 opacity ile yüksek görünürlüklü data listesi modülü.
+
+[Background Overlay Strategies]
+└─ Link / File: `bg-base-100/40` üzerine `getCardBackground(color)` ile "top-left" ve "bottom-left" iki adet radyal şeffaf renk enjekte edilir (Default #808080).
+└─ Highlight: `bg-base-100/10` üzerine tek bir "top-left" soft radial-gradient enjekte edilir.

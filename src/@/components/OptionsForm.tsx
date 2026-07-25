@@ -15,43 +15,59 @@ import { useTheme } from './ThemeProvider.tsx';
 import { Separator } from './ui/Separator.tsx';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '../../hooks/use-toast';
-import { AxiosError } from 'axios';
 import { clearBookmarksMetadata } from '../lib/cache';
-import { getSession } from '../lib/auth/auth';
-
-// --- Options Form Mutations (inlined from useOptionsFormMutations) ---
+import { AuthRequestError, getSession } from '../lib/auth/auth';
 
 function useOptionsFormMutations({ form, t }: { form: any; t: (key: string) => string }) {
   const [hasError, setHasError] = useState(false);
 
   const { mutate: onReset, isLoading: resetLoading } = useMutation({
-    mutationFn: async () => { if (!(await isConfigured())) return new Error('Not configured'); },
-    onError: () => { toast({ title: t('settings.configError'), description: t('settings.notConfiguredDesc'), variant: 'destructive' }); },
+    mutationFn: async () => {
+      if (!(await isConfigured())) return new Error('Not configured');
+    },
+    onError: () => {
+      toast({ title: t('settings.configError'), description: t('settings.notConfiguredDesc'), variant: 'destructive' });
+    },
     onSuccess: async () => {
       form.reset({ baseUrl: '', method: 'username', username: '', password: '', apiKey: '', syncBookmarks: false, defaultCollection: '' });
-      await clearConfig(); await clearBookmarksMetadata();
+      await clearConfig();
+      await clearBookmarksMetadata();
     },
   });
 
   const { mutate: onSubmit, isLoading } = useMutation({
     mutationFn: async (values: any) => {
       values.baseUrl = values.baseUrl.replace(/\/$/, '');
+
       if (values.method === 'apiKey') {
         return { ...values, data: { response: { token: values.apiKey } } as { response: { token: string } } };
       }
+
       const session = await getSession(values.baseUrl, values.username, values.password);
-      if (session.status !== 200) throw new Error('Invalid credentials');
-      return { ...values, data: session.data as { response: { token: string } } };
+      return { ...values, data: session.data };
     },
     onError: (error) => {
       setHasError(true);
       setTimeout(() => setHasError(false), 500);
-      if (error instanceof AxiosError) {
-        toast({ title: t('settings.configError'), description: error.response?.status === 401 ? t('settings.invalidCredentials') : t('settings.genericError'), variant: 'destructive' });
-      } else { toast({ title: t('settings.configError'), description: t('settings.checkValues'), variant: 'destructive' }); }
+
+      if (error instanceof AuthRequestError) {
+        toast({
+          title: t('settings.configError'),
+          description: error.status === 401 ? t('settings.invalidCredentials') : t('settings.genericError'),
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({ title: t('settings.configError'), description: t('settings.checkValues'), variant: 'destructive' });
     },
     onSuccess: async (values) => {
-      await saveConfig({ baseUrl: values.baseUrl, defaultCollection: values.defaultCollection, syncBookmarks: values.syncBookmarks, apiKey: values.method === 'apiKey' && values.apiKey ? values.apiKey : values.data.response.token });
+      await saveConfig({
+        baseUrl: values.baseUrl,
+        defaultCollection: values.defaultCollection,
+        syncBookmarks: values.syncBookmarks,
+        apiKey: values.method === 'apiKey' && values.apiKey ? values.apiKey : values.data.response.token,
+      });
       toast({ title: t('settings.savedTitle'), description: t('settings.savedDesc'), variant: 'default' });
       setTimeout(() => window.close(), 1500);
     },
@@ -59,8 +75,6 @@ function useOptionsFormMutations({ form, t }: { form: any; t: (key: string) => s
 
   return { onReset, resetLoading, onSubmit, isLoading, hasError };
 }
-
-// --- Connection Fields (inlined from ConnectionFields) ---
 
 const ConnectionFields = ({ control, method }: { control: any; method: string }) => (
   <>
@@ -100,7 +114,7 @@ const ConnectionFields = ({ control, method }: { control: any; method: string })
           <FormItem>
             <FormLabel>Username or Email</FormLabel>
             <FormDescription>Your GrabSHARK Username or Email.</FormDescription>
-            <FormControl><Input placeholder="johnny" {...field} /></FormControl>
+            <FormControl><Input placeholder="finn" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
@@ -117,8 +131,6 @@ const ConnectionFields = ({ control, method }: { control: any; method: string })
   </>
 );
 
-// --- OptionsForm Component ---
-
 const OptionsForm = () => {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
@@ -132,7 +144,11 @@ const OptionsForm = () => {
   const { handleSubmit, control, watch } = form;
   const method = watch('method');
 
-  useEffect(() => { (async () => { if (await isConfigured()) form.reset(await getConfig()); })(); }, [form]);
+  useEffect(() => {
+    (async () => {
+      if (await isConfigured()) form.reset(await getConfig());
+    })();
+  }, [form]);
 
   return (
     <div>

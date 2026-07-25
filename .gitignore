@@ -14,6 +14,10 @@ dist-ssr
 dist.crx
 dist.pem
 
+# Environment variables (Crowdin tokens, etc.)
+.env
+.env.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -26,3 +30,12 @@ dist.pem
 *.sw?
 
 grabshark.zip
+
+# AI assistant working files (kept local, not for public repo)
+CLAUDE.md
+.claude/
+.gemini/
+memory-bank/
+tasks/lessons.md
+tasks/todo.md
+tasks/extension-performance-memory-analysis.md

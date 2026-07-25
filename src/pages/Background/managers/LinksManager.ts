@@ -1,8 +1,7 @@
 import {
     postLink,
-    checkLinkExists,
-    // getLinksFetch
 } from '../../../@/lib/actions/links';
+import { addUrl, removeUrlByLinkId, hasUrl } from '../../../@/lib/linkUrlIndex';
 import {
     getLinkByUrl,
     getLinkHighlights,
@@ -16,7 +15,103 @@ import { getBrowser } from '../../../@/lib/utils';
 
 const browser = getBrowser();
 
+async function resolveDefaultCollection(config: { baseUrl: string; apiKey: string }) {
+    try {
+        const response = await fetch(`${config.baseUrl}/api/v1/collections`, {
+            headers: { Authorization: `Bearer ${config.apiKey}` },
+        });
+
+        if (!response.ok) {
+            return undefined;
+        }
+
+        const data = await response.json();
+        const collections = data.response || [];
+        const defaultCollection = collections.find((collection: any) => collection.isDefault === true)
+            || collections.find((collection: any) => collection.name === 'Unorganized');
+
+        if (!defaultCollection) {
+            return undefined;
+        }
+
+        return {
+            id: defaultCollection.id,
+            ownerId: defaultCollection.ownerId,
+            name: defaultCollection.name,
+        };
+    } catch {
+        return undefined;
+    }
+}
+
 export class LinksManager {
+    static async createLegacyLink(config: { baseUrl: string; apiKey: string }, data: any, sender?: any) {
+        const resolvedTitle = data?.name || data?.title || data?.url || '';
+        const hasAdvancedPayload = !!data?.description
+            || !!data?.collection
+            || !!(Array.isArray(data?.tags) && data.tags.length > 0)
+            || !!data?.uploadImage
+            || !!data?.aiTagged
+            || !!data?.preservationConfig
+            || !!data?.type;
+
+        if (!hasAdvancedPayload && data?.url) {
+            return await LinksManager.createLinkQuick(config, data.url, resolvedTitle);
+        }
+
+        const fallbackCollection = await resolveDefaultCollection(config);
+        const normalizedCollection = data?.collection?.id
+            ? data.collection
+            : (fallbackCollection || (data?.collection?.name ? { name: data.collection.name } : undefined));
+
+        const normalizedTags = Array.isArray(data?.tags)
+            ? data.tags
+                .map((tag: any) => typeof tag === 'string' ? { name: tag } : tag)
+                .filter((tag: any) => !!tag?.name)
+            : [];
+
+        const payload: bookmarkFormValues & { uploadImage?: boolean; aiTagged?: boolean; type?: string; preservationConfig?: any } = {
+            url: data?.url || '',
+            name: resolvedTitle,
+            description: data?.description || '',
+            collection: normalizedCollection,
+            tags: normalizedTags,
+            uploadImage: data?.uploadImage || false,
+            aiTagged: data?.aiTagged || false,
+            type: data?.type,
+            preservationConfig: data?.preservationConfig,
+        } as any;
+
+        return await LinksManager.createLink(config, payload, sender);
+    }
+
+    static async getHighlightsByLinkId(config: { baseUrl: string; apiKey: string }, linkId: number) {
+        try {
+            const highlights = await getLinkHighlights(config.baseUrl, linkId, config.apiKey);
+            return { success: true, data: { highlights } };
+        } catch (error) {
+            return { success: false, error: 'Failed to load highlights' };
+        }
+    }
+
+    static async getFileHighlights(config: { baseUrl: string; apiKey: string }, fileId: number) {
+        try {
+            const response = await fetch(`${config.baseUrl}/api/v1/files/${fileId}/highlights`, {
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`,
+                },
+            });
+
+            if (!response.ok) {
+                return { success: false, error: 'Failed to load file highlights' };
+            }
+
+            const data = await response.json();
+            return { success: true, data: { highlights: data.response || [] } };
+        } catch (error) {
+            return { success: false, error: 'Failed to load file highlights' };
+        }
+    }
 
     static async createLink(config: { baseUrl: string; apiKey: string }, data: bookmarkFormValues & { uploadImage?: boolean; aiTagged?: boolean }, sender: any) {
         try {
@@ -51,7 +146,11 @@ export class LinksManager {
             }
 
             if (result && result.data && result.data.response) {
-                return { success: true, data: { link: result.data.response } };
+                const link = result.data.response;
+                if (link.url) {
+                    addUrl(link.url, link.id).catch(() => {});
+                }
+                return { success: true, data: { link } };
             } else {
                 return { success: false, error: 'Failed to create link' };
             }
@@ -96,6 +195,8 @@ export class LinksManager {
             if (!response.ok) {
                 throw new Error('Failed to delete link');
             }
+
+            removeUrlByLinkId(id).catch(() => {});
 
             if (sender?.tab?.id) {
                 const tabId = sender.tab.id;
@@ -184,12 +285,12 @@ export class LinksManager {
         }
     }
 
-    static async checkLinkExists(config: { baseUrl: string; apiKey: string }, url: string) {
+    static async checkLinkExists(_config: { baseUrl: string; apiKey: string }, url: string) {
         try {
-            const response = await checkLinkExists(config.baseUrl, config.apiKey, url);
-            return { success: true, data: response };
+            const exists = await hasUrl(url);
+            return { success: true, data: exists };
         } catch {
-            return { success: false, error: 'Network error' };
+            return { success: false, error: 'Lookup error' };
         }
     }
 
@@ -197,6 +298,9 @@ export class LinksManager {
         try {
             const link = await createLinkForHighlight(config.baseUrl, url, title, config.apiKey);
             if (link) {
+                if (link.url) {
+                    addUrl(link.url, link.id).catch(() => {});
+                }
                 return { success: true, data: { link } };
             } else {
                 return { success: false, error: 'Failed to save link' };

@@ -1,48 +1,57 @@
-import { loadReactModule } from '../utils/reactLoader';
+import { loadSaveNotificationToastModule } from '../utils/reactLoader';
 import componentStyles from '../components.css?inline';
-import type { ToastLinkData } from '../SaveNotificationToast';
+import type { PreparedToastLink, ToastLinkData } from '../SaveNotificationToast';
+import { getThumbnail } from '../../../@/lib/thumbnailCache';
+import { formatToastDate, getToastLabels } from '../SaveNotificationToast/toastLocale';
 
-// React types (actual imports are lazy-loaded)
-type Root = import('react-dom/client').Root;
-
-// Toast notification state
 let toastHost: HTMLDivElement | null = null;
 let toastShadow: ShadowRoot | null = null;
-let toastRoot: Root | null = null;
+let toastRoot: any = null;
 
-// Queue to accumulate links across multiple save operations
-let linkQueue: ToastLinkData[] = [];
+let linkQueue: PreparedToastLink[] = [];
 let queueResetTimer: ReturnType<typeof setTimeout> | null = null;
-let renderKey = 0; // Incremented on close to force fresh component instance
+let renderKey = 0;
 
-/**
- * Show save notification toast for background save operations
- * Accumulates links into a queue so multiple saves show in one toast
- * @param newLinks - Array of newly saved links to add to notification
- */
+function getFaviconUrl(url: string): string {
+    return url ? 'https://www.google.com/s2/favicons?sz=64&domain_url=' + url : '';
+}
+
+async function prepareToastLink(
+    link: ToastLinkData,
+    locale: string,
+    labels: Awaited<ReturnType<typeof getToastLabels>>['labels']
+): Promise<PreparedToastLink> {
+    const thumbnailSrc = (await getThumbnail(link.url)) || getFaviconUrl(link.url);
+
+    return {
+        ...link,
+        collectionLabel: link.collection?.name || labels.unorganized,
+        formattedDate: formatToastDate(link.createdAt, locale, labels.justNow),
+        thumbnailSrc,
+        fallbackIconColor: link.collection?.color,
+    };
+}
+
 export async function showSaveNotification(newLinks: ToastLinkData[]): Promise<void> {
     if (newLinks.length === 0) {
         return;
     }
 
-    // Clear any pending reset timer since we have new content
     if (queueResetTimer) {
         clearTimeout(queueResetTimer);
         queueResetTimer = null;
     }
 
-    // Add new links to queue (avoid duplicates by ID)
-    const existingIds = new Set(linkQueue.map(l => l.id));
-    const uniqueNewLinks = newLinks.filter(l => !existingIds.has(l.id));
-    linkQueue = [...linkQueue, ...uniqueNewLinks];
+    const existingIds = new Set(linkQueue.map((l) => l.id));
+    const uniqueNewLinks = newLinks.filter((l) => !existingIds.has(l.id));
+    const { locale, labels } = await getToastLabels();
+    const preparedUniqueLinks = await Promise.all(uniqueNewLinks.map((link) => prepareToastLink(link, locale, labels)));
+    linkQueue = [...linkQueue, ...preparedUniqueLinks];
 
-    // Track which links are newly added (for animation)
-    const newLinkIds = uniqueNewLinks.map(l => l.id);
+    const newLinkIds = preparedUniqueLinks.map((l) => l.id);
 
-    // Lazy-load the React UI module
-    const { createRoot, React, SaveNotificationToast } = await loadReactModule();
+    const { React, createRoot, SaveNotificationToast } = await loadSaveNotificationToastModule();
 
-    // Create Shadow DOM host if not exists
     if (!toastHost) {
         toastHost = document.createElement('div');
         toastHost.id = 'ext-lw-toast-notification-host';
@@ -51,7 +60,6 @@ export async function showSaveNotification(newLinks: ToastLinkData[]): Promise<v
 
         toastShadow = toastHost.attachShadow({ mode: 'open' });
 
-        // Inject keyframe animations inline (CSS file may not load in Shadow DOM)
         const animationStyles = document.createElement('style');
         animationStyles.textContent = `
             @keyframes ext-lw-slide-in-right {
@@ -87,12 +95,10 @@ export async function showSaveNotification(newLinks: ToastLinkData[]): Promise<v
         `;
         toastShadow.appendChild(animationStyles);
 
-        // Inject content script styles (Inline)
         const style = document.createElement('style');
         style.textContent = componentStyles;
         toastShadow.appendChild(style);
 
-        // Create container for React
         const container = document.createElement('div');
         container.id = 'ext-lw-toast-container';
         container.style.pointerEvents = 'auto';
@@ -101,20 +107,17 @@ export async function showSaveNotification(newLinks: ToastLinkData[]): Promise<v
         toastRoot = createRoot(container);
     }
 
-    // Render the React component into Shadow DOM with accumulated queue
-    // Use key prop to force fresh component instance after close
     if (toastRoot) {
         toastRoot.render(
             React.createElement(SaveNotificationToast, {
                 key: renderKey,
                 links: linkQueue,
-                newLinkIds: newLinkIds,
+                labels,
+                newLinkIds,
                 onClose: () => {
-                    // Clear the queue and increment key for next render
                     linkQueue = [];
                     renderKey++;
 
-                    // Unmount the component to fully reset state
                     if (toastRoot) {
                         toastRoot.render(null);
                     }

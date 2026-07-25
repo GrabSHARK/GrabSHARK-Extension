@@ -1,7 +1,7 @@
 import { getBrowser } from '../../../@/lib/utils';
 import { getConfig } from '../../../@/lib/config';
 import { getPreferences } from '../../../@/lib/settings';
-import { checkLinkExists } from '../../../@/lib/actions/links';
+import { hasUrl } from '../../../@/lib/linkUrlIndex';
 
 const browser = getBrowser();
 
@@ -27,7 +27,7 @@ export class BadgeManager {
         browser.storage.onChanged.addListener(async (changes, area) => {
             if (area === 'local' && changes.grabshark_preferences) {
 
-                const tabs = await browser.tabs.query({ active: true });
+                const tabs = await browser.tabs.query({ active: true, currentWindow: true });
                 for (const tab of tabs) {
                     if (tab.id && tab.url) {
                         await this.updateIconBadge(tab.id, tab.url);
@@ -63,13 +63,12 @@ export class BadgeManager {
         }
 
         const cachedConfig = await getConfig();
-        if (!cachedConfig.baseUrl || !cachedConfig.apiKey) return;
+        if (!cachedConfig.baseUrl || !cachedConfig.apiKey) {
+            this.clearBadge(tabId);
+            return;
+        }
 
-        const linkExists = await checkLinkExists(
-            cachedConfig.baseUrl,
-            cachedConfig.apiKey,
-            url
-        );
+        const linkExists = await hasUrl(url);
 
         if (linkExists) {
             this.setBadge(tabId, '✓', '#2c46f1', '#FFFFFF');
@@ -77,6 +76,7 @@ export class BadgeManager {
             this.clearBadge(tabId);
         }
     }
+
 
     private setBadge(tabId: number, text: string, bgColor: string, _textColor: string) {
         if (browser.action) {
@@ -99,3 +99,6 @@ export class BadgeManager {
         }
     }
 }
+
+
+

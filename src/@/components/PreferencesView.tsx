@@ -1,9 +1,9 @@
-import { FC, useState, useEffect, useRef } from 'react';
+import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import { X, CaretLeft, GearSix } from '@phosphor-icons/react';
 import { Button } from './ui/Button';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from './ThemeProvider';
-import i18n from '../lib/i18n';
+import i18n, { setExtensionLanguage } from '../lib/i18n';
 import { clearConfig } from '../lib/config';
 import { CollectionPickerModal } from './CollectionPickerModal';
 import { getPreferences, savePreferences } from '../lib/settings';
@@ -12,6 +12,14 @@ import { SavingSection } from './Preferences/SavingSection';
 import { InteractionsSection } from './Preferences/InteractionsSection';
 import { AccountSection } from './Preferences/AccountSection';
 import { DisconnectDialog } from './Preferences/DisconnectDialog';
+import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
+import {
+    broadcastPreferencesUpdated,
+    getLocaleSettings,
+    saveLocaleSettings,
+    syncUserLocale,
+    updateCurrentUserProfile,
+} from '../lib/runtime/messages';
 
 type HighlightColor = 'yellow' | 'red' | 'blue' | 'green';
 type ExtensionDefaultCollection = 'UNORGANIZED' | 'LAST_USED' | 'SELECTED';
@@ -20,8 +28,6 @@ interface PreferencesViewProps { onClose: () => void; onBack: () => void; }
 
 export type LanguageSetting = 'en' | 'tr' | 'system';
 export type ThemeSetting = 'dark' | 'light' | 'website' | 'system';
-
-// --- Preferences Save Logic (inlined from usePreferencesSave) ---
 
 function usePreferencesSave(args: {
     selectedTheme: ThemeSetting; selectedLanguage: LanguageSetting; saveMetaDescriptionToNote: boolean;
@@ -40,7 +46,7 @@ function usePreferencesSave(args: {
     const originalHighlightColor = useRef<string>('yellow');
     const originalSavePageOnHighlight = useRef(true);
 
-    const setOriginals = (data: {
+    const setOriginals = useCallback((data: {
         language: LanguageSetting; saveDesc: boolean; defCollection: string; selectedColId: number | null;
         smartCapture: boolean; selectionMenu: boolean; highlightColor: string; savePageOnHighlight: boolean;
     }) => {
@@ -52,7 +58,7 @@ function usePreferencesSave(args: {
         originalSelectionMenu.current = data.selectionMenu;
         originalHighlightColor.current = data.highlightColor;
         originalSavePageOnHighlight.current = data.savePageOnHighlight;
-    };
+    }, []);
 
     const handleSave = async () => {
         const {
@@ -62,22 +68,24 @@ function usePreferencesSave(args: {
         } = args;
 
         if (selectedLanguage !== originalLanguage.current) {
-            if (selectedLanguage === 'system') await chrome.storage.local.set({ grabshark_locale_setting: 'system' });
-            else await chrome.storage.local.set({ grabshark_locale: selectedLanguage, grabshark_locale_setting: selectedLanguage });
+            await saveLocaleSettings({
+                localeSetting: selectedLanguage,
+                locale: selectedLanguage === 'system' ? i18n.language : selectedLanguage,
+            });
         }
 
-        const serverChanged = saveMetaDescriptionToNote !== originalSaveDescription.current ||
-            extensionDefaultCollection !== originalDefaultCollection.current ||
-            extensionSelectedCollectionId !== originalSelectedCollectionId.current;
+        const updateData: Record<string, unknown> = {};
+        if (saveMetaDescriptionToNote !== originalSaveDescription.current) updateData.saveMetaDescriptionToNote = saveMetaDescriptionToNote;
+        if (extensionDefaultCollection !== originalDefaultCollection.current) updateData.extensionDefaultCollection = extensionDefaultCollection;
+        if (extensionSelectedCollectionId !== originalSelectedCollectionId.current) updateData.extensionSelectedCollectionId = extensionSelectedCollectionId;
+        if (enableSmartCapture !== originalSmartCapture.current) updateData.globalEnableSmartCapture = enableSmartCapture;
+        if (enableSelectionMenu !== originalSelectionMenu.current) updateData.globalEnableSelectionMenu = enableSelectionMenu;
 
-        if (serverChanged && userId) {
+        if (Object.keys(updateData).length > 0 && userId) {
             try {
-                const updateData: any = {};
-                if (saveMetaDescriptionToNote !== originalSaveDescription.current) updateData.saveMetaDescriptionToNote = saveMetaDescriptionToNote;
-                if (extensionDefaultCollection !== originalDefaultCollection.current) updateData.extensionDefaultCollection = extensionDefaultCollection;
-                if (extensionSelectedCollectionId !== originalSelectedCollectionId.current) updateData.extensionSelectedCollectionId = extensionSelectedCollectionId;
-                await chrome.runtime.sendMessage({ type: 'UPDATE_USER', data: { userId, data: updateData } });
-            } catch { }
+                await updateCurrentUserProfile(userId, updateData);
+            } catch {
+            }
         }
 
         const onPageChanged = enableSmartCapture !== originalSmartCapture.current || enableSelectionMenu !== originalSelectionMenu.current;
@@ -89,11 +97,11 @@ function usePreferencesSave(args: {
             await savePreferences({ ...currentPrefs, enableSmartCapture, enableSelectionMenu, defaultHighlightColor, savePageOnHighlight } as any);
         }
 
-        if (onPageChanged && userId) {
-            try { await chrome.runtime.sendMessage({ type: 'UPDATE_USER', data: { userId, data: { globalEnableSmartCapture: enableSmartCapture, globalEnableSelectionMenu: enableSelectionMenu } } }); } catch { }
+        try {
+            await broadcastPreferencesUpdated({ defaultHighlightColor, enableSmartCapture, enableSelectionMenu });
+        } catch {
         }
 
-        try { chrome.runtime.sendMessage({ type: 'BROADCAST_PREFERENCES_UPDATED', data: { defaultHighlightColor, enableSmartCapture, enableSelectionMenu } }); } catch { }
         onBack();
     };
 
@@ -107,8 +115,12 @@ function usePreferencesSave(args: {
                 if (needsThemeRevert) applyTheme(originalTheme.current);
                 if (needsLanguageRevert) {
                     if (originalLanguage.current === 'system') {
-                        chrome.runtime.sendMessage({ type: 'SYNC_USER_LOCALE' }, (r) => { if (r?.success && r.locale) i18n.changeLanguage(r.locale); });
-                    } else i18n.changeLanguage(originalLanguage.current);
+                        void syncUserLocale().then((result) => {
+                            if (result?.locale) void setExtensionLanguage(result.locale);
+                        }).catch(() => { });
+                    } else {
+                        void setExtensionLanguage(originalLanguage.current);
+                    }
                 }
             }, 300);
         }
@@ -116,8 +128,6 @@ function usePreferencesSave(args: {
 
     return { handleSave, handleCancel, setOriginals, originalTheme };
 }
-
-// --- PreferencesView Component ---
 
 export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) => {
     const { t } = useTranslation();
@@ -152,55 +162,80 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
         savePageOnHighlight, userId, onBack,
     });
 
-    // Load initial settings
     useEffect(() => {
-        chrome.storage.local.get(['grabshark_locale', 'grabshark_locale_setting'], (result) => {
-            const lang = (result.grabshark_locale_setting || result.grabshark_locale || 'en') as LanguageSetting;
-            setSelectedLanguage(lang);
-            setOriginals({ language: lang, saveDesc: false, defCollection: 'UNORGANIZED', selectedColId: null, smartCapture: true, selectionMenu: true, highlightColor: 'yellow', savePageOnHighlight: true });
-        });
+        let active = true;
 
-        chrome.runtime.sendMessage({ type: 'GET_USER' }, (response) => {
-            if (response?.success && response.data) {
-                const d = response.data;
-                setSaveMetaDescriptionToNote(d.saveMetaDescriptionToNote ?? false);
-                setUserId(d.id);
-                const defCol = d.extensionDefaultCollection ?? 'UNORGANIZED';
+        const loadInitialState = async () => {
+            try {
+                const [localeSettings, bootstrap, prefs] = await Promise.all([
+                    getLocaleSettings(),
+                    getExtensionBootstrapState(),
+                    getPreferences(),
+                ]);
+
+                if (!active) return;
+
+                const lang = (localeSettings.localeSetting || localeSettings.locale || 'en') as LanguageSetting;
+                setSelectedLanguage(lang);
+
+                const user = bootstrap.user || {};
+                const collections = bootstrap.collections || [];
+                const defCol = (user.extensionDefaultCollection ?? 'UNORGANIZED') as ExtensionDefaultCollection;
+                const selColId = user.extensionSelectedCollectionId ?? null;
+                const sc = user.globalEnableSmartCapture ?? true;
+                const sm = user.globalEnableSelectionMenu ?? true;
+
+                setSaveMetaDescriptionToNote(user.saveMetaDescriptionToNote ?? false);
+                setUserId(user.id ?? null);
                 setExtensionDefaultCollection(defCol);
-                const selColId = d.extensionSelectedCollectionId ?? null;
                 setExtensionSelectedCollectionId(selColId);
-                const sc = d.globalEnableSmartCapture ?? true;
-                const sm = d.globalEnableSelectionMenu ?? true;
                 setEnableSmartCapture(sc);
                 setEnableSelectionMenu(sm);
+                setDefaultHighlightColor((prefs.defaultHighlightColor || 'yellow') as HighlightColor);
+                setSavePageOnHighlight(prefs.savePageOnHighlight ?? true);
 
-                setOriginals({ language: selectedLanguage, saveDesc: d.saveMetaDescriptionToNote ?? false, defCollection: defCol, selectedColId: selColId, smartCapture: sc, selectionMenu: sm, highlightColor: 'yellow', savePageOnHighlight: true });
+                const defaultCol = collections.find((c: any) => c.isDefault === true);
+                if (defaultCol) {
+                    setDefaultCollectionName(defaultCol.name);
+                    setDefaultCollectionColor(defaultCol.color || null);
+                }
 
-                chrome.runtime.sendMessage({ type: 'GET_COLLECTIONS' }, (colResponse) => {
-                    if (colResponse?.success && colResponse.data) {
-                        const collections = Array.isArray(colResponse.data) ? colResponse.data : (colResponse.data.response || []);
-                        const defaultCol = collections.find((c: any) => c.isDefault === true);
-                        if (defaultCol) { setDefaultCollectionName(defaultCol.name); setDefaultCollectionColor(defaultCol.color || null); }
-                        if (selColId && defCol === 'SELECTED') {
-                            const col = collections.find((c: any) => c.id === selColId);
-                            if (col) { setSelectedCollectionName(col.name); setSelectedCollectionColor(col.color || null); }
-                        }
+                if (selColId && defCol === 'SELECTED') {
+                    const selectedCollection = collections.find((c: any) => c.id === selColId);
+                    if (selectedCollection) {
+                        setSelectedCollectionName(selectedCollection.name);
+                        setSelectedCollectionColor(selectedCollection.color || null);
                     }
-                });
-            }
-        });
+                }
 
-        getPreferences().then((prefs) => {
-            setDefaultHighlightColor(prefs.defaultHighlightColor || 'yellow');
-            setSavePageOnHighlight(prefs.savePageOnHighlight ?? true);
-        });
-    }, []);
+                setOriginals({
+                    language: lang,
+                    saveDesc: user.saveMetaDescriptionToNote ?? false,
+                    defCollection: defCol,
+                    selectedColId: selColId,
+                    smartCapture: sc,
+                    selectionMenu: sm,
+                    highlightColor: prefs.defaultHighlightColor || 'yellow',
+                    savePageOnHighlight: prefs.savePageOnHighlight ?? true,
+                });
+            } catch {
+            }
+        };
+
+        void loadInitialState();
+        return () => { active = false; };
+    }, [setOriginals]);
 
     const handleThemeChange = (theme: ThemeSetting) => { setSelectedTheme(theme); applyTheme(theme); };
     const handleLanguageChange = (lang: LanguageSetting) => {
         setSelectedLanguage(lang);
-        if (lang === 'system') chrome.runtime.sendMessage({ type: 'SYNC_USER_LOCALE' }, (r) => { if (r?.success && r.locale) i18n.changeLanguage(r.locale); });
-        else i18n.changeLanguage(lang);
+        if (lang === 'system') {
+            void syncUserLocale().then((result) => {
+                if (result?.locale) void setExtensionLanguage(result.locale);
+            }).catch(() => { });
+        } else {
+            void setExtensionLanguage(lang);
+        }
     };
 
     const closeLanguageDropdown = (cb?: () => void) => { setIsClosingLanguageDropdown(true); setTimeout(() => { setShowLanguageDropdown(false); setIsClosingLanguageDropdown(false); cb?.(); }, 150); };
@@ -211,7 +246,7 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
         <div className="flex flex-col h-full p-4 relative">
             <div className="flex items-center justify-between mb-4 px-1">
                 <div className="flex items-center gap-2">
-                    <div className="bg-blue-600 rounded-full p-1.5 shadow-[0_0_12px_rgba(59,130,246,0.5)]"><GearSix className="w-3.5 h-3.5 text-white" weight="bold" /></div>
+                    <div className="bg-primary rounded-full p-1.5 shadow-[0_0_12px_hsl(var(--primary)/0.5)]"><GearSix className="w-3.5 h-3.5 text-white" weight="bold" /></div>
                     <span className="font-semibold text-base text-zinc-800 dark:text-zinc-200">{t('preferences.title')}</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -238,7 +273,7 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
             </div>
 
             <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800">
-                <Button onClick={handleSave} className="w-full h-11 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_rgba(37,99,235,0.45)] transition-all duration-300">{t('common.done')}</Button>
+                <Button onClick={() => void handleSave()} className="w-full h-11 rounded-2xl font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.2),0_0_28px_hsl(var(--primary)/0.45)] transition-all duration-300">{t('common.done')}</Button>
             </div>
 
             <CollectionPickerModal isOpen={showCollectionPicker} onClose={() => setShowCollectionPicker(false)} selectedCollectionId={extensionSelectedCollectionId}
@@ -248,3 +283,5 @@ export const PreferencesView: FC<PreferencesViewProps> = ({ onClose, onBack }) =
         </div>
     );
 };
+
+

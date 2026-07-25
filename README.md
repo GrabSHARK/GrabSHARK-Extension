@@ -12,6 +12,7 @@
     <br />
     <img src="https://img.shields.io/badge/Chrome_Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome" />
     <img src="https://img.shields.io/badge/Firefox_Addon-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white" alt="Firefox" />
+    <a href="https://crowdin.com/project/grabshark-extension"><img src="https://img.shields.io/badge/Crowdin-15%20Languages-2A5891?style=for-the-badge&logo=crowdin&logoColor=white" alt="Localized via Crowdin" /></a>
   </p>
 </div>
 
@@ -117,9 +118,10 @@ The built extension will be in the `/dist` folder. Load it as an unpacked extens
 | **UI** | React 18, TypeScript |
 | **Build** | Vite |
 | **Styling** | Tailwind CSS, Radix UI |
-| **State** | React Query |
-| **i18n** | Custom locale system (15 languages) |
-| **Communication** | Chrome Message Passing API |
+| **State** | React Query v4 (@tanstack/react-query) |
+| **Forms** | React Hook Form + Zod |
+| **i18n** | i18next + react-i18next (15 languages) |
+| **Communication** | webextension-polyfill (cross-browser) |
 
 ---
 

@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getLinksFetch } from './actions/links.ts';
-import { getConfig } from './config.ts';
+import { checkLinkExists } from './actions/links.ts';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,8 +28,7 @@ export async function getCurrentTabInfo(): Promise<{ title: string | undefined; 
 }
 
 export function getBrowser() {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  // @ts-ignore
   return typeof browser !== 'undefined' ? browser : chrome;
 }
 
@@ -42,20 +40,18 @@ export async function getStorageItem(key: string) {
   if (getChromeStorage()) {
     const result = await getBrowser().storage.local.get([key]);
     return result[key];
-  } else {
-    return getBrowser().storage.local.get(key);
   }
+  return getBrowser().storage.local.get(key);
 }
 
 export const checkDuplicatedItem = async () => {
   try {
-    const config = await getConfig();
     const currentTab = await getCurrentTabInfo();
-    const { response } = await getLinksFetch(config.baseUrl, config.apiKey);
-    const formatLinks = response.map((link) => link.url);
-    return formatLinks.includes(currentTab.url ?? '');
+    if (!currentTab.url) {
+      return false;
+    }
+    return await checkLinkExists('', '', currentTab.url);
   } catch {
-    // Silently fail if not configured or network error
     return false;
   }
 };
@@ -63,10 +59,9 @@ export const checkDuplicatedItem = async () => {
 export async function setStorageItem(key: string, value: string) {
   if (getChromeStorage()) {
     return await chrome.storage.local.set({ [key]: value });
-  } else {
-    await getBrowser().storage.local.set({ [key]: value });
-    return Promise.resolve();
   }
+  await getBrowser().storage.local.set({ [key]: value });
+  return Promise.resolve();
 }
 
 export function openOptions() {
@@ -74,7 +69,6 @@ export function openOptions() {
   if (browser.runtime.openOptionsPage) {
     browser.runtime.openOptionsPage();
   } else {
-    // Fallback: send message to background script
     return (browser.runtime.sendMessage as any)({ type: 'OPEN_OPTIONS_PAGE' });
   }
 }

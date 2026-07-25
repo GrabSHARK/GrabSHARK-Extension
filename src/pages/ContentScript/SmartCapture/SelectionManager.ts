@@ -14,6 +14,13 @@ export interface SelectionState {
     hoveredUnit: SelectableUnit | null;
 }
 
+interface ViewportMetrics {
+    minY: number;
+    maxY: number;
+    minX: number;
+    maxX: number;
+}
+
 export class SelectionManager {
     private selectedUnits: Map<Element, SelectableUnit> = new Map();
     private hoveredUnit: SelectableUnit | null = null;
@@ -43,6 +50,9 @@ export class SelectionManager {
     }
 
     public setHovered(unit: SelectableUnit | null): void {
+        if (this.hoveredUnit?.element === unit?.element) {
+            return;
+        }
         this.hoveredUnit = unit;
         this.updateHoverOverlay();
     }
@@ -83,7 +93,7 @@ export class SelectionManager {
     }
 
     public clearSelection(): void {
-        for (const [_, overlay] of this.selectionOverlays) overlay.remove();
+        for (const [, overlay] of this.selectionOverlays) overlay.remove();
         this.selectionOverlays.clear();
         this.selectedUnits.clear();
     }
@@ -92,6 +102,7 @@ export class SelectionManager {
     public getSelectionCount(): number { return this.selectedUnits.size; }
     public isSelected(unit: SelectableUnit): boolean { return this.selectedUnits.has(unit.element); }
     public getHoveredUnit(): SelectableUnit | null { return this.hoveredUnit; }
+    public hasVisualState(): boolean { return this.selectedUnits.size > 0 || !!this.hoveredUnit; }
 
     private createSelectionOverlay(unit: SelectableUnit): void {
         const overlay = document.createElement('div');
@@ -106,7 +117,7 @@ export class SelectionManager {
         if (overlay) { overlay.remove(); this.selectionOverlays.delete(unit.element); }
     }
 
-    private updateHoverOverlay(): void {
+    private updateHoverOverlay(metrics?: ViewportMetrics): void {
         if (!this.hoverOverlay || !this.labelElement) return;
 
         if (!this.hoveredUnit) {
@@ -115,24 +126,24 @@ export class SelectionManager {
             return;
         }
 
+        const rect = this.hoveredUnit.element.getBoundingClientRect();
+
         if (this.selectedUnits.has(this.hoveredUnit.element)) {
             this.hoverOverlay.classList.add('ext-lw-selection-hover-hidden');
             this.labelElement.classList.remove('ext-lw-selection-label-hidden');
-            this.updateLabel(this.hoveredUnit);
+            this.updateLabel(this.hoveredUnit, rect);
             return;
         }
 
-        const rect = this.hoveredUnit.element.getBoundingClientRect();
-        this.updateOverlayPosition(this.hoverOverlay, rect);
+        this.updateOverlayPosition(this.hoverOverlay, rect, metrics);
         this.hoverOverlay.classList.remove('ext-lw-selection-hover-hidden');
-        this.updateLabel(this.hoveredUnit);
+        this.updateLabel(this.hoveredUnit, rect);
     }
 
-    private updateLabel(unit: SelectableUnit): void {
+    private updateLabel(unit: SelectableUnit, rect: DOMRect): void {
         if (!this.labelElement) return;
         this.labelElement.textContent = this.getLabelText(unit);
         this.labelElement.classList.remove('ext-lw-selection-label-hidden');
-        const rect = unit.element.getBoundingClientRect();
         this.labelElement.style.left = `${rect.left}px`;
         this.labelElement.style.top = `${Math.max(0, rect.top - 20)}px`;
     }
@@ -177,13 +188,19 @@ export class SelectionManager {
         return window.innerHeight;
     }
 
-    private updateOverlayPosition(overlay: HTMLDivElement, rect: DOMRect): void {
+    private getViewportMetrics(): ViewportMetrics {
+        return {
+            minY: this.getNavbarHeight(),
+            maxY: this.getViewportBottom(),
+            minX: 0,
+            maxX: window.innerWidth,
+        };
+    }
+
+    private updateOverlayPosition(overlay: HTMLDivElement, rect: DOMRect, metrics?: ViewportMetrics): void {
         const padding = 8;
-        const navbarHeight = this.getNavbarHeight();
-        const minY = navbarHeight;
-        const maxY = this.getViewportBottom();
-        const minX = 0;
-        const maxX = window.innerWidth;
+        const viewport = metrics ?? this.getViewportMetrics();
+        const { minY, maxY, minX, maxX } = viewport;
 
         const isVisible = rect.bottom > minY && rect.top < maxY && rect.right > minX && rect.left < maxX;
 
@@ -213,10 +230,11 @@ export class SelectionManager {
     }
 
     public refreshOverlays(): void {
+        const metrics = this.getViewportMetrics();
         for (const [element, overlay] of this.selectionOverlays) {
-            this.updateOverlayPosition(overlay, element.getBoundingClientRect());
+            this.updateOverlayPosition(overlay, element.getBoundingClientRect(), metrics);
         }
-        this.updateHoverOverlay();
+        this.updateHoverOverlay(metrics);
     }
 
     public createCaptureTarget(): CaptureTarget | null {

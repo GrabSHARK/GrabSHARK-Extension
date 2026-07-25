@@ -11,6 +11,7 @@ import type { SaveNotificationToastProps } from './types';
 
 export const SaveNotificationToast = ({
     links,
+    labels,
     newLinkIds: _newLinkIds,
     onClose,
     onEdit,
@@ -45,7 +46,7 @@ export const SaveNotificationToast = ({
         }, autoCloseDelay);
 
         return () => clearTimeout(timer);
-    }, [isHovered, isExpanded, isClosing, autoCloseDelay, links.length]);
+    }, [isHovered, isExpanded, isClosing, autoCloseDelay, links.length, onClose]);
 
     const handleExpand = useCallback(() => {
         if (isExpanded) {
@@ -79,7 +80,6 @@ export const SaveNotificationToast = ({
             onMouseLeave={() => setIsHovered(false)}
             onWheel={(e) => { e.stopPropagation(); }}
         >
-            {/* Close button - only visible on hover */}
             {isHovered && (
                 <button
                     onClick={() => {
@@ -111,9 +111,9 @@ export const SaveNotificationToast = ({
                 </button>
             )}
 
-            {/* Main Card */}
             <ToastCard
                 link={links[0]}
+                labels={labels}
                 isMain={true}
                 onEdit={onEdit ? (link) => {
                     setIsClosing(true);
@@ -125,7 +125,6 @@ export const SaveNotificationToast = ({
                 } : undefined}
             />
 
-            {/* Tail Cards (stacked) */}
             {hasMultiple && !isExpanded && (
                 <div
                     style={{
@@ -156,8 +155,8 @@ export const SaveNotificationToast = ({
                                         <CaretDown style={{ width: 12, height: 12 }} />
                                         <span>
                                             {remainingCount > 0
-                                                ? `+${remainingCount + tailLinks.length} more`
-                                                : `+${tailLinks.length} more`
+                                                ? `+${remainingCount + tailLinks.length} ${labels.more}`
+                                                : `+${tailLinks.length} ${labels.more}`
                                             }
                                         </span>
                                     </div>
@@ -168,7 +167,6 @@ export const SaveNotificationToast = ({
                 </div>
             )}
 
-            {/* Expanded Cards */}
             {isExpanded && (
                 <div style={{
                     display: 'flex',
@@ -179,10 +177,11 @@ export const SaveNotificationToast = ({
                         ? 'ext-lw-collapse-stack 0.25s ease-in forwards'
                         : 'ext-lw-expand-stack 0.3s ease-out',
                 }}>
-                    {links.slice(1).map(link => (
+                    {links.slice(1).map((link) => (
                         <ToastCard
                             key={link.id}
                             link={link}
+                            labels={labels}
                             isExpanded={true}
                             onEdit={onEdit ? (l) => {
                                 setIsClosing(true);

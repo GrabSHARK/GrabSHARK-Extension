@@ -15,8 +15,24 @@ export interface ToastLinkData {
     preview?: string;
 }
 
+export interface PreparedToastLink extends ToastLinkData {
+    collectionLabel: string;
+    formattedDate: string;
+    thumbnailSrc: string;
+    fallbackIconColor?: string;
+}
+
+export interface ToastLabels {
+    edit: string;
+    show: string;
+    justNow: string;
+    unorganized: string;
+    more: string;
+}
+
 export interface SaveNotificationToastProps {
-    links: ToastLinkData[];
+    links: PreparedToastLink[];
+    labels: ToastLabels;
     newLinkIds?: number[];
     onClose: () => void;
     onEdit?: (link: ToastLinkData) => void;

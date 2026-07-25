@@ -1,4 +1,4 @@
-
+import { getTagsData } from '../runtime/messages.ts';
 
 export interface ResponseTags {
   id: number;
@@ -18,33 +18,17 @@ export interface ResponseTags {
 }
 
 export async function getTags(baseUrl: string, apiKey: string) {
-  // Check if running in content script (embedded menu)
-  if (
-    typeof window !== 'undefined' &&
-    window.location.protocol.startsWith('http')
-  ) {
-    const response = await chrome.runtime.sendMessage({
-      type: 'GET_TAGS',
-    });
-
-    if (response.success) {
-      return { data: response.data };
-    } else {
-      throw new Error(response.error);
-    }
+  if (typeof window !== 'undefined' && typeof chrome !== 'undefined' && !!chrome.runtime?.id) {
+    return { data: await getTagsData() };
   }
 
   const url = `${baseUrl}/api/v1/tags`;
-
   const response = await fetch(url, {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
+    headers: { Authorization: `Bearer ${apiKey}` },
   });
 
   const json = await response.json();
-
   if (!response.ok) {
     throw new Error(json.message || 'Failed to fetch tags');
   }

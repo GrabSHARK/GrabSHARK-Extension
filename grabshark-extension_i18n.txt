@@ -1,0 +1,208 @@
+GrabSHARK Browser Extension Internationalization (i18n Reference)
+
+== Framework & Runtime ==
+
+[i18next]
+└─ Category: Translation Engine
+└─ Version: ^25.7.3
+└─ Purpose: Tarayıcı uzantısının çeviri motoru. Lazy-load locale bundle'larını yönetir, fallback ve interpolation çözer.
+
+[react-i18next]
+└─ Category: React Bindings
+└─ Version: ^16.5.1
+└─ Purpose: i18next'i React component'lerine `useTranslation()` hook'u ile bağlar.
+
+[i18n Initialization]
+└─ File: grabshark-extension/src/@/lib/i18n.ts
+└─ Purpose: i18next başlatma, browser-language detection, `chrome.storage.local` üzerinden seçili locale persist + change listener.
+
+[Translation Hook]
+└─ Function: useTranslation()
+└─ Purpose: Component içinde `const { t } = useTranslation()` ile namespaced key lookup (`t('saveLink.title')`).
+
+== Locale Storage ==
+
+[Storage Backend]
+└─ API: chrome.storage.local
+└─ Key: grabshark_locale
+└─ Purpose: Kullanıcının seçtiği dil tercihi. Tarayıcı yeniden açılsa bile korunur.
+
+[Detection Order]
+└─ 1: chrome.storage.local.grabshark_locale
+└─ 2: navigator.language → normalizeLocale() (zh → zh-CN, vb.)
+└─ 3: en (final fallback)
+└─ Purpose: Kullanıcı seçtiyse onun dilini, seçmediyse tarayıcı dilini, hiçbiri tutmazsa İngilizceyi yükler.
+
+[Lazy Load Strategy]
+└─ Mechanism: Dynamic `import('./locales/{lang}.json')`
+└─ Bundling: Locale dosyaları upfront bundle'lanmaz, çalışma zamanında getirilir
+└─ Purpose: Bundle boyutunu küçük tutar (sadece seçili dil yüklenir).
+
+== Locale Inventory ==
+
+[Source Language]
+└─ Code: en
+└─ File: grabshark-extension/src/@/locales/en.json
+└─ Phrases: 155 (flat key sayısı; nested 12 namespace ile organize)
+└─ Purpose: Tüm çevirilerin kaynağı.
+
+[Target Languages — 14]
+└─ Codes: tr, de, es, fr, it, ja, nl, pl, pt-BR, ro, ru, uk, zh, zh-TW
+└─ Files: grabshark-extension/src/@/locales/{code}.json
+└─ Phrases: 155 (her birinde EN ile %100 yapısal eşitlik)
+└─ Purpose: Topluluk + LLM çevirileriyle doldurulan hedef diller.
+
+[Locale File Structure]
+└─ Path: grabshark-extension/src/@/locales/{locale}.json
+└─ Format: Nested JSON (12 top-level namespace, key'ler dot-path ile erişilir: `t('saveLink.title')`)
+└─ Encoding: UTF-8
+└─ Trailing Newline: zorunlu (sync script tarafından korunur)
+
+== Source File Namespaces (12 nested blok) ==
+
+[Namespace 01 — common]
+└─ Sample Keys: cancel, save, close, error, loading, success
+└─ Purpose: Tüm uzantıda paylaşılan generic mikro-label'lar.
+
+[Namespace 02 — savedLink]
+└─ Sample Keys: title, alreadySaved, openInGrabshark, viewArchive
+└─ Purpose: Halihazırda kaydedilmiş link gösterimi (AlreadySavedView).
+
+[Namespace 03 — saveLink]
+└─ Sample Keys: title, urlLabel, collectionLabel, tagsLabel, save, savedSuccess
+└─ Purpose: Yeni link kaydetme akışı (SaveLinkCard).
+
+[Namespace 04 — editLink]
+└─ Sample Keys: title, deleteConfirm, save, deleteSuccess
+└─ Purpose: Mevcut link düzenleme akışı (EditLinkView).
+
+[Namespace 05 — settings]
+└─ Sample Keys: serverUrl, apiKey, capture, language, theme, shortcuts
+└─ Purpose: Options sayfası ve uzantı yapılandırması.
+
+[Namespace 06 — shortcut]
+└─ Sample Keys: quickSave, openHighlight, captureMode, recordPrompt
+└─ Purpose: Klavye kısayolu ayarları ve recording UI.
+
+[Namespace 07 — bookmark]
+└─ Sample Keys: pickCollection, addTag, save, syncWithBrowser
+└─ Purpose: Browser bookmarks senkronizasyonu ve picker.
+
+[Namespace 08 — tagInput]
+└─ Sample Keys: placeholder, suggested, addNew, aiSuggestions
+└─ Purpose: Tag girme bileşeni (autocomplete + AI önerileri).
+
+[Namespace 09 — smartActions]
+└─ Sample Keys: title, hover, marquee, capture, cancel
+└─ Purpose: Smart Capture eylemleri ve action bar.
+
+[Namespace 10 — highlightToolbox]
+└─ Sample Keys: yellow, green, blue, addNote, copyText, smartCapture, delete
+└─ Purpose: Sayfa içi vurgu toolbox'ı (renk seçici, not paneli, capture).
+
+[Namespace 11 — notePanel]
+└─ Sample Keys: placeholder, save, cancel, delete
+└─ Purpose: Vurgu üstüne not yazma paneli.
+
+[Namespace 12 — preferences]
+└─ Sample Keys: account, appearance, interactions, saving, language, smartCapture, shortcuts
+└─ Purpose: Embedded UI tercih ekranı (PreferencesView).
+
+== Glossary / Whitelist (Tüm Diller İçin Korunur) ==
+
+[Brand & Product Names]
+└─ Values: GrabSHARK, Monolith, Wayback Machine, Playwright, CloakBrowser, Meilisearch, Stripe, Telegram, Readwise, Finn
+└─ Purpose: Marka/ürün ismi → asla çevrilmez.
+
+[Tech Acronyms]
+└─ Values: PDF, RSS, API, URL, TOTP, 2FA, OAuth, Proxy, Stealth, GeoIP, Worker
+└─ Purpose: Endüstri standardı kısaltma → her dilde aynen kalır.
+
+[Variable Tokens]
+└─ Pattern: {{varName}}
+└─ Purpose: i18next interpolation. ASLA değiştirilmez.
+
+== Crowdin Setup ==
+
+[Project Identity]
+└─ Identifier: grabshark-extension
+└─ Project ID: 892464
+└─ URL: https://crowdin.com/project/grabshark-extension
+└─ Visibility: open
+└─ languageAccessPolicy: open
+└─ Source: en (1 file: en.json)
+└─ Targets: 14 dil (tr, de, es-ES, fr, it, ja, nl, pl, pt-BR, ro, ru, uk, zh-CN, zh-TW)
+
+[Config File]
+└─ File: grabshark-extension/crowdin.yml
+└─ Source Pattern: /src/@/locales/en.json
+└─ Translation Pattern: /src/@/locales/%locale_with_underscore%.json
+└─ Mapping: zh-CN→zh, es-ES→es (Crowdin → file)
+└─ Token Env: CROWDIN_PERSONAL_TOKEN
+└─ Project Env: CROWDIN_PROJECT_ID
+
+[Credentials]
+└─ File: grabshark-extension/.env (git ignore'da)
+└─ Sample: grabshark-extension/.env.sample (placeholder satırları)
+└─ Token: Web projesindeki ile aynı CROWDIN_PERSONAL_TOKEN — her iki projeye erişir.
+
+== Sync Workflow ==
+
+[Local CLI]
+└─ Tool: crowdin@4 (Homebrew tap: crowdin/crowdin) veya npm @crowdin/cli
+└─ Upload Source: `crowdin upload sources`
+└─ Upload Translations: `crowdin upload translations --auto-approve-imported --import-eq-suggestions`
+└─ Download Translations: `crowdin download translations`
+
+[GitHub Actions (Opsiyonel)]
+└─ File: .github/workflows/crowdin.yml (henüz eklenmedi)
+└─ Triggers: push (en.json) → upload sources, schedule (gece) → download → auto-PR
+└─ Secrets: CROWDIN_PROJECT_ID, CROWDIN_PERSONAL_TOKEN
+
+[Build Pipeline Etkisi]
+└─ Vite Configs: 4-layer build (vite.config.ts, content, content-main, embedded)
+└─ Locale Files: Hiçbirine bundle olarak dahil edilmez — runtime dynamic import
+└─ Purpose: Locale dosyasını güncellemek için extension rebuild gerekmez (sadece dist/'i ezse de runtime fetch yapar).
+
+== Verification ==
+
+[Local Sync Check]
+└─ Command: node script ile flatten + her locale'in EN ile yapısal eşitliği
+└─ Expected: 15 locale × 155 flat key, struct=OK her dilde
+
+[Placeholder Sync]
+└─ Check: `{{var}}` token'ları her locale'de EN ile birebir aynı
+└─ Tolerance: 0 mismatch
+
+[English-Left Audit]
+└─ Definition: Hedef dilde değer EN ile identik (whitelist hariç)
+└─ Expected: ≤ 5 (proper noun whitelist sayısı kadar; çoğu dilde 0)
+
+[Crowdin Progress API]
+└─ Endpoint: GET /api/v2/projects/892464/languages/progress
+└─ Expected: Her dilde >= %97 translated + approved
+
+== Maintainer Notes ==
+
+[New Key Lifecycle]
+└─ Step 1: en.json'a uygun namespace altına yeni key ekle (`{ "saveLink": { "newKey": "..." } }`)
+└─ Step 2: 14 locale'in aynı namespace'ine geçici fallback EN değerle ekle
+└─ Step 3: `crowdin upload sources` ile push
+└─ Step 4: Community çevirisi sonrası `crowdin download translations`
+└─ Step 5: Yapısal sanity check (flatten + EN sırası vs.)
+
+[Code Usage Pattern]
+└─ Import: `import { useTranslation } from "react-i18next"`
+└─ Hook: `const { t } = useTranslation()`
+└─ Lookup: `t('saveLink.title')` (dot path)
+└─ Interpolation: `t('saveLink.savedSuccess', { count: 3 })`
+
+[i18n vs Web App]
+└─ Web App File: locales/{lang}/common.json (folder per lang) — flat 1083 key
+└─ Extension File: locales/{lang}.json (file per lang) — nested 155 key
+└─ Crowdin: 2 ayrı proje (TM paylaşılmaz, ama tek hesap & token altında)
+└─ Reasoning: Lifecycle farklı (web private/release, extension store-distributed)
+
+[i18n Sync Rule]
+└─ Rule: Bu dosya kod tarafında yeni namespace/key girdiğinde anında güncellenmeli
+└─ Mirror: grabshark/grabshark-extension_i18n.txt (cross-directory sync zorunlu)

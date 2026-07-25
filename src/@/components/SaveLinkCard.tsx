@@ -2,12 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 import { openOptions, getCurrentTabInfo } from '../lib/utils';
-import { getCurrentUser } from '../lib/actions/users';
 import { bookmarkFormSchema, bookmarkFormValues } from '../lib/validators/bookmarkForm';
-import { getConfig } from '../lib/config';
 import { processOgImage } from '../lib/imageProcessor';
 import { saveThumbnail } from '../lib/thumbnailCache';
 import { Toaster } from './ui/Toaster';
@@ -18,8 +16,16 @@ import {
     getSiteOverrides, clearSiteOverride,
     SiteOverride,
 } from '../lib/settings';
+import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
+import { writeAiTagExpectation } from '../lib/runtime/sessionCache';
+import {
+    getRecentLinksData,
+    openTabMessage,
+    saveDomainPreference,
+    saveLinkFromExtension,
+    suggestTags,
+} from '../lib/runtime/messages';
 
-// Sub-components
 import { SaveLinkHeader } from './SaveLink/SaveLinkHeader';
 import { SaveLinkPreview } from './SaveLink/SaveLinkPreview';
 import { SaveLinkForm } from './SaveLink/SaveLinkForm';
@@ -27,40 +33,60 @@ import { SaveLinkFooter } from './SaveLink/SaveLinkFooter';
 import { SaveLinkPageInteractions } from './SaveLink/SaveLinkPageInteractions';
 import { CaptureOverlays } from './SaveLink/CaptureOverlays';
 
-// --- Save Link Init (inlined from useSaveLinkInit) ---
-
 function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
     const [currentUrl, setCurrentUrl] = useState('');
     const [initialTitle, setInitialTitle] = useState('');
-    const [config, setConfig] = useState<{ baseUrl: string; apiKey: string } | null>(null);
     const [prefs, setPrefs] = useState<ExtensionPreferences>(DEFAULT_PREFERENCES);
     const [loadingPrefs, setLoadingPrefs] = useState(true);
     const [ogImageUrl, setOgImageUrl] = useState<string | null>(null);
     const [preProcessedThumbnail, setPreProcessedThumbnail] = useState<Blob | null>(null);
+    const [userProfile, setUserProfile] = useState<any | null>(null);
+    const [collections, setCollections] = useState<any[]>([]);
+    const [tags, setTags] = useState<any[]>([]);
+    const [archiveDefaults, setArchiveDefaults] = useState<any | null>(null);
+    const [loadingBootstrap, setLoadingBootstrap] = useState(true);
+    const [baseUrl, setBaseUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const init = async () => {
             const tabInfo = await getCurrentTabInfo();
-            const loadedConfig = await getConfig();
-            setConfig(loadedConfig);
 
-            if (tabInfo.url) { setCurrentUrl(tabInfo.url); form.setValue('url', tabInfo.url); }
-            if (tabInfo.title) { setInitialTitle(tabInfo.title); form.setValue('name', tabInfo.title); }
+            if (tabInfo.url) {
+                setCurrentUrl(tabInfo.url);
+                form.setValue('url', tabInfo.url);
+            }
+            if (tabInfo.title) {
+                setInitialTitle(tabInfo.title);
+                form.setValue('name', tabInfo.title);
+            }
 
             const getMetaContent = (selector: string): string | undefined =>
-                document.querySelector(selector)?.getAttribute("content") || undefined;
+                document.querySelector(selector)?.getAttribute('content') || undefined;
 
             const extractedDescription =
                 getMetaContent('meta[name="description"]') ||
                 getMetaContent('meta[property="og:description"]') ||
                 getMetaContent('meta[name="twitter:description"]') ||
-                document.querySelector('p')?.textContent?.slice(0, 200) || "";
+                document.querySelector('p')?.textContent?.slice(0, 200) || '';
 
-            let defaultCollection: any = { name: loadedConfig.defaultCollection };
+            const hostname = getHostname(tabInfo.url);
+            let defaultCollection: any = { name: 'Unorganized' };
+
             try {
-                const userResponse = await chrome.runtime.sendMessage({ type: 'GET_USER' });
-                if (userResponse?.success && userResponse.data) {
-                    const user = userResponse.data;
+                const bootstrap = await getExtensionBootstrapState(hostname || undefined);
+                setBaseUrl(bootstrap.baseUrl || bootstrap.config?.baseUrl || null);
+                setUserProfile(bootstrap.user || null);
+                setCollections(bootstrap.collections || []);
+                setTags(bootstrap.tags || []);
+                setArchiveDefaults(bootstrap.prefs || null);
+
+                if (bootstrap.config?.defaultCollection) {
+                    defaultCollection = { name: bootstrap.config.defaultCollection };
+                }
+
+                const user = bootstrap.user;
+                const availableCollections = bootstrap.collections || [];
+                if (user) {
                     const extensionPref = user.extensionDefaultCollection || 'UNORGANIZED';
                     const selectedColId = user.extensionSelectedCollectionId;
 
@@ -69,33 +95,36 @@ function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
                     }
 
                     if (extensionPref === 'SELECTED' && selectedColId) {
-                        const colResponse = await chrome.runtime.sendMessage({ type: 'GET_COLLECTIONS' });
-                        if (colResponse?.success && colResponse.data) {
-                            const collections = Array.isArray(colResponse.data) ? colResponse.data : (colResponse.data.response || []);
-                            const selectedCol = collections.find((c: any) => c.id === selectedColId);
-                            if (selectedCol) defaultCollection = { name: selectedCol.name, id: selectedCol.id, ownerId: selectedCol.ownerId };
+                        const selectedCol = availableCollections.find((c: any) => c.id === selectedColId);
+                        if (selectedCol) {
+                            defaultCollection = { name: selectedCol.name, id: selectedCol.id, ownerId: selectedCol.ownerId };
                         }
                     } else if (extensionPref === 'LAST_USED') {
-                        const linksResponse = await chrome.runtime.sendMessage({ type: 'GET_RECENT_LINKS' });
-                        if (linksResponse?.success && linksResponse.data?.length > 0) {
-                            const lastLink = linksResponse.data[0];
-                            if (lastLink.collection) defaultCollection = { name: lastLink.collection.name, id: lastLink.collection.id, ownerId: lastLink.collection.ownerId };
+                        const recentLinks = await getRecentLinksData();
+                        if (recentLinks.length > 0) {
+                            const lastLink = recentLinks[0];
+                            if (lastLink.collection) {
+                                defaultCollection = { name: lastLink.collection.name, id: lastLink.collection.id, ownerId: lastLink.collection.ownerId };
+                            }
                         }
                     } else {
-                        const colResponse = await chrome.runtime.sendMessage({ type: 'GET_COLLECTIONS' });
-                        if (colResponse?.success && colResponse.data) {
-                            const collections = Array.isArray(colResponse.data) ? colResponse.data : (colResponse.data.response || []);
-                            const defaultCol = collections.find((c: any) => c.isDefault === true) || collections.find((c: any) => c.name === loadedConfig.defaultCollection);
-                            if (defaultCol) defaultCollection = { name: defaultCol.name, id: defaultCol.id, ownerId: defaultCol.ownerId };
+                        const defaultCol = availableCollections.find((c: any) => c.isDefault === true)
+                            || availableCollections.find((c: any) => c.name === bootstrap.config?.defaultCollection);
+                        if (defaultCol) {
+                            defaultCollection = { name: defaultCol.name, id: defaultCol.id, ownerId: defaultCol.ownerId };
                         }
                     }
                 }
-            } catch { }
+            } catch {
+            } finally {
+                setLoadingBootstrap(false);
+            }
 
             form.setValue('collection', defaultCollection as any);
-
-            const hostname = getHostname(tabInfo.url);
-            getEffectivePreferences(hostname).then((p) => { setPrefs(p); setLoadingPrefs(false); });
+            getEffectivePreferences(hostname).then((p) => {
+                setPrefs(p);
+                setLoadingPrefs(false);
+            });
 
             const ogMeta = document.querySelector('meta[property="og:image"]');
             if (ogMeta) {
@@ -109,22 +138,34 @@ function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
                 }
             }
         };
-        init();
+        void init();
     }, [form]);
 
-    return { currentUrl, initialTitle, config, prefs, setPrefs, loadingPrefs, ogImageUrl, preProcessedThumbnail };
+    return {
+        currentUrl,
+        initialTitle,
+        prefs,
+        setPrefs,
+        loadingPrefs,
+        ogImageUrl,
+        preProcessedThumbnail,
+        userProfile,
+        collections,
+        tags,
+        archiveDefaults,
+        loadingBootstrap,
+        baseUrl,
+    };
 }
-
-// --- Save Link Mutation (inlined from useSaveLinkMutation) ---
 
 function useSaveLinkMutation({
     form, currentUrl, prefs, archiveOptions, uploadScreenshot,
-    ogImageUrl, preProcessedThumbnail, collections, onClose, onSuccess: onSuccessCallback, t,
+    ogImageUrl, preProcessedThumbnail, collections, baseUrl, onClose, onSuccess: onSuccessCallback, t,
 }: {
     form: UseFormReturn<bookmarkFormValues>; currentUrl: string; prefs: ExtensionPreferences;
-    archiveOptions: { archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; aiTag: boolean } | null;
+    archiveOptions: { archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; archiveAsWaybackMachine: boolean; aiTag: boolean } | null;
     uploadScreenshot: boolean; ogImageUrl: string | null; preProcessedThumbnail: Blob | null;
-    collections: any[] | undefined; onClose?: () => void; onSuccess?: (link: any, openEdit?: boolean) => void; t: (key: string) => string;
+    collections: any[] | undefined; baseUrl: string | null; onClose?: () => void; onSuccess?: (link: any, openEdit?: boolean) => void; t: (key: string) => string;
 }) {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [aiAuthored, setAiAuthored] = useState(false);
@@ -138,17 +179,13 @@ function useSaveLinkMutation({
                 ...values,
                 url: values.url || currentUrl,
                 collection: { name: values.collection?.name, id: values.collection?.id, ownerId: values.collection?.ownerId },
-                tags: (values.tags || []).map((t) => ({ name: t.name })),
-                preservationConfig: archiveOptions || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, aiTag: false },
+                tags: (values.tags || []).map((tag) => ({ name: tag.name })),
+                preservationConfig: archiveOptions || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, archiveAsWaybackMachine: false, aiTag: false },
                 uploadImage: uploadScreenshot,
             };
 
-            const response = await chrome.runtime.sendMessage({
-                type: 'SAVE_LINK_FROM_EXTENSION',
-                data: { uploadImage: uploadScreenshot, values: payload, aiTagged: aiAuthored },
-            });
-            if (!response.success) throw new Error(response.error);
-            return { link: response.data?.response || response.data, action };
+            const data = await saveLinkFromExtension(payload, aiAuthored);
+            return { link: data?.response || data, action };
         },
         onSuccess: (data) => {
             const { link, action } = data;
@@ -156,10 +193,10 @@ function useSaveLinkMutation({
             let optimisticThumbnailUrl: string | undefined;
 
             if (preProcessedThumbnail && currentUrl) {
-                saveThumbnail(currentUrl, preProcessedThumbnail).catch(() => { });
+                void saveThumbnail(currentUrl, preProcessedThumbnail).catch(() => { });
                 optimisticThumbnailUrl = URL.createObjectURL(preProcessedThumbnail);
             } else if (ogImageUrl && currentUrl) {
-                processOgImage(ogImageUrl).then(async (blob) => { if (blob) await saveThumbnail(currentUrl, blob); }).catch(() => { });
+                void processOgImage(ogImageUrl).then(async (blob) => { if (blob) await saveThumbnail(currentUrl, blob); }).catch(() => { });
             }
 
             const fullCollection = collections?.find((c: any) => c.id === values.collection?.id) || values.collection;
@@ -169,30 +206,38 @@ function useSaveLinkMutation({
                 _optimisticThumbnail: optimisticThumbnailUrl,
                 _expectAiTags: archiveOptions?.aiTag ?? false,
             };
-
-            try { sessionStorage.setItem(`link_ai_pref_${link.id}`, JSON.stringify({ expectAi: archiveOptions?.aiTag ?? false, timestamp: Date.now() })); } catch { }
+            writeAiTagExpectation(link.id, archiveOptions?.aiTag ?? false);
 
             const hostname = getHostname(currentUrl);
             if (hostname) {
-                getSiteOverrides().then(async (overrides) => {
+                void getSiteOverrides().then(async (overrides) => {
                     const clientOverride = overrides[hostname];
-                    chrome.runtime.sendMessage({
-                        type: 'SET_DOMAIN_PREFERENCE',
-                        data: { domain: hostname, enableSmartCapture: clientOverride?.enableSmartCapture ?? prefs.enableSmartCapture, enableSelectionMenu: clientOverride?.enableSelectionMenu ?? prefs.enableSelectionMenu },
-                    }, (response) => {
-                        if (response?.success && clientOverride) { clearSiteOverride(hostname, 'enableSmartCapture'); clearSiteOverride(hostname, 'enableSelectionMenu'); }
+                    await saveDomainPreference({
+                        domain: hostname,
+                        enableSmartCapture: clientOverride?.enableSmartCapture ?? prefs.enableSmartCapture,
+                        enableSelectionMenu: clientOverride?.enableSelectionMenu ?? prefs.enableSelectionMenu,
                     });
+
+                    if (clientOverride) {
+                        await clearSiteOverride(hostname, 'enableSmartCapture');
+                        await clearSiteOverride(hostname, 'enableSelectionMenu');
+                    }
                 }).catch(() => { });
             }
 
             if (action === 'open') {
-                if (link?.id) {
-                    getConfig().then(config => { chrome.tabs.create({ url: `${config.baseUrl}/links/${link.id}` }); if (onClose) onClose(); });
-                } else if (onSuccessCallback) onSuccessCallback(enrichedLink, false);
+                if (link?.id && baseUrl) {
+                    void openTabMessage(`${baseUrl.replace(/\/$/, '')}/links/${link.id}`).catch(() => { });
+                    if (onClose) onClose();
+                } else if (onSuccessCallback) {
+                    onSuccessCallback(enrichedLink, false);
+                }
             } else {
                 setSaveSuccess(true);
                 if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-                successTimeoutRef.current = setTimeout(() => { if (onSuccessCallback) onSuccessCallback(enrichedLink, false); }, 1000);
+                successTimeoutRef.current = setTimeout(() => {
+                    if (onSuccessCallback) onSuccessCallback(enrichedLink, false);
+                }, 1000);
             }
         },
         onError: (err: any) => {
@@ -206,22 +251,30 @@ function useSaveLinkMutation({
         try {
             const title = form.getValues('name') || document.title || '';
             const description = form.getValues('description') || '';
-            // @ts-ignore
-            const response = await chrome.runtime.sendMessage({ type: 'SUGGEST_TAGS', data: { url: currentUrl, title, description } });
-            if (response.success && response.data?.tags?.length > 0) {
+            const response = await suggestTags({ url: currentUrl, title, description });
+            if (response?.tags?.length > 0) {
                 const currentTags = form.getValues('tags') || [];
-                const newTags = response.data.tags.filter((n: string) => !currentTags.some(t => t.name === n)).map((n: string) => ({ name: n }));
-                if (newTags.length > 0) { form.setValue('tags', [...currentTags, ...newTags]); setAiAuthored(true); toast({ title: 'AI Tags Added', description: `Added ${newTags.length} suggested tag${newTags.length > 1 ? 's' : ''}` }); }
-                else { setAiAuthored(true); toast({ title: 'No New Tags', description: 'All suggested tags are already selected' }); }
-            } else if (!response.success) { toast({ title: 'AI Suggestion Failed', description: response.error || 'Could not get tag suggestions', variant: 'destructive' }); }
-        } catch { toast({ title: 'Error', description: 'Failed to get AI suggestions', variant: 'destructive' }); }
-        finally { setIsSuggestingTags(false); }
+                const newTags = response.tags.filter((name: string) => !currentTags.some(tag => tag.name === name)).map((name: string) => ({ name }));
+                if (newTags.length > 0) {
+                    form.setValue('tags', [...currentTags, ...newTags]);
+                    setAiAuthored(true);
+                    toast({ title: 'AI Tags Added', description: `Added ${newTags.length} suggested tag${newTags.length > 1 ? 's' : ''}` });
+                } else {
+                    setAiAuthored(true);
+                    toast({ title: 'No New Tags', description: 'All suggested tags are already selected' });
+                }
+            } else {
+                toast({ title: 'No New Tags', description: 'No tag suggestions were returned' });
+            }
+        } catch (error: any) {
+            toast({ title: 'AI Suggestion Failed', description: error?.message || 'Could not get tag suggestions', variant: 'destructive' });
+        } finally {
+            setIsSuggestingTags(false);
+        }
     };
 
-    return { handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, aiAuthored, setAiAuthored, successTimeoutRef };
+    return { handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, successTimeoutRef };
 }
-
-// --- SaveLinkCard Component ---
 
 interface SaveLinkCardProps {
     onClose?: () => void;
@@ -239,9 +292,8 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
     const [uploadScreenshot, setUploadScreenshot] = useState(false);
     const [showCaptureConfirmation, setShowCaptureConfirmation] = useState(false);
     const [captureOverlayVisible, setCaptureOverlayVisible] = useState(false);
-
     const [archiveOptions, setArchiveOptions] = useState<{
-        archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; aiTag: boolean;
+        archiveAsScreenshot: boolean; archiveAsMonolith: boolean; archiveAsPDF: boolean; archiveAsReadable: boolean; archiveAsWaybackMachine: boolean; aiTag: boolean;
     } | null>(null);
 
     const manualTaggingRef = useRef(false);
@@ -252,78 +304,71 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
         defaultValues: { url: '', name: '', collection: { name: t('bookmark.unorganized') }, tags: [], description: '', image: undefined },
     });
 
-    const { currentUrl, initialTitle, config, prefs, setPrefs, loadingPrefs, ogImageUrl, preProcessedThumbnail } = useSaveLinkInit(form);
+    const {
+        currentUrl,
+        initialTitle,
+        prefs,
+        setPrefs,
+        loadingPrefs,
+        ogImageUrl,
+        preProcessedThumbnail,
+        userProfile,
+        collections,
+        tags,
+        archiveDefaults,
+        loadingBootstrap,
+        baseUrl,
+    } = useSaveLinkInit(form);
 
-    // Cached archive preferences
     useEffect(() => {
-        chrome.storage.local.get(['cached_user_prefs'], (result) => {
-            setArchiveOptions(result.cached_user_prefs || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, aiTag: false });
-        });
-    }, []);
-
-    const { data: userProfile } = useQuery({ queryKey: ['userProfile'], queryFn: () => getCurrentUser(config!.baseUrl, config!.apiKey), enabled: !!config });
-
-    useEffect(() => {
-        if (userProfile) {
-            const newOptions = {
-                archiveAsScreenshot: userProfile.archiveAsScreenshot ?? true, archiveAsMonolith: userProfile.archiveAsMonolith ?? true,
-                archiveAsPDF: userProfile.archiveAsPDF ?? true, archiveAsReadable: userProfile.archiveAsReadable ?? true,
-                aiTag: (userProfile.aiTaggingMethod !== 'DISABLED' && userProfile.aiTaggingMethod !== undefined),
-            };
-            setArchiveOptions(newOptions);
-            chrome.storage.local.set({ 'cached_user_prefs': newOptions });
-        }
-    }, [userProfile]);
-
-    const { data: collections, isLoading: loadingCollections } = useQuery({
-        queryKey: ['collections'],
-        queryFn: async () => {
-            const response = await chrome.runtime.sendMessage({ type: 'GET_COLLECTIONS' });
-            if (!response.success) throw new Error(response.error);
-            return response.data.response.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
-        },
-    });
-
-    const { data: tags, isLoading: loadingTags } = useQuery({
-        queryKey: ['tags'],
-        queryFn: async () => {
-            const response = await chrome.runtime.sendMessage({ type: 'GET_TAGS' });
-            if (!response.success) throw new Error(response.error);
-            const rawTags = response.data?.response || response.data || [];
-            return Array.isArray(rawTags) ? rawTags.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || '')) : [];
-        },
-    });
+        setArchiveOptions(archiveDefaults || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, archiveAsWaybackMachine: false, aiTag: false });
+    }, [archiveDefaults]);
 
     const { handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, successTimeoutRef } =
-        useSaveLinkMutation({ form, currentUrl, prefs, archiveOptions, uploadScreenshot, ogImageUrl, preProcessedThumbnail, collections, onClose, onSuccess, t });
+        useSaveLinkMutation({ form, currentUrl, prefs, archiveOptions, uploadScreenshot, ogImageUrl, preProcessedThumbnail, collections, baseUrl, onClose, onSuccess, t });
 
     const watchedTags = form.watch('tags');
     useEffect(() => {
-        const archivalTags = watchedTags?.filter((t: any) => t.archiveAsScreenshot || t.archiveAsMonolith || t.archiveAsPDF || t.archiveAsReadable || t.archiveAsWaybackMachine || t.aiTag) || [];
+        const archivalTags = watchedTags?.filter((tag: any) => tag.archiveAsScreenshot || tag.archiveAsMonolith || tag.archiveAsPDF || tag.archiveAsReadable || tag.archiveAsWaybackMachine || tag.aiTag) || [];
         if (archivalTags.length > 0) {
             setArchiveOptions({
-                archiveAsScreenshot: archivalTags.some((t: any) => t.archiveAsScreenshot), archiveAsMonolith: archivalTags.some((t: any) => t.archiveAsMonolith),
-                archiveAsPDF: archivalTags.some((t: any) => t.archiveAsPDF), archiveAsReadable: archivalTags.some((t: any) => t.archiveAsReadable), aiTag: archivalTags.some((t: any) => t.aiTag),
+                archiveAsScreenshot: archivalTags.some((tag: any) => tag.archiveAsScreenshot),
+                archiveAsMonolith: archivalTags.some((tag: any) => tag.archiveAsMonolith),
+                archiveAsPDF: archivalTags.some((tag: any) => tag.archiveAsPDF),
+                archiveAsReadable: archivalTags.some((tag: any) => tag.archiveAsReadable),
+                archiveAsWaybackMachine: archivalTags.some((tag: any) => tag.archiveAsWaybackMachine),
+                aiTag: archivalTags.some((tag: any) => tag.aiTag),
             });
         } else if (userProfile) {
             setArchiveOptions(prev => ({
-                archiveAsScreenshot: userProfile.archiveAsScreenshot ?? true, archiveAsMonolith: userProfile.archiveAsMonolith ?? true,
-                archiveAsPDF: userProfile.archiveAsPDF ?? true, archiveAsReadable: userProfile.archiveAsReadable ?? true,
-                aiTag: (manualTaggingRef.current || manualAiToggleRef.current) ? (prev?.aiTag ?? false) : (userProfile.aiTaggingMethod !== 'DISABLED' && userProfile.aiTaggingMethod !== undefined),
+                archiveAsScreenshot: userProfile.archiveAsScreenshot ?? true,
+                archiveAsMonolith: userProfile.archiveAsMonolith ?? true,
+                archiveAsPDF: userProfile.archiveAsPDF ?? true,
+                archiveAsReadable: userProfile.archiveAsReadable ?? true,
+                archiveAsWaybackMachine: userProfile.archiveAsWaybackMachine ?? false,
+                aiTag: (manualTaggingRef.current || manualAiToggleRef.current)
+                    ? (prev?.aiTag ?? false)
+                    : (userProfile.aiTaggingMethod !== 'DISABLED' && userProfile.aiTaggingMethod !== undefined),
             }));
         }
-    }, [watchedTags, tags, userProfile]);
+    }, [watchedTags, userProfile]);
 
-    useEffect(() => { return () => { if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current); }; }, []);
+    useEffect(() => () => {
+        if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    }, [successTimeoutRef]);
 
     useEffect(() => {
         if (showCaptureConfirmation) {
             let rafId = requestAnimationFrame(() => { rafId = requestAnimationFrame(() => setCaptureOverlayVisible(true)); });
             return () => cancelAnimationFrame(rafId);
-        } else { setCaptureOverlayVisible(false); }
+        }
+        setCaptureOverlayVisible(false);
     }, [showCaptureConfirmation]);
 
-    const handleCloseCapture = () => { setCaptureOverlayVisible(false); setTimeout(() => setShowCaptureConfirmation(false), 250); };
+    const handleCloseCapture = () => {
+        setCaptureOverlayVisible(false);
+        setTimeout(() => setShowCaptureConfirmation(false), 250);
+    };
 
     const handleToggle = async (key: keyof ExtensionPreferences) => {
         const newPrefs = { ...prefs, [key]: !prefs[key] };
@@ -331,7 +376,9 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
         if (key === 'enableSmartCapture' || key === 'enableSelectionMenu') {
             const hostname = getHostname(currentUrl);
             if (hostname) await saveSiteOverride(hostname, key as keyof SiteOverride, !prefs[key] as boolean);
-        } else await savePreferences(newPrefs);
+        } else {
+            await savePreferences(newPrefs);
+        }
     };
 
     const faviconUrl = currentUrl ? `https://www.google.com/s2/favicons?sz=128&domain_url=${currentUrl}` : '';
@@ -345,8 +392,8 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
                     <SaveLinkPreview currentUrl={currentUrl} faviconUrl={faviconUrl} form={form} initialTitle={initialTitle}
                         archiveOptions={archiveOptions} setArchiveOptions={setArchiveOptions} uploadScreenshot={uploadScreenshot}
                         setUploadScreenshot={setUploadScreenshot} userProfile={userProfile} manualAiToggleRef={manualAiToggleRef} />
-                    <SaveLinkForm form={form} formSubmit={(e: any) => e.preventDefault()} collections={collections} loadingCollections={loadingCollections}
-                        openCollections={openCollections} setOpenCollections={setOpenCollections} tags={tags || []} loadingTags={loadingTags}
+                    <SaveLinkForm form={form} formSubmit={(e: any) => e.preventDefault()} collections={collections} loadingCollections={loadingBootstrap}
+                        openCollections={openCollections} setOpenCollections={setOpenCollections} tags={tags || []} loadingTags={loadingBootstrap}
                         openTags={openTags} setOpenTags={setOpenTags} isDetailed={isDetailed} setIsDetailed={setIsDetailed} userProfile={userProfile}
                         isSuggestingTags={isSuggestingTags} handleSuggestTags={handleSuggestTags} manualTaggingRef={manualTaggingRef}
                         setArchiveOptions={setArchiveOptions} containerRef={containerRef} />
@@ -362,3 +409,5 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
         </div>
     );
 };
+
+
