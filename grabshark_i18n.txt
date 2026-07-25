@@ -127,8 +127,12 @@ GrabSHARK Main Application Internationalization (i18n Reference)
 └─ Purpose: /settings/archiving sayfasının 5 bölümü için tüm etiketler ve açıklamalar (84 yeni key, 15 lokal × 1336 key, EN+TR full + 13 lokal EN fallback Crowdin pickup için).
 
 [Section 20 — Browser Monitor (live screencast)]
-└─ Keys: browser_monitor, browser_monitor_connected, browser_monitor_archiving, browser_monitor_ready, worker
-└─ Purpose: Canlı arşivleme önizlemesi ve worker durum etiketleri.
+└─ Keys: browser_monitor, browser_monitor_ready, worker
+└─ Purpose: Canlı arşivleme önizlemesi ve worker durum etiketleri. Modal-only
+   (SidebarBottomDock worker status dot → BrowserMonitorModal). 2026-07:
+   /settings/browser-monitor sayfası kaldırıldı; connect/connected/connecting/
+   disconnect/disconnected/start/archiving key'leri (7) 15 locale'den silindi
+   (Crowdin'den ayrıca manuel silinmeli).
 
 [Section 21 — Collections]
 └─ Keys: new_collection, create_subcollection, lock_collection, propagate_members_to_subcollections, sharable_link, collection_publicly_shared, collection_with_same_name_exists …
@@ -205,7 +209,7 @@ GrabSHARK Main Application Internationalization (i18n Reference)
 == Glossary / Whitelist (Tüm Diller İçin Korunur) ==
 
 [Brand & Product Names]
-└─ Values: GrabSHARK, Monolith, Wayback Machine, Playwright, CloakBrowser, Meilisearch, Stripe, Telegram, Readwise, Finn, finn@example.com
+└─ Values: GrabSHARK, Monolith, Wayback Machine, Playwright, CloakBrowser, Meilisearch, Stripe, Telegram, Readwise, Gmail, Outlook, Yandex, Finn, finn@example.com
 └─ Purpose: Marka/ürün ismi → asla çevrilmez.
 
 [Tech Acronyms]
@@ -395,5 +399,59 @@ dock/dropdown labels.
    (distinct from `notifications_settings` which is the Settings page header).
 
 Sync result (run /tmp/insert_sidebar_i18n.py): 1591 keys per locale × 15
+locales — EN+TR fully translated, 13 fallback locales hold EN strings until
+Crowdin community translations land.
+
+============================================================================
+Section 40 — Structured SMTP Admin Form (July 2026)
+============================================================================
+
+/settings/admin/email raw URL alanı yapılandırılmış forma dönüştü.
+
+[Removed — 3 keys]
+└─ admin_email_current_masked, admin_email_server_hint,
+   admin_email_server_url — raw URL input kalktı. (Crowdin'den ayrıca manuel
+   silinmeli.)
+
+[Added — 14 keys: admin_email_host / _host_required / _no_auth_hint /
+ _password / _password_unchanged_hint / _port / _port_invalid /
+ _port_mismatch_starttls / _port_mismatch_tls / _security /
+ _security_none / _security_starttls / _security_tls / _username]
+└─ Host + Port + Şifreleme dropdown'ı (STARTTLS/SSL-TLS/None) + Username +
+   Password alan etiketleri, boş-bırak ipuçları, port/şifreleme uyumsuzluk
+   uyarıları ("wrong version number" önleyici).
+
+[Added — 6 keys: admin_email_preset_label / _preset_hint_gmail /
+ _preset_hint_outlook / _preset_hint_yandex / _preset_from_note /
+ _preset_help_link]
+└─ Provider quick-setup chip'leri (Gmail/Outlook/Yandex — smtpPresets.ts).
+   App-password rehber metinleri, From-eşleşme notu, dış rehber link etiketi.
+   Provider adları glossary'de — çevrilmez.
+
+Sync result (scratchpad update_smtp_i18n.py + add_preset_i18n.py): 1735 keys
+per locale × 15 locales — EN+TR fully translated, 13 fallback locales hold EN
+strings until Crowdin community translations land. (Sonrası: browser monitor
+sayfa kaldırımıyla 7 key silindi → güncel sayı 1728, bkz. Section 20 notu.)
+
+============================================================================
+Section 41 — Screencast Admin Config (July 2026)
+============================================================================
+
+/settings/admin/screencast sayfası + viewer close-code mesajları. 34 yeni key.
+
+[admin_screencast_* — 32 keys]
+└─ Sayfa başlık/intro, kill switch etiket+açıklama, scope radio (all/admins)
+   etiket+hint'leri, kalite bölümü + ağ hızı preset'leri (low/balanced/high
+   label+hint — çevrilebilir, marka adı DEĞİL), 4 numeric alan etiketi
+   (quality/max_width/max_height/every_nth_frame + hint), oturum limiti
+   label+hint (0=sınırsız), canlı kart (live_section, active_viewers
+   {{count}}, active_captures, no_activity, redis_unavailable), toast'lar
+   (save_success/save_error/invalid_values {{field}}/{{min}}/{{max}}).
+
+[browser_monitor_disabled / browser_monitor_session_ended]
+└─ BrowserMonitor disconnected placeholder — server 4403 (kill switch/scope)
+   ve 4408 (oturum limiti) close-code'larının kullanıcıya açıklaması.
+
+Sync result (scratchpad add_screencast_i18n.py): 1762 keys per locale × 15
 locales — EN+TR fully translated, 13 fallback locales hold EN strings until
 Crowdin community translations land.

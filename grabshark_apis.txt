@@ -367,7 +367,7 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [GET, PUT] /api/v1/users/[id]
 └─ File: grabshark/apps/web/pages/api/v1/users/[id]/index.ts
-└─ Purpose: Get or update a specific user.
+└─ Purpose: Get or update a specific user. Route hem GET hem PUT response'una `isAdmin` VE `screencastAccess` (ScreencastConfig kill switch + scope'un bu caller için sonucu, 10s TTL cache'li read) bayraklarını enjekte eder — sidebar dock ekstra istek atmadan monitor girişini gizler/gösterir. Client default-open okur (`!== false`); gerçek enforcement server.ts WS gate'inde.
 
 [GET, POST] /api/v1/users
 └─ File: grabshark/apps/web/pages/api/v1/users/index.ts
@@ -499,17 +499,32 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 [GET] /api/v1/admin/system/email
 └─ File: grabshark/apps/web/pages/api/v1/admin/system/email/index.ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getEmailConfig.ts
-└─ Purpose: Returns current SMTP config to /settings/admin/email. Single-source DB-driven config (no env fallback). Server URL is masked smtps://***:***@host:port — never returned in plaintext (rotation by re-typing). AES-256-GCM (TOTP_ENCRYPTION_KEY) decryption failure sets decryptOk=false but doesn't crash; UI shows "(decrypt failed)" placeholder.
+└─ Purpose: Returns current SMTP config to /settings/admin/email. Single-source DB-driven config (no env fallback). Response includes `server: { host, port, security (starttls|tls|none), username, hasPassword } | null` — the non-secret parsed view that prefills the structured admin form. Password NEVER returned (only hasPassword boolean); serverMasked (smtps://***:***@host:port) kept for backward compat. AES-256-GCM (TOTP_ENCRYPTION_KEY) decryption failure sets decryptOk=false but doesn't crash; UI shows "(decrypt failed)" placeholder.
 
 [PUT] /api/v1/admin/system/email
 └─ File: grabshark/apps/web/pages/api/v1/admin/system/email/index.ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/updateEmailConfig.ts
-└─ Purpose: Upserts SystemConfig (id=1). Body: { smtpServer?: string|null, smtpFrom?: string|null, smtpFromName?: string|null }. undefined=keep, null=clear, string=set. URL must match smtps?://… Encrypts smtpServer via configCrypto.ts. Calls invalidateTransporterCache() so subsequent sendMail picks up the new server immediately. Audited via auditLog (system.config / smtp_updated).
+└─ Purpose: Upserts SystemConfig (id=1). Body: { smtp?: {host, port, security, username?, password?}, smtpServer?: string|null, smtpFrom?: string|null, smtpFromName?: string|null }. Structured `smtp` is what the admin UI sends — server composes the nodemailer URL itself (scheme from security, credentials encodeURIComponent'lı; starttls → ?requireTLS=true, none → ?ignoreTLS=true pin'lenir) so admins never hand-write connection strings. Empty password + unchanged username → stored password preserved (host/port edit without secret re-type); auth'u kaldırmak için username boşaltılır. Legacy raw smtpServer string hâlâ kabul edilir (smtp varsa smtp kazanır). undefined=keep, null=clear. Encrypts via configCrypto.ts. Calls invalidateTransporterCache() so subsequent sendMail picks up the new server immediately. Audited via auditLog (system.config / smtp_updated).
 
 [POST] /api/v1/admin/system/email/test
 └─ File: grabshark/apps/web/pages/api/v1/admin/system/email/test.ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/testEmail.ts
 └─ Purpose: Sends a 5-second-timeout test email to the admin's own address (recipient hard-coded to admin.email — can't be repurposed as spam relay). Uses the DB-driven transporter; 400 if SystemConfig isn't filled in. Audited via auditLog (system.config / smtp_test_sent or smtp_test_failed). Returns { sent, recipient } on success or 500 + error message on timeout/failure.
+
+[GET] /api/v1/admin/system/screencast
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/screencast/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getScreencastConfig.ts
+└─ Purpose: ScreencastConfig singleton'ını (id=1) /settings/admin/screencast formuna döner: { enabled, accessScope (ALL|ADMINS), quality, maxWidth, maxHeight, everyNthFrame, viewerSessionMaxMinutes, updatedAt }. Cache'siz taze read (form stale render etmemeli); satır yoksa SCREENCAST_DEFAULTS (eski hardcoded değerler) merge edilir. Admin-only (verifyUser + roleGate.isAdmin).
+
+[PUT] /api/v1/admin/system/screencast
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/screencast/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/updateScreencastConfig.ts
+└─ Purpose: Patch semantiği (undefined=keep, hiçbir alan clearable değil). Numerik alanlar SCREENCAST_RANGES'e (packages/lib/screencastConfig.ts) valide edilir. Upsert + web config cache invalidate; server.ts kendi 10s TTL'i, worker 5s TTL + 2s presence tick ile yakınsar (≤15s, pub/sub invalidation bilinçli olarak YOK — ayrı modül instance'ları). Audit: system.config / screencast_updated {fieldsChanged}.
+
+[GET] /api/v1/admin/system/screencast/status
+└─ File: grabshark/apps/web/pages/api/v1/admin/system/screencast/status.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/admin/system/getScreencastStatus.ts
+└─ Purpose: Canlı gözlem kartı — Redis SCAN screencast:viewers:* (taze ZCOUNT, prune ETMEZ) + worker:status:* archiving kayıtları + username decorate. 5s TTL modül cache. Redis hatası 500 değil { redisOk:false, activeViewers:0, activeCaptures:[] }. Admin-only (cloakbrowser/status'un aksine — non-admin erişim bilgisi users/[id] DTO'daki screencastAccess bayrağından gelir).
 
 [GET] /api/v1/admin/cloakbrowser/status
 └─ File: grabshark/apps/web/pages/api/v1/admin/cloakbrowser/status.ts

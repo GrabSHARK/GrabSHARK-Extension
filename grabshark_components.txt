@@ -295,12 +295,12 @@ GrabSHARK Main Application Components (Complete List)
 [Sidebar/QuickActionDock]
 └─ File: grabshark/apps/web/components/Sidebar/QuickActionDock.tsx
 └─ Category: Layout / Sidebar
-└─ Purpose: Profil avatar'ın sağında 3-slot quick action dock; edit modunda her slot için bi-x-circle-fill kaldır overlay.
+└─ Purpose: Profil avatar'ın sağında 3-slot quick action dock; edit modunda her slot için bi-x-circle-fill kaldır overlay. Render-time yetki filtresi (Lesson 37): server_admin → isAdmin, browser_monitor → screencastAccess (ScreencastConfig kill switch/scope'un user DTO'ya yansıyan bayrağı, default-open okunur).
 
 [Sidebar/QuickActionDropdown]
 └─ File: grabshark/apps/web/components/Sidebar/QuickActionDropdown.tsx
 └─ Category: Layout / Sidebar
-└─ Purpose: Profil avatar dropdown extension; dock'ta olmayan action'ları listeler, edit modunda her item'in yanında bi-arrow-up-circle dock'a ekle butonu (dock dolu ise disabled).
+└─ Purpose: Profil avatar dropdown extension; dock'ta olmayan action'ları listeler, edit modunda her item'in yanında bi-arrow-up-circle dock'a ekle butonu (dock dolu ise disabled). Pool döngüsünde dinamik gate: browser_monitor satırı screencastAccess=false iken atlanır (statik adminOnly bayrağının config-driven ikizi).
 
 [Skeletons]
 └─ File: grabshark/apps/web/components/Skeletons.tsx
@@ -735,6 +735,16 @@ GrabSHARK Main Application Components (Complete List)
 └─ File: grabshark/apps/web/components/ModalContent/TelegramPairModal.tsx
 └─ Category: Modal
 └─ Purpose: Pair code üretir, deep link (`https://t.me/<bot>?start=pair_<nonce>`) ve kopya-dostu metin gösterir. useTelegramPairStatus hook'u ile 5s aralıklarla `/api/v1/telegram/pair/status` polling yapar; kullanıcı Telegram'da `/start pair_<nonce>` yazdığında otomatik kapanır ve React Query cache invalidate olur.
+
+[BrowserMonitor]
+└─ File: grabshark/apps/web/components/Settings/BrowserMonitor.tsx
+└─ Category: Live Viewport
+└─ Purpose: Canlı screencast viewport'u — mount'ta /api/ws/screencast'e otomatik bağlanır, unmount'ta kopar; frame blob'larını <img>'e basar, status mesajlarını onStatusChange ile parent'a iletir. Sadece BrowserMonitorModal içinde render edilir. 2026-07: standalone /settings/browser-monitor sayfası ve manuel Connect/Start Monitoring kontrolleri kaldırıldı (per-user kanal: herkes yalnızca kendi arşiv feed'ini görür). Server close-code'ları ayrıştırır: 4403 → browser_monitor_disabled ("bu sunucuda kullanılamıyor"), 4408 → browser_monitor_session_ended (oturum limiti; yeniden açmak serbest) — closeReason state'i disconnected placeholder metnini sürer.
+
+[BrowserMonitorModal]
+└─ File: grabshark/apps/web/components/BrowserMonitorModal.tsx
+└─ Category: Modal
+└─ Purpose: SidebarBottomDock'taki worker status dot'una tıklayınca açılan tarayıcı mockup'lı canlı izleme modalı. Adres çubuğunda arşivlenen URL (idle'da browser_monitor_ready), içeride BrowserMonitor viewport'u, expand/collapse + close kontrolleri.
 
 == Notifications (in-app, v1) ==
 
