@@ -573,7 +573,7 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 [POST] /api/v1/blocks/[blockedId]
 └─ File: grabshark/apps/web/pages/api/v1/blocks/[blockedId].ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/blocks/blockUser.ts
-└─ Purpose: Block a user. Body: { reason?: "spam"|"harassment"|"other"|<free string ≤120 chars> }. Idempotent — re-blocking the same user updates the reason. Self-block guarded (400). Target existence verified (404). Audited via auditLog (social.block / user_blocked). Returns { blockedId, reason }. Side-effect placeholder for T5 invite cleanup (auto-reject pending invites + mark unread COLLECTION_INVITE notifications read) — wired up when invite-status feature lands.
+└─ Purpose: Block a user. Body: { reason?: "spam"|"harassment"|"other"|<free string ≤120 chars> }. Idempotent — re-blocking the same user updates the reason. Self-block guarded (400). Target existence verified (404). T5 invite cleanup WIRED (2026-07-25): tek transaction'da block upsert + engellenen kişinin sahibi olduğu koleksiyonlardaki TÜM PENDING davetlerim REJECTED + respondedAt (satır kalır — unblock sonrası bilinçli re-add re-PEND edebilir) + her biri için cleanupInviteNotifications (Lesson 44 multi-channel). blockAndRejectInvite'ın çok-koleksiyonlu genellemesi. Audited via auditLog (social.block / user_blocked, metadata.rejectedInvites). Returns { blockedId, reason, rejectedInvites }.
 
 [DELETE] /api/v1/blocks/[blockedId]
 └─ File: grabshark/apps/web/pages/api/v1/blocks/[blockedId].ts
