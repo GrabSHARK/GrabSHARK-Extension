@@ -107,7 +107,8 @@ GrabSHARK Main Application Internationalization (i18n Reference)
 └─ Purpose: Tekil ve toplu link oluşturma/düzenleme/silme.
 
 [Section 16 — Link Opening Behavior / View Mode]
-└─ Keys: link_settings, links_route_to, prevent_duplicate_links, clicking_on_links_should, open_in_preview, open_in_new_tab …
+└─ Keys: link_settings, links_route_to, clicking_on_links_should, open_in_preview, open_in_new_tab …
+└─ NOT: prevent_duplicate_links(+_desc) 2026-08-06'da SİLİNDİ — ayar versiyonlamayla anlamını yitirdi.
 └─ Purpose: Link tıklama davranışı tercihleri.
 
 [Section 17 — Archive / Preservation]
@@ -455,3 +456,40 @@ Section 41 — Screencast Admin Config (July 2026)
 Sync result (scratchpad add_screencast_i18n.py): 1762 keys per locale × 15
 locales — EN+TR fully translated, 13 fallback locales hold EN strings until
 Crowdin community translations land.
+
+============================================================================
+Link snapshot versiyonlama — 2026-08-06
+============================================================================
+
+Aynı URL'nin farklı zamanlarda alınmış yakalamaları artık "versiyon" dilinde
+konuşuluyor; "klon" kelimesi kullanıcıya HİÇ gösterilmiyor.
+
+[Web — 22 yeni key]
+└─ Duplicate kararı: link_already_archived, link_already_archived_desc,
+   new_version_tip (paylaşılan bilgi metni — hem duplicate modalında hem
+   "yeni versiyon yakala" onaylarında kullanılır), open_existing_version,
+   archive_as_new_version, last_archived_on {{date}}.
+└─ Yakalama aksiyonları: capture_new_version, capture_new_versions,
+   capture_new_version_desc, capture_new_versions_confirmation_desc {{count}},
+   new_version_queued, new_versions_queued {{count}}.
+└─ Versiyon geçmişi: versions, version_count {{count}}, version_archiving,
+   primary_badge, make_primary, make_primary_success, delete_version,
+   delete_version_desc, version_deleted, save_new_version (2026-08-07 —
+   liste tablosunun son satırındaki yakalama butonu; Preserved Formats
+   başlığındaki eski ikon buton kaldırıldı, capture_new_version key'i
+   kebab menü + onay modallarında yaşamaya devam ediyor).
+└─ Toplu kaydetme: links_created_with_skipped {{created}}/{{skipped}}.
+
+[Silinen — 5 key]
+└─ prevent_duplicate_links, prevent_duplicate_links_desc (ayar kaldırıldı);
+   refresh_preserved_formats, refresh_preserved_formats_confirmation_desc,
+   refresh_multiple_preserved_formats_confirmation_desc (represerve artık
+   üzerine yazmıyor, "yeni versiyon yakala" oldu).
+
+[Extension — 9 yeni key (nested)]
+└─ savedLink.newVersion, savedLink.versionCount {{count}},
+   duplicate.{title,desc,versionCount,newVersion,openExisting},
+   version.{created,failed}.
+
+Sync result: web 1779 key × 15 locale (EN+TR çevrildi, 13 locale EN fallback);
+extension en.json + tr.json elle, kalan 13 locale EN fallback (Crowdin).

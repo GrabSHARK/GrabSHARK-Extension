@@ -128,8 +128,41 @@ export async function lookupLinkId(url: string): Promise<number | null> {
   }
 }
 
+export interface DuplicateLinkConflict {
+  code: 'DUPLICATE_URL';
+  existing: {
+    id: number;
+    name: string;
+    url: string | null;
+    lastPreserved: string | null;
+    collectionId: number;
+    rootId: number;
+    versionCount: number;
+  };
+}
+
+/**
+ * Kaydetme sonucu. `expectSuccess` KULLANILMAZ: aynı URL zaten arşivdeyse
+ * arka plan `success: false` + `code: 'DUPLICATE_URL'` döner ve bu bir hata
+ * değil, panelde gösterilecek bir karardır — throw edilirse kaybolurdu.
+ */
 export async function saveLinkFromExtension(values: Record<string, unknown>, aiTagged = false) {
-  return await expectSuccess<any>(sendExtensionMessage('SAVE_LINK_FROM_EXTENSION', { values, aiTagged }), 'Failed to save link');
+  const response = await sendExtensionMessage<any>('SAVE_LINK_FROM_EXTENSION', { values, aiTagged });
+
+  if ((response as any).code === 'DUPLICATE_URL')
+    return {
+      duplicate: true as const,
+      conflict: (response as any).conflict as DuplicateLinkConflict,
+    };
+
+  if (!response.success) throw new Error(response.error || 'Failed to save link');
+
+  return response.data as any;
+}
+
+/** Var olan linkin grubuna yeni bir versiyon ekler. */
+export async function createLinkVersionMessage(linkId: number) {
+  return await expectSuccess<any>(sendExtensionMessage('CREATE_LINK_VERSION', { linkId }), 'Failed to create version');
 }
 
 export async function updateLinkMessage(id: number, payload: Record<string, unknown>) {

@@ -222,7 +222,7 @@ GrabSHARK Main Application Pages (Route Reference)
 [/settings/preference]
 └─ File: grabshark/apps/web/pages/settings/preference.tsx
 └─ Category: Config
-└─ Purpose: Açık/Koyu Tema seçimi, Çoklu Dil (i18n) ayarı ve Grid/List varsayılan görüntülenme tercihleri.
+└─ Purpose: Açık/Koyu Tema seçimi, Çoklu Dil (i18n) ayarı ve Grid/List varsayılan görüntülenme tercihleri. NOT (2026-08-06): "Yinelenen bağlantıları önle" (preventDuplicateLinks) toggle'ı KALDIRILDI — aynı URL tekrar kaydedilince artık herkese "yeni versiyon olarak arşivle / mevcut versiyonu aç" kararı sunuluyor, dolayısıyla ayar anlamını yitirdi (kolon da şemadan düştü).
 
 [/settings/integrations]
 └─ File: grabshark/apps/web/pages/settings/integrations.tsx
@@ -277,4 +277,4 @@ GrabSHARK Main Application Pages (Route Reference)
 [Page] /quick-add
 └─ File: grabshark/apps/web/pages/quick-add.tsx
 └─ Category: User
-└─ Purpose: Bookmarklet popup landing page (added 2026-05-04). Reads ?url= + ?title= query params, runs useAddLink mutation once user query lands, renders idle / saving / success / error / no-url states with a centered card. Auto-closes 1.5s after success via window.close(). Layoutless (no sidebar chrome) — popup is sized ~420×280 by the bookmarklet. Whitelisted as protected in AuthRedirect; unauthenticated users round-trip through /login with `callbackUrl=/quick-add?...` so query params are preserved.
+└─ Purpose: Bookmarklet popup landing page (added 2026-05-04). Reads ?url= + ?title= query params, runs useAddLink mutation once user query lands, renders idle / saving / success / error / no-url / duplicate states with a centered card. "duplicate" state (2026-08-06): URL zaten arşivdeyse 409 kararı ayrı bir modal yerine sayfanın kendi durum dilinde gösterilir (saat ikonu + versiyon sayısı + "Yeni versiyon olarak arşivle" / "Mevcut versiyonu aç" / "Vazgeç") — 420×280'lik bir pencerede modal üstüne modal açmak yerine. Auto-closes 1.5s after success via window.close(). Layoutless (no sidebar chrome) — popup is sized ~420×280 by the bookmarklet. Whitelisted as protected in AuthRedirect; unauthenticated users round-trip through /login with `callbackUrl=/quick-add?...` so query params are preserved.

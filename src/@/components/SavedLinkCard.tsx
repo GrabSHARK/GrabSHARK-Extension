@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { LinkWithHighlights } from '../lib/types/highlight';
-import { Check, FolderSimple, X } from '@phosphor-icons/react';
+import {
+    CameraPlus,
+    Check,
+    CircleNotch,
+    ClockCounterClockwise,
+    FolderSimple,
+    X,
+} from '@phosphor-icons/react';
 import { OutlineSparkleIcon } from './CustomIcons';
+import { Toaster } from './ui/Toaster';
+import { toast } from '../../hooks/use-toast';
 import { format } from 'date-fns';
 import { enUS, tr } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +19,7 @@ import { getThumbnail } from '../lib/thumbnailCache';
 import { fetchAuthorizedImageUrl } from '../lib/authorizedImageUrl';
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
 import { subscribeToLinkPreview, subscribeToLinkTags } from '../lib/linkPollers';
-import { openTabMessage } from '../lib/runtime/messages';
+import { createLinkVersionMessage, openTabMessage } from '../lib/runtime/messages';
 import { readAiTagExpectation } from '../lib/runtime/sessionCache';
 
 interface SavedLinkCardProps {
@@ -164,6 +173,8 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
 
     const [baseUrl, setBaseUrl] = useState<string | null>(null);
     const [userProfile, setUserProfile] = useState<any | null>(null);
+    const [isCapturingVersion, setIsCapturingVersion] = useState(false);
+    const [versionCaptured, setVersionCaptured] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -222,6 +233,39 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
         const formatNum = formatMap[userProfile?.linksRouteTo || 'MONOLITH'] ?? 1;
         void openTabMessage(`${baseUrl.replace(/\/$/, '')}/dashboard?openPreview=${link.id}&format=${formatNum}`).catch(() => { });
     };
+
+    // Sayfa değişmişse tarayıcıdan çıkmadan yeni bir snapshot al. Eski
+    // versiyon (ve üzerindeki işaretlemeler) silinmez.
+    const handleCaptureNewVersion = async () => {
+        if (!link.id || isCapturingVersion) return;
+        setIsCapturingVersion(true);
+
+        try {
+            const data = await createLinkVersionMessage(link.id as number);
+            setVersionCaptured(true);
+            if (data?.link) {
+                setLink((prev) => ({ ...prev, ...data.link }));
+                onLinkUpdate?.(data.link);
+            }
+        } catch (err: any) {
+            toast({
+                title: t('version.failed') || t('common.error'),
+                description: err.message,
+                variant: 'destructive',
+            });
+        } finally {
+            setIsCapturingVersion(false);
+        }
+    };
+
+    // Grup büyüklüğü: link kökse `_count.versions`, bir versiyonsa
+    // `canonical._count.versions` dolu gelir (backend include'u).
+    const versionCount = (() => {
+        const anyLink = link as any;
+        const count =
+            anyLink.canonical?._count?.versions ?? anyLink._count?.versions;
+        return count === undefined ? 1 : count + 1;
+    })();
 
     return (
         <div className="w-full">
@@ -284,6 +328,18 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                             </span>
                             <span className="text-zinc-300 dark:text-zinc-700">•</span>
                             <span>{formattedDate}</span>
+                            {versionCount > 1 && (
+                                <>
+                                    <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                                    <span
+                                        className="inline-flex items-center gap-1 shrink-0"
+                                        title={t('savedLink.versionCount', { count: versionCount }) || `${versionCount} versions`}
+                                    >
+                                        <ClockCounterClockwise className="w-3 h-3 shrink-0" />
+                                        {versionCount}
+                                    </span>
+                                </>
+                            )}
                         </div>
                         {isPollingTags ? (
                             <div className="flex items-center gap-2 mt-2 h-[16px]">
@@ -303,8 +359,26 @@ export const SavedLinkCard = ({ link: rawInitialLink, onEdit, sharedImgSrc, onIm
                 <div className="flex gap-2 p-2">
                     <button onClick={() => onEdit?.(link)} className="flex-1 py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5">{t('savedLink.edit')}</button>
                     <button onClick={handleOpenInGrabSHARK} className="flex-[1.5] py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5">{t('savedLink.openInGrabSHARK')}</button>
+                    <button
+                        onClick={handleCaptureNewVersion}
+                        disabled={isCapturingVersion || versionCaptured}
+                        title={t('savedLink.newVersion') || 'Capture new version'}
+                        className="flex-1 py-2.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-void-bg/30 dark:bg-void-bg/10 border border-void-border/40 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:border-void-border/20 transition-all duration-200 flex items-center justify-center gap-1.5 disabled:opacity-60"
+                    >
+                        {isCapturingVersion ? (
+                            <CircleNotch className="w-3.5 h-3.5 animate-spin" />
+                        ) : versionCaptured ? (
+                            <Check className="w-3.5 h-3.5" weight="bold" />
+                        ) : (
+                            <>
+                                <CameraPlus className="w-3.5 h-3.5 shrink-0" />
+                                {t('savedLink.newVersion') || 'New version'}
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
+            <Toaster />
         </div>
     );
 };

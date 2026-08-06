@@ -40,7 +40,17 @@ GrabSHARK Main Application Components (Complete List)
 [ConfirmationModal]
 └─ File: grabshark/apps/web/components/ConfirmationModal.tsx
 └─ Category: Modal
-└─ Purpose: Genel "Emin misiniz?" onay penceresi.
+└─ Purpose: Genel "Emin misiniz?" onay penceresi. `variant` destructive (varsayılan) dışında "primary" de kabul eder ve `confirmText`/`submittingText` ile buton metni override edilebilir — yıkıcı olmayan onaylarda (ör. "Yeni versiyon yakala") kırmızı buton + "Siliniyor..." metni yanıltıcı olurdu.
+
+[DuplicateLinkModal]
+└─ File: grabshark/apps/web/components/ModalContent/DuplicateLinkModal.tsx
+└─ Category: Modal
+└─ Purpose: Aynı URL zaten arşivdeyken çıkan karar penceresi (POST /links 409 → `DUPLICATE_URL`). Mevcut linkin künyesi (ad, url, versiyon sayısı, son arşiv tarihi) + TIP kutusu (primary tint — işlem yıkıcı değil) + iki aksiyon: "Mevcut versiyonu aç" (ghost) / "Yeni versiyon olarak arşivle" (primary). Vazgeçmek için ayrı buton yok; Modal'ın ✕ / ESC / dışına tıklama davranışı bunu karşılar. Tüketiciler: NewLinkModal (tekil submit), PreservationContent, ReadableView; quick-add aynı kararı sayfanın kendi durum dilinde ("duplicate" state) gösterir.
+
+[LinkVersionsSection]
+└─ File: grabshark/apps/web/components/LinkVersionsSection.tsx
+└─ Category: Link Details
+└─ Purpose: LinkDetails içindeki "Versiyonlar" bölümü (korunmuş formatların hemen ardında) — varsayılan AÇIK, başlık tıklanınca katlanır (grid-rows [1fr↔0fr] accordion; kullanıcı kararı 2026-08-07: versiyonlar gizli başlamasın). Liste tablosunun SON SATIRI "Save new version" butonu — satır grameri formats tablosunun sonundaki archive.org linkinin birebir aynısı (Separator sonrası ortalanmış text-sm satır: solda text, sağda bi-plus-lg, hover:opacity-60) — onCaptureNewVersion prop'u (LinkDetails'in onUpdateArchive'ı) ile tetiklenir; Preserved Formats başlığındaki eski ikon buton kaldırıldı. Bölüm artık buton gösterilebildiği sürece TEK versiyonlu linklerde de render edilir (yakalama işlevi kaybolmasın); ne buton ne ikinci versiyon varsa render edilmez. Satır düzeni 3 kolonlu grid [1fr_auto_1fr] (kullanıcı kararı 2026-08-07): sol `bi-clock-history` + tarih + BİRİNCİL rozeti (primary status-pill), ORTA format ikonları (gerçek merkez), sağ ghost aksiyonlar soldan sağa birincil yap `bi-star` → sil `bi-trash3` → en sağda aç `bi-box-arrow-up-right` (`/preserved/[id]?format=…`). Aksiyon renkleri butonda `text-neutral` tabanlı (hover:text-primary / hover:text-error) — beyaz taban diğer ikonların yanında sırıtıyordu. "Aç" linki formatı `openFormatFor()` ile seçer: o versiyonda hazır olan ilk format (monolith → readable → pdf → image), hiçbiri yoksa WEB_FORMAT_ID — format parametresiz `/preserved/[id]` sayfayı çökertir (bkz. Lesson 52). `lastPreserved === null` olan versiyon MissingFormatRow'un pending kalıbıyla ("opacity-70" + spin) "Arşivleniyor…" gösterir. Açık olan versiyon listeden silinemez (kullanıcı baktığı kaydı ayağının altından çekmesin).
 
 [ContentLibraryPanel]
 └─ File: grabshark/apps/web/components/ContentLibrary/ContentLibraryPanel.tsx
@@ -533,10 +543,10 @@ GrabSHARK Main Application Components (Complete List)
 └─ Category: Listing Elements
 └─ Purpose: Link kartı ve üzerindeki (Tarih, Koleksiyon, Arşiv tipi vs) öğeleri basan parçacıklar.
 
-[LinkHighlightBadge] / [LinkNoteBadge] / [LinkTypeBadge] / [LinkThumbnailBadges]
+[LinkHighlightBadge] / [LinkNoteBadge] / [LinkTypeBadge] / [LinkVersionBadge] / [LinkThumbnailBadges]
 └─ File: grabshark/apps/web/components/LinkViews/LinkComponents/Link...Badge.tsx
 └─ Category: Visual Badges
-└─ Purpose: Linklerin meta verilerini simgeleyen minik etiketler (Not var mı, HTML mi vs).
+└─ Purpose: Linklerin meta verilerini simgeleyen minik etiketler (Not var mı, HTML mi vs). LinkVersionBadge: grup birden fazla snapshot içeriyorsa sayı + `bi-clock-history` gösterir (highlight rozetinin sayı kalıbının ikizi); grup büyüklüğü `linkGroupSize(link)` ile `_count.versions` / `canonical._count.versions` include'undan hesaplanır, tıklama linkin detayını açar.
 
 [LinkIcon] / [LinkFavorite]
 └─ File: grabshark/apps/web/components/LinkViews/LinkComponents/...
@@ -797,6 +807,7 @@ Reminders feature components — added 2026-05-04
 
 [ReminderSnoozeMenu] grabshark/apps/web/components/Reminder/ReminderSnoozeMenu.tsx
 └─ Purpose: Two-level inline menu — collapsed [Tamam] [Ertele] expands to [1 saat] [Yarın] [Özel]. Özel reveals a date+time input. Used by NotificationRow REMINDER_FIRED branch (compact mode) and ReminderRow on /reminders. Wraps useSnoozeReminder + useMarkReminderDone with race-protection — 409 conflict surfaces a confirm toast that retries with force=true.
+└─ NOT (ev standardı): "409 = karar noktası, hata değil" kalıbı buradan doğdu ve artık `useAddLink` de aynı şekilde çalışır — mutationFn throw etmek yerine ayırt edilebilir bir sonuç döner (`{ok:false, conflict}` / `{ok:true, link}`), çağıran taraf kullanıcıya seçim sunar ve kararı bir alan (`duplicateAction` / `force`) ile geri gönderir. useAddLink'te ek olarak optimistic `onMutate` çakışma yolunda `onSuccess` içinde snapshot restore ile geri alınır (Lesson 41 — invalidate ile değil).
 
 [RemindersSection] grabshark/apps/web/components/Dashboard/RemindersSection.tsx
 └─ Purpose: Dashboard widget for the new DashboardSectionType.REMINDERS. Reads useUpcomingReminders({limit:5}) — sorted by nextFireAt ASC. Empty state CTA, no inline action buttons (B10 — actions live on /reminders + the bell). Header has "See all → /reminders".

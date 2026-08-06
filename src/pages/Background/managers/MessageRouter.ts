@@ -247,6 +247,13 @@ export class MessageRouter {
                     break;
                 }
 
+                case 'CREATE_LINK_VERSION': {
+                    const { config, configured } = await getConfiguredConfig();
+                    if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }
+                    sendResponse(await LinksManager.createLinkVersion(config, message.data.linkId));
+                    break;
+                }
+
                 case 'CREATE_HIGHLIGHT': {
                     const { config, configured } = await getConfiguredConfig();
                     if (!configured) { sendResponse({ success: false, error: 'Not configured' }); break; }

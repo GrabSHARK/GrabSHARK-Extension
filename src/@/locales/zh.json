@@ -15,7 +15,9 @@
         "edit": "编辑",
         "openInGrabSHARK": "在 GrabSHARK 中打开",
         "justNow": "刚刚",
-        "untitled": "无标题"
+        "untitled": "无标题",
+        "newVersion": "New version",
+        "versionCount": "{{count}} versions"
     },
     "saveLink": {
         "title": "保存此页面",
@@ -178,5 +180,16 @@
         "colorGreen": "绿色",
         "savePageOnHighlight": "高亮时保存页面",
         "savePageOnHighlightDesc": "在未保存的网站上高亮时自动保存页面"
+    },
+    "duplicate": {
+        "title": "Already in your archive",
+        "desc": "You already archived this page. Capture how it looks now as a new version, or open the one you have.",
+        "versionCount": "{{count}} versions",
+        "newVersion": "New version",
+        "openExisting": "Open existing"
+    },
+    "version": {
+        "created": "New version queued for archiving",
+        "failed": "Could not create version"
     }
 }

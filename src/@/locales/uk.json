@@ -15,7 +15,9 @@
         "edit": "Редагувати",
         "openInGrabSHARK": "Відкрити в GrabSHARK",
         "justNow": "Щойно",
-        "untitled": "Без назви"
+        "untitled": "Без назви",
+        "newVersion": "New version",
+        "versionCount": "{{count}} versions"
     },
     "saveLink": {
         "title": "Зберегти цю сторінку",
@@ -178,5 +180,16 @@
         "colorGreen": "Зелений",
         "savePageOnHighlight": "Зберігати сторінку при виділенні",
         "savePageOnHighlightDesc": "Автоматично зберігати сторінки при виділенні на незбережених сайтах"
+    },
+    "duplicate": {
+        "title": "Already in your archive",
+        "desc": "You already archived this page. Capture how it looks now as a new version, or open the one you have.",
+        "versionCount": "{{count}} versions",
+        "newVersion": "New version",
+        "openExisting": "Open existing"
+    },
+    "version": {
+        "created": "New version queued for archiving",
+        "failed": "Could not create version"
     }
 }

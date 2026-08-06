@@ -1,5 +1,6 @@
 import {
     postLink,
+    postLinkVersion,
 } from '../../../@/lib/actions/links';
 import { addUrl, removeUrlByLinkId, hasUrl } from '../../../@/lib/linkUrlIndex';
 import {
@@ -131,6 +132,17 @@ export class LinksManager {
                 data.aiTagged || false
             );
 
+            // Aynı URL zaten arşivde: link oluşmadı, panel kullanıcıya
+            // "yeni versiyon / mevcut versiyonu aç" seçimini gösterecek.
+            if ((result?.data as any)?.duplicate) {
+                return {
+                    success: false,
+                    code: 'DUPLICATE_URL',
+                    conflict: (result.data as any).conflict,
+                    error: 'Link already archived',
+                };
+            }
+
             if (sender?.tab?.id && result?.data?.response) {
                 const tabId = sender.tab.id;
                 const action = browser.action || browser.browserAction;
@@ -157,6 +169,27 @@ export class LinksManager {
         } catch (error) {
 
             return { success: false, error: 'Failed to create link' };
+        }
+    }
+
+    /**
+     * Sayfanın şu anki halini var olan linkin grubuna yeni versiyon olarak
+     * ekler. Yeni satır grubun birincili olduğu için yerel URL indeksi de
+     * yeni id'ye güncellenir — canlı sayfadaki highlight'lar ve ✓ rozeti
+     * doğru versiyonu hedeflemeye devam eder.
+     */
+    static async createLinkVersion(config: { baseUrl: string; apiKey: string }, linkId: number) {
+        try {
+            const data = await postLinkVersion(config.baseUrl, linkId, config.apiKey);
+            const link = data?.response;
+
+            if (link?.url && link?.id) {
+                addUrl(link.url, link.id).catch(() => { });
+            }
+
+            return { success: true, data: { link } };
+        } catch (error) {
+            return { success: false, error: 'Failed to create version' };
         }
     }
 

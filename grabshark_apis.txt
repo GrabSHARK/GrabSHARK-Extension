@@ -215,13 +215,15 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/[format].ts
 └─ Purpose: Get specific archive format for a link.
 
-[POST] /api/v1/links/[id]/archive
-└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/index.ts
-└─ Purpose: Trigger preservation for a link.
+[GET, POST] /api/v1/links/[id]/versions
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/versions/index.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/links/linkId/versions/{getLinkVersions,createLinkVersion}.ts
+└─ Purpose: Link snapshot versiyonlama (2026-08-06). GET → linkin ait olduğu grubun TÜM versiyonları (kendisi dahil, id desc; format alanları + isPrimary + lastPreserved). POST → sayfanın şu anki halini gruba yeni versiyon olarak ekler: kimlik (ad, not, etiket, koleksiyon, renk/ikon, preservationConfig) gruptaki mevcut primary'den kopyalanır, `aiTagged: true` (etiketler kopyalandı), yeni satır `isPrimary: true` olur ve grup `isPrimary: false` yapılır (tek transaction). `lastPreserved: null` doğduğu için worker kuyruğuna kendiliğinden girer, retryCount sıfırdan başlar. Highlight'lar KOPYALANMAZ — işaretlemeler yapıldıkları versiyonda kalır. İzin owner-veya-canUpdate, hasPassedLimit uygulanır, güvensiz URL'de formatlar "unavailable" prefill edilir. Eski `POST /links/[id]/archive` (PUT) ve `POST /links/[id]/archive/refresh` uçları KALDIRILDI — üzerine yazma artık ürünün davranışı değil.
 
-[POST] /api/v1/links/[id]/archive/refresh
-└─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/refresh.ts
-└─ Purpose: Re-archive/refresh a link's archived content (her şeyi sıfırla, worker yeniden archive eder).
+[PUT] /api/v1/links/[id]/make-primary
+└─ File: grabshark/apps/web/pages/api/v1/links/[id]/make-primary.ts
+└─ Controller: grabshark/apps/web/lib/api/controllers/links/linkId/versions/makePrimaryVersion.ts
+└─ Purpose: Grubun birincil versiyonunu değiştirir (tek transaction: gruptaki herkes false, hedef true). Birincil = listelerde/aramada/dashboard'da görünen ve extension'ın canlı sitede highlight'larını uyguladığı satır. `@updatedAt` damgası değiştiği için promosyon `GET /links/urls?since=` delta senkronuna düşer → eklenti ≤60sn içinde yeni versiyonu hedefler.
 
 [POST] /api/v1/links/[id]/archive/enhance
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/enhance.ts
@@ -249,15 +251,16 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 
 [POST] /api/v1/links/archive
 └─ File: grabshark/apps/web/pages/api/v1/links/archive/index.ts
-└─ Purpose: Bulk archive operations.
+└─ Purpose: Bulk archive operations. YALNIZCA admin bakım aksiyonları (allAndRePreserve / allAndIgnore / allBroken). Kullanıcı bazlı `linkIds` dalı versiyonlamayla kaldırıldı — seçili linkleri yeniden yakalamak artık `POST /links/[id]/versions` ile, üzerine yazmadan yapılır (UI istekleri 3'lü eşzamanlılıkla döngüde gönderir).
 
 [GET, POST] /api/v1/links
 └─ File: grabshark/apps/web/pages/api/v1/links/index.ts
-└─ Purpose: List all links (GET) or save new link (POST). Authorship: include createdBy + descriptionEditedBy + collection._count.members for shared collection hint surfacing.
+└─ Purpose: List all links (GET) or save new link (POST). GET yalnızca `isPrimary: true` satırları döner (versiyon grubu = tek kart) ve rozet için `_count.versions` + `canonical._count.versions` include eder. Authorship: include createdBy + descriptionEditedBy + collection._count.members for shared collection hint surfacing.
+└─ Duplicate akışı (2026-08-06): dedupe artık HER kayıtta çalışır (eski `preventDuplicateLinks` ayarı kaldırıldı; www/trailing-slash normalize korunur, eşleşme grup primary'si üzerinden). Çakışmada HTTP 409 + `{ code: "DUPLICATE_URL", existing: { id, name, url, lastPreserved, collectionId, rootId, versionCount } }` döner — bu bir hata değil, karar noktasıdır. İstemci seçimi `duplicateAction: "newVersion"` ile geri gönderir; sunucu bu durumda createLinkVersion'a delege eder (payload'ın geri kalanı yok sayılır). Toplu akışlarda dialog gösterilmez, çakışanlar atlanıp özetlenir.
 
 [GET] /api/v1/links/urls
 └─ File: grabshark/apps/web/pages/api/v1/links/urls.ts
-└─ Purpose: Lightweight endpoint returning only saved URL→linkId map. Supports ?since={ISO8601} for delta sync. Used by browser extension to maintain local URL index for badge (✓) display.
+└─ Purpose: Lightweight endpoint returning only saved URL→linkId map. Supports ?since={ISO8601} for delta sync. Used by browser extension to maintain local URL index for badge (✓) display. Versiyonlama sonrası `isPrimary: true` filtresi zorunlu: harita bire bir olduğu için grup başına yalnızca birincil satır dönmelidir — eklentinin canlı sayfada doğru versiyonun highlight'larını uygulaması buna dayanır.
 
 == Logins API ==
 

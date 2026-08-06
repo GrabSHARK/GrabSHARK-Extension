@@ -15,7 +15,9 @@
         "edit": "Düzenle",
         "openInGrabSHARK": "GrabSHARK'ta Aç",
         "justNow": "Az önce",
-        "untitled": "Başlıksız"
+        "untitled": "Başlıksız",
+        "newVersion": "Yeni versiyon",
+        "versionCount": "{{count}} versiyon"
     },
     "saveLink": {
         "title": "Bu sayfayı kaydet",
@@ -178,5 +180,16 @@
         "colorGreen": "Yeşil",
         "savePageOnHighlight": "Vurgulama yaparken sayfayı kaydet",
         "savePageOnHighlightDesc": "Kaydedilmemiş sitelerde vurgulama yaparken sayfayı otomatik kaydet"
+    },
+    "duplicate": {
+        "title": "Bu sayfa zaten arşivinde",
+        "desc": "Bu sayfayı daha önce arşivlemiştin. Şu anki halini yeni versiyon olarak yakalayabilir ya da mevcut versiyonu açabilirsin.",
+        "versionCount": "{{count}} versiyon",
+        "newVersion": "Yeni versiyon",
+        "openExisting": "Mevcut versiyonu aç"
+    },
+    "version": {
+        "created": "Yeni versiyon arşiv kuyruğuna alındı",
+        "failed": "Versiyon oluşturulamadı"
     }
 }

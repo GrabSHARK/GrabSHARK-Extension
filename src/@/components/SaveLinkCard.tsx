@@ -19,11 +19,13 @@ import {
 import { getExtensionBootstrapState } from '../lib/actions/bootstrap';
 import { writeAiTagExpectation } from '../lib/runtime/sessionCache';
 import {
+    createLinkVersionMessage,
     getRecentLinksData,
     openTabMessage,
     saveDomainPreference,
     saveLinkFromExtension,
     suggestTags,
+    type DuplicateLinkConflict,
 } from '../lib/runtime/messages';
 
 import { SaveLinkHeader } from './SaveLink/SaveLinkHeader';
@@ -32,6 +34,7 @@ import { SaveLinkForm } from './SaveLink/SaveLinkForm';
 import { SaveLinkFooter } from './SaveLink/SaveLinkFooter';
 import { SaveLinkPageInteractions } from './SaveLink/SaveLinkPageInteractions';
 import { CaptureOverlays } from './SaveLink/CaptureOverlays';
+import { DuplicateVersionDialog } from './SaveLink/DuplicateVersionDialog';
 
 function useSaveLinkInit(form: UseFormReturn<bookmarkFormValues>) {
     const [currentUrl, setCurrentUrl] = useState('');
@@ -170,6 +173,9 @@ function useSaveLinkMutation({
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [aiAuthored, setAiAuthored] = useState(false);
     const [isSuggestingTags, setIsSuggestingTags] = useState(false);
+    const [duplicateConflict, setDuplicateConflict] =
+        useState<DuplicateLinkConflict | null>(null);
+    const [isCapturingVersion, setIsCapturingVersion] = useState(false);
     const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const { mutate: handleSave, isLoading: isSaving } = useMutation({
@@ -185,10 +191,20 @@ function useSaveLinkMutation({
             };
 
             const data = await saveLinkFromExtension(payload, aiAuthored);
+
+            // Aynı URL zaten arşivde — link oluşmadı, kullanıcı karar verecek.
+            if ((data as any)?.duplicate)
+                return { duplicate: (data as any).conflict, action };
+
             return { link: data?.response || data, action };
         },
         onSuccess: (data) => {
-            const { link, action } = data;
+            if ((data as any).duplicate) {
+                setDuplicateConflict((data as any).duplicate);
+                return;
+            }
+
+            const { link, action } = data as any;
             const values = form.getValues();
             let optimisticThumbnailUrl: string | undefined;
 
@@ -245,6 +261,25 @@ function useSaveLinkMutation({
         },
     });
 
+    const handleCaptureNewVersion = async () => {
+        if (!duplicateConflict || isCapturingVersion) return;
+        setIsCapturingVersion(true);
+
+        try {
+            const data = await createLinkVersionMessage(duplicateConflict.existing.id);
+            setDuplicateConflict(null);
+            if (onSuccessCallback) onSuccessCallback(data?.link, false);
+        } catch (err: any) {
+            toast({
+                title: t('version.failed') || t('common.error'),
+                description: err.message,
+                variant: 'destructive',
+            });
+        } finally {
+            setIsCapturingVersion(false);
+        }
+    };
+
     const handleSuggestTags = async () => {
         if (isSuggestingTags) return;
         setIsSuggestingTags(true);
@@ -273,7 +308,10 @@ function useSaveLinkMutation({
         }
     };
 
-    return { handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, successTimeoutRef };
+    return {
+        handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, successTimeoutRef,
+        duplicateConflict, setDuplicateConflict, isCapturingVersion, handleCaptureNewVersion,
+    };
 }
 
 interface SaveLinkCardProps {
@@ -324,8 +362,10 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
         setArchiveOptions(archiveDefaults || { archiveAsScreenshot: true, archiveAsMonolith: true, archiveAsPDF: true, archiveAsReadable: true, archiveAsWaybackMachine: false, aiTag: false });
     }, [archiveDefaults]);
 
-    const { handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, successTimeoutRef } =
-        useSaveLinkMutation({ form, currentUrl, prefs, archiveOptions, uploadScreenshot, ogImageUrl, preProcessedThumbnail, collections, baseUrl, onClose, onSuccess, t });
+    const {
+        handleSave, isSaving, saveSuccess, isSuggestingTags, handleSuggestTags, successTimeoutRef,
+        duplicateConflict, setDuplicateConflict, isCapturingVersion, handleCaptureNewVersion,
+    } = useSaveLinkMutation({ form, currentUrl, prefs, archiveOptions, uploadScreenshot, ogImageUrl, preProcessedThumbnail, collections, baseUrl, onClose, onSuccess, t });
 
     const watchedTags = form.watch('tags');
     useEffect(() => {
@@ -405,6 +445,19 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
             <CaptureOverlays isSaving={isSaving} uploadScreenshot={uploadScreenshot} showCaptureConfirmation={showCaptureConfirmation}
                 captureOverlayVisible={captureOverlayVisible} handleCloseCapture={handleCloseCapture}
                 onStartCapture={() => { handleCloseCapture(); if (onHideForCapture) onHideForCapture(() => handleSave('edit')); else handleSave('edit'); }} />
+            <DuplicateVersionDialog
+                conflict={duplicateConflict}
+                isBusy={isCapturingVersion}
+                onNewVersion={handleCaptureNewVersion}
+                onOpenExisting={() => {
+                    const id = duplicateConflict?.existing.id;
+                    setDuplicateConflict(null);
+                    if (id && baseUrl)
+                        void openTabMessage(`${baseUrl.replace(/\/$/, '')}/links/${id}`).catch(() => { });
+                    if (onClose) onClose();
+                }}
+                onClose={() => setDuplicateConflict(null)}
+            />
             <Toaster />
         </div>
     );

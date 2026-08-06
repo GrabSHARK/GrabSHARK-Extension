@@ -35,6 +35,12 @@ export async function postLink(
       },
     });
 
+    const duplicate = await readDuplicateConflict(linkResponse);
+    if (duplicate) {
+      setState(null);
+      return { data: duplicate };
+    }
+
     if (!linkResponse.ok) {
       const errorText = await linkResponse.text();
       throw new Error(`Failed to create link: ${linkResponse.status} ${errorText}`);
@@ -73,6 +79,9 @@ export async function postLink(
     },
   });
 
+  const duplicate = await readDuplicateConflict(response);
+  if (duplicate) return { data: duplicate };
+
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Failed to create link: ${response.status} ${errorText}`);
@@ -80,6 +89,43 @@ export async function postLink(
 
   const responseData = await response.json();
   return { data: responseData };
+}
+
+/**
+ * Sunucu aynı URL zaten arşivdeyse 409 + künye döner. Bu bir hata değil,
+ * kullanıcıya sorulacak bir karardır ("yeni versiyon olarak arşivle" mi,
+ * "mevcut versiyonu aç" mı) — bu yüzden throw etmeden yukarı taşınır.
+ */
+async function readDuplicateConflict(response: Response) {
+  if (response.status !== 409) return null;
+
+  try {
+    const body = await response.clone().json();
+    if (body?.response?.code === 'DUPLICATE_URL')
+      return { duplicate: true as const, conflict: body.response };
+  } catch {
+    /* gövde JSON değilse normal hata akışına düşsün */
+  }
+
+  return null;
+}
+
+/** Var olan bir linkin grubuna yeni bir versiyon (snapshot) ekler. */
+export async function postLinkVersion(baseUrl: string, linkId: number, apiKey: string) {
+  const response = await fetch(`${baseUrl}/api/v1/links/${linkId}/versions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to create version: ${response.status} ${errorText}`);
+  }
+
+  return await response.json();
 }
 
 export async function postLinkFetch(baseUrl: string, data: bookmarkFormValues, apiKey: string) {

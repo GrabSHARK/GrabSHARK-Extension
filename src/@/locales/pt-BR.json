@@ -15,7 +15,9 @@
         "edit": "Editar",
         "openInGrabSHARK": "Abrir no GrabSHARK",
         "justNow": "Agora mesmo",
-        "untitled": "Sem título"
+        "untitled": "Sem título",
+        "newVersion": "New version",
+        "versionCount": "{{count}} versions"
     },
     "saveLink": {
         "title": "Salvar esta página",
@@ -178,5 +180,16 @@
         "colorGreen": "Verde",
         "savePageOnHighlight": "Salvar pagina ao destacar",
         "savePageOnHighlightDesc": "Salvar paginas automaticamente ao destacar em sites nao salvos"
+    },
+    "duplicate": {
+        "title": "Already in your archive",
+        "desc": "You already archived this page. Capture how it looks now as a new version, or open the one you have.",
+        "versionCount": "{{count}} versions",
+        "newVersion": "New version",
+        "openExisting": "Open existing"
+    },
+    "version": {
+        "created": "New version queued for archiving",
+        "failed": "Could not create version"
     }
 }

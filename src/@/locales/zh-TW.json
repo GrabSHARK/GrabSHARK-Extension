@@ -15,7 +15,9 @@
         "edit": "編輯",
         "openInGrabSHARK": "在 GrabSHARK 中開啟",
         "justNow": "剛剛",
-        "untitled": "無標題"
+        "untitled": "無標題",
+        "newVersion": "New version",
+        "versionCount": "{{count}} versions"
     },
     "saveLink": {
         "title": "儲存此頁面",
@@ -178,5 +180,16 @@
         "colorGreen": "綠色",
         "savePageOnHighlight": "標記時儲存頁面",
         "savePageOnHighlightDesc": "在未儲存的網站上標記時自動儲存頁面"
+    },
+    "duplicate": {
+        "title": "Already in your archive",
+        "desc": "You already archived this page. Capture how it looks now as a new version, or open the one you have.",
+        "versionCount": "{{count}} versions",
+        "newVersion": "New version",
+        "openExisting": "Open existing"
+    },
+    "version": {
+        "created": "New version queued for archiving",
+        "failed": "Could not create version"
     }
 }

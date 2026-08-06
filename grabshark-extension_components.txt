@@ -43,6 +43,12 @@ GrabSHARK Browser Extension UI Components (Hierarchy & Reference)
 └─ File: src/@/components/SavedLinkCard.tsx
 └─ Category: Data Cards
 └─ Purpose: Halihazırda veritabanında varolan veya yeni eklenen bağlantıların Pop-up ekranında okunaklı görünmesini sağlayan görsel bilgi kartları.
+└─ Versiyonlama (2026-08-06): SavedLinkCard'a üçüncü buton "Yeni versiyon" (CameraPlus → CREATE_LINK_VERSION mesajı; buton içi text → CircleNotch spin → Check döngüsü) ve meta satırına versiyon sayacı chip'i (ClockCounterClockwise + sayı, yalnızca grup >1 iken) eklendi; toast kullandığı için karta `<Toaster />` mount edildi. Grup büyüklüğü backend'in `_count.versions` / `canonical._count.versions` include'undan okunur.
+
+[SaveLink/DuplicateVersionDialog]
+└─ File: src/@/components/SaveLink/DuplicateVersionDialog.tsx
+└─ Category: Decision Sheet
+└─ Purpose: Kaydetme sırasında sunucu 409 `DUPLICATE_URL` dönerse kartın üstüne oturan alt-sheet (evin onaylı deseni: DeleteDialog / DisconnectDialog ile aynı kabuk + animate-in slide-in-from-bottom-5). Üç aksiyon: Vazgeç / Mevcut versiyonu aç / Yeni versiyon. Nadir yoldur — panel bilinen URL'lerde zaten AlreadySavedView'a gider; buraya yalnızca yerel URL indeksi bayat kaldığında veya URL normalize farkı olduğunda düşülür.
 
 [EditLinkView (Şemsiye Bileşen)]
 └─ File: src/@/components/EditLinkView.tsx
