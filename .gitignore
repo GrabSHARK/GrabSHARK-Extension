@@ -31,11 +31,10 @@ dist.pem
 
 grabshark.zip
 
-# AI assistant working files (kept local, not for public repo)
-CLAUDE.md
+# AI assistant working files
+# NOT: AGENTS.md / CLAUDE.md / tasks/*.md 2026-08-07'de git'e alındı —
+# kaybolan bilgisayarla giden dokümanların tekrarını önlemek için.
+# Public lansmandan önce içerikleri bir kez gözden geçirilecek.
 .claude/
 .gemini/
-memory-bank/
-tasks/lessons.md
-tasks/todo.md
 tasks/extension-performance-memory-analysis.md
