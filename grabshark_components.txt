@@ -1,5 +1,57 @@
 GrabSHARK Main Application Components (Complete List)
 
+== E2E Test Kancaları (data-testid) — 2026-08-09 ==
+
+Playwright suite'i (`apps/web/e2e/`) bileşenleri `data-testid` üzerinden
+adresler. Bu nitelikler UI sözleşmesinin parçasıdır: bileşeni yeniden
+yazarken silinmezler, yeniden adlandırılırlarsa ilgili spec de güncellenir.
+Yeni etkileşimli eleman eklerken aynı kalıba uyulur (ayrıntı:
+`apps/web/e2e/README.md`).
+
+Kalıcı kancalar ve sahipleri:
+- `dashboard-wrapper` — MainLayout (uygulama kabuğu ayakta mı)
+- `sidebar-link-<route>` — SidebarHighlightLink, href'ten TÜRETİLİR
+  (`/health-check` → `sidebar-link-health-check`); yeni menü ücretsiz gelir
+- `sidebar-collection-item` + `data-collection-id` — CollectionListing ağaç
+  satırı (koleksiyon context menüsünün tek yüzeyi)
+- `new-item-button` · `new-link-menu-item` · `new-collection-menu-item` ·
+  `upload-file-menu-item` — SidebarBottomDock (collapsed + expanded, aynı id)
+- `account-menu-button` · `quick-action-<id>` — QuickActionDropdown
+- `dock-settings-button` · `dock-logout-button` · `dock-server-admin-button` ·
+  `dock-browser-monitor-button` — QuickActionDock
+- `link-card` + `data-link-id` — LinkCard / LinkList / LinkMasonry
+- `collection-card` + `data-collection-id` — CollectionCard
+- `link-actions-button` · `link-details-menu-item` · `link-delete-menu-item` —
+  LinkActions
+- `collection-edit-menu-item` · `collection-delete-menu-item` —
+  CollectionContextMenu
+- `new-link-url-input` · `new-link-name-input` · `new-link-submit-button` —
+  NewLinkModal
+- `new-collection-name-input` · `new-collection-description-input` ·
+  `new-collection-submit-button` — NewCollectionModal
+- `modal-container` · `close-modal-button` — Modal
+- `confirmation-confirm-button` · `confirmation-cancel-button` —
+  ConfirmationModal (tüm silme akışları buradan geçer)
+- `page-title` — PageHeader · `search-input` — SearchBar
+- `admin-page-title` · `admin-new-user-button` · `admin-user-search-input` —
+  pages/admin/index.tsx; `admin-user-row` + `data-user-id` — UserListing
+- Auth sayfaları: `login-form` · `username-input` · `password-input` ·
+  `submit-login-button` · `register-link` · `forgot-password-link` ·
+  `2fa-code-input` · `2fa-verify-button` (login.tsx) ·
+  `registration-form` / `registration-card` · `display-name-input` ·
+  `email-input` · `password-confirm-input` · `register-button` (register.tsx) ·
+  `forgot-email-input` · `forgot-submit-button` · `forgot-sent-message`
+  (forgot.tsx) · `reset-password-input` · `reset-password-submit-button` ·
+  `reset-password-success` (auth/reset-password.tsx) ·
+  `force-change-password-input` · `force-change-password-confirm-input` ·
+  `force-change-submit-button` (auth/force-password-change.tsx) ·
+  `delete-account-password-input` · `delete-account-submit-button`
+  (settings/delete.tsx)
+
+NOT: register.tsx'te `registration-form` iki kez basılıyordu (CenteredForm +
+iç kart); iç kart `registration-card` olarak ayrıldı — getByTestId strict mode
+aksi hâlde çift eşleşmeyle patlıyor.
+
 == General & Layout Components ==
 
 [Announcement]

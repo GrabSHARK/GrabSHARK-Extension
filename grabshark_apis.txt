@@ -56,10 +56,25 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 [GET, PUT, DELETE] /api/v1/collections/[id]
 └─ File: grabshark/apps/web/pages/api/v1/collections/[id].ts
 └─ Purpose: Get, update, or delete a specific collection.
+└─ NOT (2026-08-09): GET, çağıranın hak sahibi olmadığı ya da hiç var olmayan
+   bir id için **404** döner — ikisi için birebir aynı cevap, kasıtlı. Sorgu
+   zaten sahiplik/üyelikle kapsandığı için bu dal "yok" ile "senin değil"i
+   ayıramaz; ayırmak için ikinci bir kapsamsız sorgu atmak endpoint'i varlık
+   kâhinine çevirirdi (id uzayı taranarak başkalarının koleksiyonları
+   keşfedilir). Öncesinde `200 + null` dönüyordu — boş koleksiyondan ayırt
+   edilemiyordu (Lesson 58). PUT/DELETE hâlâ 401 "Collection is not
+   accessible." dönüyor; tüketicileri olduğu için ayrı bir karar olarak
+   `tasks/todo.md`'de bekliyor.
 
 [GET, POST] /api/v1/collections
 └─ File: grabshark/apps/web/pages/api/v1/collections/index.ts
 └─ Purpose: List all collections or create new one.
+└─ NOT (2026-08-09): POST ve PUT artık boş/yalnız-boşluk isim reddediyor —
+   `PostCollectionSchema.name` / `UpdateCollectionSchema.name` trim sonrası
+   `.min(1)`. Öncesinde isimsiz koleksiyon yaratılabiliyor ve sidebar ağacında
+   etiketsiz bir satır olarak beliriyordu. NewCollectionModal/EditCollection-
+   Modal aynı kuralı istemci tarafında yerelleştirilmiş toast ile önden
+   yakalar.
 
 == Config API ==
 

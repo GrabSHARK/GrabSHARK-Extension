@@ -146,6 +146,14 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 └─ Category: Browser Automation & E2E Testing
 └─ Purpose: Web sayfalarını arşivlemek için headless browser (screenshot, PDF, monolith HTML), ayrıca E2E test altyapısı. Worker'da primary browser olarak kullanılır. BrowserManager per-user `user.browserType='playwright'` + opsiyonel `useStealth` toggle ile seçilir.
 
+[@playwright/test — E2E suite]
+└─ Category: End-to-End Testing
+└─ Purpose: `apps/web/e2e/` altındaki uçtan uca test altyapısı (2026-08-09). Gerçek uygulamayı gerçek Postgres'e karşı sürer — mock sunucu yok. Dört proje: `setup` (hesapları seed eder + storageState üretir) → `public` (oturumsuz yüzeyler) · `authenticated` (üye oturumu) · `admin` (ADMIN oturumu) · `mobile` (Pixel 5 viewport). Spec'in dizini hangi oturumla koşacağını belirler. İzolasyon: kendi sunucusu (port 3100, `E2E_PORT`), kendi veritabanı (`DATABASE_URL` + `_e2e` — kimlik bilgileri tek yerde kalsın diye türetilir), kendi Redis db'si (15). `globalSetup` her koşuda tabloları TRUNCATE eder → deterministik taban. Fixture'lar: `api` (ürünün kendi REST'i üzerinden seed), `freshUser` (tek kullanımlık hesap), `userCollection` (teste özel koleksiyon), `anonymousContext` (storageState mirasını kırar — Lesson 56). Selector kuralı `data-testid`. Dış servisler kapalı: SMTP yok, Telegram token'ı boşaltılır, Meilisearch devre dışı (index'i worker doldurur, o koşmuyor), Stripe key'i yok. Detay: `apps/web/e2e/README.md`.
+
+[Playwright — CI E2E aşaması]
+└─ Category: CI/CD Test Gate
+└─ Purpose: Jenkins `E2E` stage'i suite'in tamamını **publish edilecek image'a karşı** koşar (per-build postgres + redis + app container, hepsi tek network'te). 2026-08-09'a kadar yalnız tek proje koşuyordu — auth arkasındaki her şey kapsam dışıydı; artık `playwright test` argümansız çalışıyor. `--grep` ile daraltmak YASAK: setup projesini de eler, kimse seed edilmez, ilk gerçek login 401 verir. Kırmızı E2E → image push edilmez. Artifact: `test-results/**` (screenshot, video, trace), `playwright-report/**`, `junit.xml`.
+
 [playwright-extra + puppeteer-extra-plugin-stealth]
 └─ Category: Stealth Plugin Layer
 └─ Purpose: Playwright'in üstüne geçirilen stealth wrapper. `navigator.webdriver`, `chrome.runtime`, WebGL vendor gibi otomasyon izlerini gizler. `user.useStealth=true` ile etkinleştirilir. browser.ts'te `stealthChromium` olarak import edilir, plain `rawChromium` ile paralel kullanılır.
