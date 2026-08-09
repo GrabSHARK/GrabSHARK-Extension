@@ -45,6 +45,14 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ Controller: grabshark/apps/web/lib/api/controllers/auth/forcePasswordChange.ts
 └─ Purpose: Consume PasswordChangeChallenge → update user.password + mustChangePassword:false. Anonymous endpoint (challenge token sole credential), AUTH-tier IP rate limit. Token 5min TTL, single-use. Yeni password admin'in eskisinden farklı olmalı. Audit auth/password_changed (security) + account/password_changed (audit).
 
+[POST] /api/v1/auth/verify-email?token=…
+└─ File: grabshark/apps/web/pages/api/v1/auth/verify-email.ts
+└─ Purpose: E-posta değişikliğini commit eder. Token `VerificationToken` satırından okunur (identifier = eski adres), hedef adres `User.unverifiedNewEmail`'dan gelir. Oturumsuz — token tek başına credential. AUTH-tier IP rate limit. Başarıda: SSO `Account` satırları silinir, user.email güncellenir, unverifiedNewEmail null'lanır, ilgili tüm token'lar silinir, security log account/email_changed. Hedef adres başkasındaysa 400.
+└─ NOT (2026-08-09): POST dışı metotlar artık **405** döner. Öncesinde handler
+   gövdesi `if (req.method === "POST")` ile sarılıydı ve `else` dalı yoktu —
+   yani bir GET hiç response yazmadan dönüyor, bağlantı istemci pes edene kadar
+   açık kalıyordu (Lesson 63).
+
 == Avatar API ==
 
 [GET] /api/v1/avatar/[id]
