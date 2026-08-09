@@ -1,5 +1,15 @@
 GrabSHARK Main Application Backend API Routes (Complete List)
 
+== Konvansiyon: metot kapısı (2026-08-10) ==
+
+Her route, listelenen metotların DIŞINDAKİ her istek için terminal bir
+`res.setHeader("Allow", [...])` + `405 { response: "Method Not Allowed" }`
+yazar. Bu bir formalite değil: cevap yazmadan dönen bir Pages API handler'ı
+bağlantıyı istemci pes edene kadar açık tutar (Lesson 63). 2026-08-10'da 28
+aday route tarandı, 24'ünde kapı yoktu ve hepsine eklendi. Yeni route
+eklendiğinde kapı da eklenir ve `apps/web/e2e/tests/authenticated/
+method-gates.spec.ts` listesine bir satır girer.
+
 == AI API ==
 
 [POST] /api/v1/ai/suggest-tags
