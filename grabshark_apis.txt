@@ -230,7 +230,14 @@ GrabSHARK Main Application Backend API Routes (Complete List)
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/archive/[format].ts
 └─ Purpose: Get specific archive format for a link.
 
-[GET, POST] /api/v1/links/[id]/versions
+[GET, POST] /api/v1/links
+└─ NOT (2026-08-09): POST ve PUT artık yalnız **http/https** URL kabul ediyor.
+   Öncesinde `z.string().url()` `javascript:alert(1)`'i geçiriyordu; saklanan
+   değer `href={link.url}` / `window.open(link.url)` ile DOM'a dönüp
+   uygulamanın kendi origin'inde çalışıyordu (stored XSS). Kontrol
+   `packages/lib/linkUrl.ts` → `isSafeLinkUrl`; render sınırında `safeHref()`
+   eski kayıtları da etkisizleştiriyor. Aynı kural tüm migration importer'ları
+   için de geçerli./[id]/versions
 └─ File: grabshark/apps/web/pages/api/v1/links/[id]/versions/index.ts
 └─ Controller: grabshark/apps/web/lib/api/controllers/links/linkId/versions/{getLinkVersions,createLinkVersion}.ts
 └─ Purpose: Link snapshot versiyonlama (2026-08-06). GET → linkin ait olduğu grubun TÜM versiyonları (kendisi dahil, id desc; format alanları + isPrimary + lastPreserved). POST → sayfanın şu anki halini gruba yeni versiyon olarak ekler: kimlik (ad, not, etiket, koleksiyon, renk/ikon, preservationConfig) gruptaki mevcut primary'den kopyalanır, `aiTagged: true` (etiketler kopyalandı), yeni satır `isPrimary: true` olur ve grup `isPrimary: false` yapılır (tek transaction). `lastPreserved: null` doğduğu için worker kuyruğuna kendiliğinden girer, retryCount sıfırdan başlar. Highlight'lar KOPYALANMAZ — işaretlemeler yapıldıkları versiyonda kalır. İzin owner-veya-canUpdate, hasPassedLimit uygulanır, güvensiz URL'de formatlar "unavailable" prefill edilir. Eski `POST /links/[id]/archive` (PUT) ve `POST /links/[id]/archive/refresh` uçları KALDIRILDI — üzerine yazma artık ürünün davranışı değil.
