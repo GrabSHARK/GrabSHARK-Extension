@@ -372,9 +372,12 @@ method-gates.spec.ts` listesine bir satır girer.
 
 == Session API ==
 
-[GET] /api/v1/session
+[POST] /api/v1/session
 └─ File: grabshark/apps/web/pages/api/v1/session/index.ts
-└─ Purpose: Session metadata and status.
+└─ Controller: grabshark/apps/web/lib/api/controllers/session/createSession.ts
+└─ Purpose: Mobil/programatik giriş. Body { username, password, sessionName? } → `verifyByCredentials` (username VEYA doğrulanmış e-posta) → `AccessToken` satırı (`isSession: true`) + NextAuth JWT döner. Askıya alınmış hesap 403 `SUSPENDED:<reason>`. Security log auth/login_succeeded, provider=mobile_session.
+└─ DÜZELTME (2026-08-10): Önceki kayıt "[GET] Session metadata and status" diyordu — yanlıştı, uç bir GET sunmuyor.
+└─ NOT (2026-08-10): Üç kusur düzeltildi. (1) Hız sınırı yoktu — web login'i AUTH tier taşırken bu uç aynı şifreyi sınırsız denemeye açıktı; artık `ip:<ip>:session` AUTH tier. (2) `verifyByCredentials` `bcrypt.compareSync` kullanıyordu → `await bcrypt.compare`. (3) Metot kontrolü kimlik doğrulamasının sonrasındaydı; geçerli gövdeli non-POST istek şifreyi kontrol edip cevap yazmadan dönüyordu → metot kapısı en başa alındı (Lesson 63, 65).
 
 == Tags API ==
 
