@@ -444,6 +444,10 @@ method-gates.spec.ts` listesine bir satır girer.
 [GET] /api/v1/check-embeddable
 └─ File: grabshark/apps/web/pages/api/v1/check-embeddable.ts
 └─ Purpose: Check if a URL can be embedded in an iframe.
+└─ NOT (2026-08-10): Ayrıştırılamayan URL artık **400**. Öncesinde `new URL()`
+   try bloğunun içindeydi, hata genel catch'e düşüyor ve `200 { embeddable:
+   false, reason: "fetch-error" }` dönüyordu — yani "girdin bozuk" ile "site
+   çekilemedi" aynı görünüyordu, oysa ilkini çağıran düzeltebilir.
 
 [GET] /api/v1/proxy
 └─ File: grabshark/apps/web/pages/api/v1/proxy.ts
