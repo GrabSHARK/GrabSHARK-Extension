@@ -80,9 +80,19 @@ method-gates.spec.ts` listesine bir satır girer.
    ayıramaz; ayırmak için ikinci bir kapsamsız sorgu atmak endpoint'i varlık
    kâhinine çevirirdi (id uzayı taranarak başkalarının koleksiyonları
    keşfedilir). Öncesinde `200 + null` dönüyordu — boş koleksiyondan ayırt
-   edilemiyordu (Lesson 58). PUT/DELETE hâlâ 401 "Collection is not
-   accessible." dönüyor; tüketicileri olduğu için ayrı bir karar olarak
-   `tasks/todo.md`'de bekliyor.
+   edilemiyordu (Lesson 58).
+└─ NOT (2026-08-10): PUT/DELETE de aynı sözleşmeye çekildi. Üç ayrı durum
+   eskiden tek tip 401 dönüyordu; ayrıştırıldı:
+   • Geçersiz/ayrıştırılamayan id → **400** (istek bozuk, kimlik değil).
+   • Çağıranın hiç göremediği koleksiyon → **404**, var olmayan id ile birebir
+     aynı. Gerekçe GET ile aynı (Lesson 58).
+   • Görebildiği ama sahibi olmadığı koleksiyon (kabul edilmiş üye) → **403**
+     "Only the collection's owner can change it." Varlık zaten bu çağırana
+     açıklanmış durumda; 404 hiçbir şey gizlemez, sadece yanıltır. DELETE'te
+     bu dal zaten "koleksiyondan ayrıl" akışına gidiyor.
+   401 her üçü için de yanlıştı: çağıran kimliğini doğrulamış durumda, ve 401'i
+   "oturumun düştü" diye yorumlayan bir istemci kullanıcıyı bir yetki sorusu
+   yüzünden çıkışa gönderirdi.
 
 [GET, POST] /api/v1/collections
 └─ File: grabshark/apps/web/pages/api/v1/collections/index.ts
