@@ -37,9 +37,9 @@ Available for **Chromium** (Chrome, Edge, Brave, Arc) and **Firefox**.
 ### 💾 Save & Organize
 - **One-Click Save** — Save the current page to your GrabSHARK library with a single click
 - **Embedded In-Page UI** — Click the extension icon to open the GrabSHARK panel directly within any webpage — no popup needed
-- **Duplicate Detection** — Automatically checks if a link already exists before saving
+- **Duplicate Detection** — Automatically checks if a link already exists in your library before saving, and offers to archive the page as a new version instead
+- **Capture New Version** — Take a fresh snapshot of an already-saved page without leaving the tab; highlights always follow the primary version
 - **Collection & Tag Picker** — Assign collections and tags right from the save panel
-- **Bulk Save** — Save all tabs in the current window at once
 
 ### 🖍️ Live Highlighting & Notes
 - **Persistent Highlights** — Select text on any live website and highlight it with colors — highlights sync to your GrabSHARK library and reappear when you revisit the page
@@ -52,8 +52,11 @@ Available for **Chromium** (Chrome, Edge, Brave, Arc) and **Firefox**.
 - **Capture Action Bar** — Contextual toolbar with capture options after selection
 
 ### 🖱️ Context Menus
-- Right-click on any **page**, **link**, **image**, or **text selection** to save directly to GrabSHARK
-- Quick access to common actions without opening the extension panel
+- **Save a link** — Right-click any link to archive *that* link, without opening it
+- **Save an image** — Right-click an image to send it straight to your library
+- **Highlight a selection** — Right-click selected text to open the highlight toolbox
+- **Save this page** / **Smart Capture** — Right-click anywhere on the page. If the page is already archived, GrabSHARK opens the panel and asks whether to capture a new version
+- Every action reports back on the page, so you always know whether it landed
 
 ### 🔔 Badge Notifications
 - Real-time badge count on the extension icon

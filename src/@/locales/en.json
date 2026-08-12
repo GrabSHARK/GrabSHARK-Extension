@@ -191,5 +191,20 @@
     "version": {
         "created": "New version queued for archiving",
         "failed": "Could not create version"
+    },
+    "contextMenu": {
+        "saveLink": "Save link to GrabSHARK",
+        "saveImage": "Save image to GrabSHARK",
+        "highlightSelection": "Highlight with GrabSHARK",
+        "savePage": "Save this page to GrabSHARK",
+        "smartCapture": "Smart Capture",
+        "saved": "Saved to GrabSHARK",
+        "imageSaved": "Image saved to GrabSHARK",
+        "alreadySaved": "Already in your archive",
+        "saveFailed": "Could not save to GrabSHARK",
+        "invalidUrl": "That is not a savable link",
+        "invalidImage": "No image to save here",
+        "notConfigured": "Sign in to GrabSHARK first",
+        "notAvailableHere": "GrabSHARK cannot run on this page"
     }
 }

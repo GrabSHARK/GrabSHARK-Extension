@@ -45,7 +45,22 @@ Location: src/pages/Background/managers/*
 
 [ContextManager.ts]
 └─ Category: Background Manager
-└─ Purpose: Kullanıcı sayfada "Sağ tık (Context Menu)" yaptığında menüye "GrabSHARK'a Kaydet" vs gibi operasyon kısayollarını ekleyen ve tetikleyen menajer.
+└─ Purpose: Sağ tık (context menu) menajeri. 2026-08-11'de yeniden açıldı (öncesinde tüm `contextMenus.create` çağrıları yorum satırındaydı — hiçbir öğe oluşmuyordu). **Kural: her bağlam kendi payload'ıyla çalışır.** Eski hâli 7 bağlam tanımlayıp hepsinde `tab.url`'i kaydediyordu, yani bağlantıya sağ tıklamak o bağlantıyı değil bulunduğun sayfayı arşivliyordu.
+└─ Menü öğeleri (5): `grabshark-save-link` (`link` bağlamı → `info.linkUrl`) · `grabshark-save-image` (`image` → `info.srcUrl`, `MediaManager.saveImage`) · `grabshark-highlight-selection` (`selection` → içerik script'ine `SHOW_HIGHLIGHT_TOOLBOX`) · `grabshark-save-page` (`page` → `tab.url`) · `grabshark-smart-capture` (`page` → `TOGGLE_SMART_CAPTURE`).
+└─ Smart Capture bağımlılık enjeksiyonuyla geliyor: `new ContextManager({ toggleSmartCapture })`. Tetikleyici `index.ts`'te yaşıyor (enjeksiyon + retry mantığıyla birlikte); manager'ın `index.ts`'i import etmesi dairesel bağımlılık olurdu. **Firefox'ta `toggle-smart-capture` komutu manifest'te tanımlı olmadığı için Smart Capture'a klavyeden erişim yok — menü öğesi orada tek giriş noktası.**
+└─ 409 (`DUPLICATE_URL`) davranışı: yalnızca **sayfa** kaydında künye `grabshark_pending_duplicate` anahtarıyla storage'a yazılır ve içerik script'ine `OPEN_EMBEDDED_MENU` gönderilir; panel künyeyi mount'ta ya da `storage.onChanged` ile alıp `DuplicateVersionDialog`'u açar. Başka bir URL'in (link bağlamı) çakışması panelde gösterilmez — panel bulunduğun sayfaya bağlıdır, yanlış künyeyi gösterirdi; orada `SHOW_TOAST` ile "zaten arşivinde" denir.
+└─ Menü başlıkları `backgroundI18n.ts` üzerinden 15 locale'den okunur (`contextMenu.*`); dil değişince `storage.onChanged` menüyü yeniden kurar. `removeAll` Chromium'da callback, Firefox'ta promise sözleşmesine sahip — ikisi de kabul edilir, hiçbiri cevaplamazsa 500ms zaman aşımıyla devam edilir.
+└─ Tip notu: `chrome.contextMenus.OnClickData` ile `browser...OnClickData` uyumsuz (`mediaType` birinde union, diğerinde `string`), `getBrowser()` ikisinden birini döndürdüğü için vendor tipi kullanılmaz — yapısal `ContextClickInfo`/`ContextTab` tipleri kullanılır. `linkText` de portatif değil (Firefox var, Chromium yok).
+└─ `contextMenus` izni iki manifest'te de duruyordu; yeniden açmak izin değişikliği istemedi.
+└─ **Hâlâ kapalı:** "Tüm sekmeleri kaydet" (`save-all-tabs`). Kodu duruyor ama giriş noktası yok — 40 sekmede kuyruk/limit davranışı kararı bekliyor (ana repo `tasks/todo.md`, Tur 2).
+
+[backgroundI18n.ts]
+└─ Category: Background Utility
+└─ Purpose: Service worker için i18next'siz minik çevirmen (`t(key, fallback)`). Context menü başlıkları arka planda kuruluyor ve `src/@/lib/i18n.ts` `react-i18next` çektiği için SW bundle'ına sokulmuyor. `en.json` statik import (menü `onInstalled` anında kuruluyor, await'e takılmak menünün hiç görünmemesi olurdu); seçili dil `localeRegistry` üzerinden lazy yüklenir, yüklenince menü yeniden kurulur.
+
+[localeRegistry.ts (src/@/lib)]
+└─ Category: Shared Utility
+└─ Purpose: Locale kayıt defterinin TEK kaynağı — `SupportedLocale`, `localeLoaders`, `normalizeLocale`. Hem `i18n.ts` (React) hem `backgroundI18n.ts` buradan okur; ayrı listeler tutulsaydı yeni locale eklerken birini unutmak kaçınılmazdı (EXT-7).
 
 [LinksManager.ts]
 └─ Category: Background Manager
@@ -78,6 +93,11 @@ Location: src/pages/ContentScript
 [EmbeddedMenuManager.ts]
 └─ Category: UI Manager
 └─ Purpose: Metin seçildiğinde çıkan Highlight veya Note "VOID Dock" benzeri gömülü yüzen kutuların pencere kaydırıldıkça pozisyon ve konum stabilitesini yönetir.
+└─ Dışa açtığı iki giriş: `toggleEmbeddedMenu()` (aç/kapa) ve `openEmbeddedMenu()` (yalnızca aç, açığı kapatmaz). İkincisi context menü'nün 409 akışı için — orada niyet "aç", "aç/kapa" değil.
+
+[contentMain.tsx — arka plandan gelen mesajlar]
+└─ Category: Message Handler
+└─ Purpose: `browser.tabs.sendMessage` ile arka plandan gelen mesajları karşılar: `TOGGLE_EMBEDDED_MENU` · `TOGGLE_SMART_CAPTURE` · `LINK_SAVE_SUCCESS` · `PREFERENCES_UPDATED` · `SHOW_HIGHLIGHT_TOOLBOX` · **`OPEN_EMBEDDED_MENU`** (paneli açar, açıksa dokunmaz) · **`SHOW_TOAST`** (`{ message, type: 'success'|'error' }` — context menü aksiyonlarının geri bildirimi; sayfaya erişilemiyorsa sessizce düşer). Son ikisi 2026-08-11'de context menü ile geldi. Not: bunlar `MessageRouter` üzerinden GEÇMEZ — router panel/options→background yönünü taşır, bunlar background→content script yönüdür.
 
 [InteractionManager.ts]
 └─ Category: DOM Manager

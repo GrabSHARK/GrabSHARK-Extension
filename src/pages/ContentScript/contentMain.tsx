@@ -6,7 +6,7 @@ import { NotePanel } from './NotePanel';
 import { ThemeManager } from './shared/ThemeManager';
 
 // Managers
-import { toggleEmbeddedMenu } from './managers/EmbeddedMenuManager';
+import { openEmbeddedMenu, toggleEmbeddedMenu } from './managers/EmbeddedMenuManager';
 import { HighlightManager } from './managers/HighlightManager';
 import { InteractionManager } from './managers/InteractionManager';
 import { SmartCaptureHandlers } from './managers/SmartCaptureHandlers';
@@ -570,6 +570,14 @@ function setupGlobalListeners(): void {
             }
             else if (message.type === 'SHOW_HIGHLIGHT_TOOLBOX') {
                 interactionManager?.handleContextMenuHighlight();
+                sendResponse({ success: true });
+            }
+            else if (message.type === 'OPEN_EMBEDDED_MENU') {
+                void openEmbeddedMenu();
+                sendResponse({ success: true });
+            }
+            else if (message.type === 'SHOW_TOAST') {
+                showToast(message.data?.message ?? '', message.data?.type === 'error' ? 'error' : 'success');
                 sendResponse({ success: true });
             }
             return true;

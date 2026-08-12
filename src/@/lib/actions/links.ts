@@ -96,7 +96,7 @@ export async function postLink(
  * kullanıcıya sorulacak bir karardır ("yeni versiyon olarak arşivle" mi,
  * "mevcut versiyonu aç" mı) — bu yüzden throw etmeden yukarı taşınır.
  */
-async function readDuplicateConflict(response: Response) {
+export async function readDuplicateConflict(response: Response) {
   if (response.status !== 409) return null;
 
   try {

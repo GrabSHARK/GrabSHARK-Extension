@@ -138,7 +138,10 @@ async function toggleSmartCaptureOnTab(tabId: number, url?: string): Promise<voi
   }
 }
 
-new ContextManager();
+// Smart Capture tetikleyicisi enjekte ediliyor: retry + content-script
+// enjeksiyon mantığı burada yaşıyor ve ContextManager'ın `index.ts`'i import
+// etmesi dairesel bağımlılık olurdu.
+new ContextManager({ toggleSmartCapture: toggleSmartCaptureOnTab });
 new BadgeManager();
 new BookmarksManager();
 const linkUrlSync = new LinkUrlSyncManager();

@@ -54,11 +54,11 @@ GrabSHARK Browser Extension Internationalization (i18n Reference)
 
 [Locale File Structure]
 └─ Path: grabshark-extension/src/@/locales/{locale}.json
-└─ Format: Nested JSON (12 top-level namespace, key'ler dot-path ile erişilir: `t('saveLink.title')`)
+└─ Format: Nested JSON (15 top-level namespace, key'ler dot-path ile erişilir: `t('saveLink.title')`)
 └─ Encoding: UTF-8
 └─ Trailing Newline: zorunlu (sync script tarafından korunur)
 
-== Source File Namespaces (12 nested blok) ==
+== Source File Namespaces (15 nested blok) ==
 
 [Namespace 01 — common]
 └─ Sample Keys: cancel, save, close, error, loading, success
@@ -107,6 +107,25 @@ GrabSHARK Browser Extension Internationalization (i18n Reference)
 [Namespace 12 — preferences]
 └─ Sample Keys: account, appearance, interactions, saving, language, smartCapture, shortcuts
 └─ Purpose: Embedded UI tercih ekranı (PreferencesView).
+
+[Namespace 13 — duplicate]
+└─ Sample Keys: title, desc, versionCount, newVersion, openExisting
+└─ Purpose: Aynı URL zaten arşivdeyken çıkan karar diyaloğu
+   (DuplicateVersionDialog). Sunucu 409 + `DUPLICATE_URL` döndüğünde gösterilir.
+
+[Namespace 14 — version]
+└─ Sample Keys: created, failed
+└─ Purpose: "Yeni versiyon yakala" aksiyonunun sonuç bildirimleri.
+
+[Namespace 15 — contextMenu]
+└─ Sample Keys: saveLink, saveImage, highlightSelection, savePage, smartCapture,
+   saved, imageSaved, alreadySaved, saveFailed, invalidUrl, invalidImage,
+   notConfigured, notAvailableHere
+└─ Purpose: Sağ tık menüsünün başlıkları ve sonuç bildirimleri.
+   **Tek istisna:** bu namespace React tarafından değil, background service
+   worker'dan okunuyor (`src/pages/Background/backgroundI18n.ts`) — menü
+   öğeleri arka planda kuruluyor. `useTranslation()` yerine `t(key, fallback)`
+   kullanılır; `react-i18next` bilerek SW bundle'ına sokulmuyor.
 
 == Glossary / Whitelist (Tüm Diller İçin Korunur) ==
 

@@ -128,6 +128,14 @@ export async function lookupLinkId(url: string): Promise<number | null> {
   }
 }
 
+/**
+ * Context menü'den "bu sayfayı kaydet" 409 aldığında arka planın künyeyi
+ * bıraktığı storage anahtarı; panel okuyup temizler. Mesaj yerine storage,
+ * çünkü panel o an kapalı olabilir ve MV3'te service worker ölebilir —
+ * karar, panel açılana kadar bir yerde durmak zorunda.
+ */
+export const PENDING_DUPLICATE_KEY = 'grabshark_pending_duplicate';
+
 export interface DuplicateLinkConflict {
   code: 'DUPLICATE_URL';
   existing: {

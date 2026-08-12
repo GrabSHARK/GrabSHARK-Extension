@@ -15,6 +15,23 @@ export async function toggleEmbeddedMenu() {
         return;
     }
 
+    await mountEmbeddedMenu();
+}
+
+/**
+ * Paneli açar ve açık olanı açık bırakır — `toggleEmbeddedMenu`'nun aksine
+ * kapatmaz. Context menü'den gelen "bu sayfa zaten arşivde" akışı bunu
+ * kullanıyor: orada niyet "aç", "aç/kapa" değil.
+ */
+export async function openEmbeddedMenu() {
+    if (window.self !== window.top || embeddedRoot) {
+        return;
+    }
+
+    await mountEmbeddedMenu();
+}
+
+async function mountEmbeddedMenu() {
     const { React, createRoot, EmbeddedApp } = await loadEmbeddedAppModule();
 
     embeddedHost = document.createElement('div');

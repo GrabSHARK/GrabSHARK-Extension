@@ -118,3 +118,80 @@ görünür yapmaz — registry'ye kendi satırı eklenmelidir. Aynı şekilde
 *Doğrulama (2026-08-07):* `i18n.ts:25-38` — 14 satırlık elle yazılmış
 `async () => (await import('../locales/xx.json')).default` haritası;
 `locales/` altında 15 JSON dosyası.
+
+## EXT-8 — README'de duran özellik, kodda kapalı olabilir
+
+2026-08-11'de README doğrulaması sırasında çıktı: her iki README de eklentinin
+"Context Menus" özelliğini, eklenti README'si ayrıca "Bulk Save — Save all tabs"
+maddesini reklam ediyordu. Kodda ise `ContextManager.setupMenuItems()` içindeki
+**bütün** `contextMenus.create` çağrıları yorum satırında:
+
+> `// TEMPORARILY DISABLED: Context menu items will be re-enabled after improvements are complete`
+
+`genericOnClick` handler'ı duruyor ama onu tetikleyecek menü öğesi hiç
+oluşturulmuyor. "Tüm sekmeleri kaydet" de aynı menüye bağlı olduğu için ölü —
+`save-all-tabs`'ı kodun başka hiçbir yeri çağırmıyor.
+
+Üç çıkarım:
+
+1. **Geçici olarak kapatılan bir özellik, dokümanda geçici olarak kapatılmalı.**
+   "Sonra geri açarız" yorumu kodda kalır, README'de kalmaz; arada geçen sürede
+   README kullanıcıya yalan söyler. Kapatan commit README'ye de dokunmalıydı.
+2. **Bir handler'ın varlığı, o yolun erişilebilir olduğunu göstermez.** Grep
+   `genericOnClick`'i, `save-all-tabs` case'ini ve `tabs.query` çağrısını
+   buluyor — üçü de sağlam duruyor. Ölü olan, onları tetikleyen kayıt adımı.
+   Bir özelliğin çalıştığını doğrulamak için implementasyonu değil **giriş
+   noktasını** aramak gerekir.
+3. **Bir bağlam menüsü, tıklanan şeyi kullanmıyorsa zaten yarım.** Eski kod 7
+   bağlam tanımlayıp hepsinde `tab.url`'i kaydediyordu; `info.linkUrl`,
+   `info.srcUrl`, `info.selectionText` kod tabanında hiç geçmiyor. Yani menü
+   açılsaydı bile bağlantıya sağ tıklamak o bağlantıyı kaydetmeyecekti.
+
+README'ler dürüstleştirildi (maddeler çıkarıldı), `grabshark-extension_apis.txt`
+ContextManager girdisi gerçeği yazacak şekilde düzeltildi, yeniden açma planı ana
+repo `tasks/todo.md`'de duruyor.
+
+## EXT-9 — `getBrowser()` iki tarayıcı tipini birleştirir; vendor tipi yazamazsın
+
+Context menü'yü yeniden açarken build iki yerde patladı ve ikisi de aynı
+kökten geliyordu:
+
+```
+Type 'browser.contextMenus.OnClickData' is not assignable to type
+'chrome.contextMenus.OnClickData'.
+  Types of property 'mediaType' are incompatible.
+    Type 'string | undefined' is not assignable to '"audio" | "video" | "image"'
+```
+
+`getBrowser()` `browser` ya da `chrome` döndürdüğü için tsc `addListener`'ın
+**iki imzasının kesişimini** arıyor. `chrome.contextMenus.OnClickData` yazmak
+Firefox imzasını, `browser...` yazmak Chromium'unkini ihlal ediyor — hiçbir
+vendor tipi kesişimi karşılamıyor. Aynı sebeple `info.linkText` de derlenmiyor:
+Firefox veriyor, Chromium vermiyor.
+
+**Çözüm `as any` DEĞİL.** Buradaki cazibe güçlü çünkü tek satır: `(info as any)`.
+Ama o zaman `linkText`'in Chromium'da `undefined` geleceği bilgisi de kaybolur —
+tip hatası, taşınabilirlik sorununun ta kendisini gösteriyordu. Doğrusu
+**kullandığın alanları yapısal bir arayüzle yazmak**:
+
+```ts
+interface ContextClickInfo {
+    menuItemId: string | number;
+    linkUrl?: string; srcUrl?: string; selectionText?: string;
+}
+browser.contextMenus.onClicked.addListener((info: unknown, tab?: unknown) => {
+    void this.onClicked(info as ContextClickInfo, tab as ContextTab | undefined);
+});
+```
+
+Listener parametrelerini `unknown` alıp içeride daraltmak işe yarıyor: daha
+geniş parametre kabul eden bir fonksiyon, daha darını bekleyen imzaya atanabilir.
+
+Aynı aileden ikinci tuzak: **`contextMenus.removeAll` iki ayrı sözleşme.**
+Chromium callback bekler, Firefox promise döner. Promise API'sine callback
+vermek sessizce hiçbir şey yapmaz — menü hiç kurulmadan akış orada asılı kalır.
+İkisini de kabul edip kısa bir zaman aşımı koymak gerekiyor.
+
+Genel kural: `getBrowser()` üzerinden çağrılan her API'de **veri şeklini kendin
+yaz, davranış farkını da elle karşıla.** Ders EXT-3 çağrıların nereden
+yapılacağını söylüyordu; bu ders çağrının tipini kimin yazacağını söylüyor.

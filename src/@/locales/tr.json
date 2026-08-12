@@ -191,5 +191,20 @@
     "version": {
         "created": "Yeni versiyon arşiv kuyruğuna alındı",
         "failed": "Versiyon oluşturulamadı"
+    },
+    "contextMenu": {
+        "saveLink": "Bağlantıyı GrabSHARK'a kaydet",
+        "saveImage": "Görseli GrabSHARK'a kaydet",
+        "highlightSelection": "GrabSHARK ile vurgula",
+        "savePage": "Bu sayfayı GrabSHARK'a kaydet",
+        "smartCapture": "Akıllı Yakalama",
+        "saved": "GrabSHARK'a kaydedildi",
+        "imageSaved": "Görsel GrabSHARK'a kaydedildi",
+        "alreadySaved": "Zaten arşivinizde",
+        "saveFailed": "GrabSHARK'a kaydedilemedi",
+        "invalidUrl": "Bu kaydedilebilir bir bağlantı değil",
+        "invalidImage": "Burada kaydedilecek görsel yok",
+        "notConfigured": "Önce GrabSHARK'a giriş yapın",
+        "notAvailableHere": "GrabSHARK bu sayfada çalışamaz"
     }
 }

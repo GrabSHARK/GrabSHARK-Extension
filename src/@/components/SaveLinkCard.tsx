@@ -4,7 +4,7 @@ import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 
-import { openOptions, getCurrentTabInfo } from '../lib/utils';
+import { openOptions, getCurrentTabInfo, getBrowser } from '../lib/utils';
 import { bookmarkFormSchema, bookmarkFormValues } from '../lib/validators/bookmarkForm';
 import { processOgImage } from '../lib/imageProcessor';
 import { saveThumbnail } from '../lib/thumbnailCache';
@@ -25,6 +25,7 @@ import {
     saveDomainPreference,
     saveLinkFromExtension,
     suggestTags,
+    PENDING_DUPLICATE_KEY,
     type DuplicateLinkConflict,
 } from '../lib/runtime/messages';
 
@@ -396,6 +397,34 @@ export const SaveLinkCard = ({ onClose, onSuccess, onHideForCapture, onPreferenc
     useEffect(() => () => {
         if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     }, [successTimeoutRef]);
+
+    // Context menü'den "bu sayfayı kaydet" denip sunucu 409 döndüyse, arka plan
+    // künyeyi storage'a bırakıp paneli açar. İki durumu da karşılamak gerekiyor:
+    // panel kapalıysa mount anında okunur, zaten açıksa `onChanged` yakalar.
+    useEffect(() => {
+        if (!currentUrl) return;
+        const browser = getBrowser();
+
+        const consume = (pending: any) => {
+            if (!pending || pending.url !== currentUrl || !pending.conflict) return;
+            setDuplicateConflict(pending.conflict);
+            void browser.storage.local.remove(PENDING_DUPLICATE_KEY);
+        };
+
+        void browser.storage.local
+            .get([PENDING_DUPLICATE_KEY])
+            .then((result: any) => consume(result?.[PENDING_DUPLICATE_KEY]))
+            .catch(() => { });
+
+        const onChanged = (changes: any, area: string) => {
+            if (area === 'local' && changes[PENDING_DUPLICATE_KEY]) {
+                consume(changes[PENDING_DUPLICATE_KEY].newValue);
+            }
+        };
+
+        browser.storage.onChanged.addListener(onChanged);
+        return () => browser.storage.onChanged.removeListener(onChanged);
+    }, [currentUrl, setDuplicateConflict]);
 
     useEffect(() => {
         if (showCaptureConfirmation) {
