@@ -79,6 +79,7 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 [Sonner]
 └─ Category: Notification
 └─ Purpose: Modern, şık ve düşük performans maliyetli tost (toast) bildirimleri fırlatıcı.
+└─ **Tek toast kütüphanesi.** `<Toaster />` yalnızca `apps/web/pages/_app.tsx`'te mount edilir; toast atan her yer (apps + `packages/router` hook'ları) `sonner`'dan import eder. Başka bir toast kütüphanesinden atılan çağrı hata vermez, sadece hiç görünmez — 2026-08-12'ye kadar `packages/router`'ın iki dosyası `react-hot-toast` kullanıyordu ve o hook'ların bildirimleri hiç ekrana gelmiyordu (Lesson 70). `react-hot-toast` bağımlılıktan kaldırıldı.
 
 [@dnd-kit]
 └─ Category: Interaction
@@ -162,6 +163,10 @@ GrabSHARK Main Application Tech Stack (Internal Engine & Libraries)
 [Playwright — CI E2E aşaması]
 └─ Category: CI/CD Test Gate
 └─ Purpose: Jenkins `E2E` stage'i suite'in tamamını **publish edilecek image'a karşı** koşar (per-build postgres + redis + app container, hepsi tek network'te). 2026-08-09'a kadar yalnız tek proje koşuyordu — auth arkasındaki her şey kapsam dışıydı; artık `playwright test` argümansız çalışıyor. `--grep` ile daraltmak YASAK: setup projesini de eler, kimse seed edilmez, ilk gerçek login 401 verir. Kırmızı E2E → image push edilmez. Artifact: `test-results/**` (screenshot, video, trace), `playwright-report/**`, `junit.xml`.
+
+[Playwright — promo media pipeline]
+└─ Category: Screenshot Generation
+└─ Purpose: `scripts/promo/` altındaki README görsel üretim hattı (2026-08-13). Yeni bağımlılık yok — mevcut Playwright + tsx üzerine kurulu. **Üçüncü bir ortam** açar: port 3200, `grabshark_promo` veritabanı, Redis db 14, `data-promo/` storage; hepsi kök `DATABASE_URL`/`REDIS_URL`'den türetilir ve `env.ts` türetme dev veritabanına düşerse çalışmayı reddeder. E2E'den ayrı olmasının sebebi: E2E kendi verisini her koşuda yok eder ve rate-limit kovalarını temizler; promo ise uzun ömürlü, küratörlü bir kütüphane tutar. **Worker'ı da koşar** (`stack.ts`) — E2E'nin bilinçli olarak koşmadığı parça, ama önizleme, format rozetleri ve dosya boyutları ancak gerçek arşivlemeyle doğar. Akış: `promo:db --reset` → `promo:stack` → `promo:seed` (8 koleksiyon / 34 gerçek URL, ürünün kendi REST'i üzerinden) → arşivleme (~1 sa) → `promo:seed --titles` → `promo:highlights` (okuyucu UI'ından, waterfall anchor verisi gerçek olsun diye) → `promo:capture` (ham PNG, 2× DPR, iki tema) → `promo:frame` (çerçeveli, şeffaf zeminli kompozisyon). Çıktı: `assets/promo/framed/` (git'te, README bunlara bakıyor) + `assets/promo/raw/` (gitignore, yeniden üretilebilir). Rehber: `scripts/promo/README.md`.
 
 [playwright-extra + puppeteer-extra-plugin-stealth]
 └─ Category: Stealth Plugin Layer
